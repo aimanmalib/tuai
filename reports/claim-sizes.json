@@ -1,31 +1,64 @@
 {
-  "description": "Claim transaction sizes in bytes, measured on the CashScript mock network (BCH_2026_05 VM). One P2PKH funding input and one change output; Schnorr signatures. Proofs use the deepest index at each depth.",
+  "description": "Transaction sizes in bytes, measured on the CashScript mock network (BCH_2026_05 VM). Claims: one P2PKH funding input and one change output, Schnorr signatures, proofs at the deepest index of each depth. Root gate: two ECDSA operator signatures for propose, no operator key for activate; one funding input and one change output each.",
   "generatedBy": "scripts/claim-sizes.ts",
   "feeRateSatsPerByte": 1,
   "contractBytes": {
-    "ClaimPool": 540,
-    "PoolVault": 39
+    "ClaimPool": 563,
+    "PoolVault": 39,
+    "RootGate": 337
   },
   "claims": [
     {
       "depth": 1,
-      "firstClaimBytes": 1607,
-      "additionalClaimBytes": 1456
+      "firstClaimBytes": 1631,
+      "additionalClaimBytes": 1480,
+      "poolInput": {
+        "unlockingBytes": 638,
+        "operationCost": 64104,
+        "maximumOperationCost": 543200,
+        "hashDigestIterations": 14,
+        "maximumHashDigestIterations": 339
+      }
     },
     {
       "depth": 9,
-      "firstClaimBytes": 1867,
-      "additionalClaimBytes": 1716
+      "firstClaimBytes": 1891,
+      "additionalClaimBytes": 1740,
+      "poolInput": {
+        "unlockingBytes": 898,
+        "operationCost": 135465,
+        "maximumOperationCost": 751200,
+        "hashDigestIterations": 30,
+        "maximumHashDigestIterations": 469
+      }
     },
     {
       "depth": 16,
-      "firstClaimBytes": 2092,
-      "additionalClaimBytes": 1941
+      "firstClaimBytes": 2116,
+      "additionalClaimBytes": 1965,
+      "poolInput": {
+        "unlockingBytes": 1123,
+        "operationCost": 209714,
+        "maximumOperationCost": 931200,
+        "hashDigestIterations": 44,
+        "maximumHashDigestIterations": 582
+      }
     },
     {
       "depth": 24,
-      "firstClaimBytes": 2349,
-      "additionalClaimBytes": 2198
+      "firstClaimBytes": 2373,
+      "additionalClaimBytes": 2222,
+      "poolInput": {
+        "unlockingBytes": 1380,
+        "operationCost": 308057,
+        "maximumOperationCost": 1136800,
+        "hashDigestIterations": 60,
+        "maximumHashDigestIterations": 710
+      }
     }
-  ]
+  ],
+  "operator": {
+    "proposeBytes": 862,
+    "activateBytes": 1473
+  }
 }

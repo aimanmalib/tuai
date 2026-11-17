@@ -20,9 +20,11 @@ that a CashScript contract checks. The operator's cost per period no longer grow
 - **Claim pool:** pays `cumulative - alreadyClaimed` to the locking bytecode in the leaf, so whoever submits
   a claim cannot redirect the payment. Claim receipts stay inside the contract as a sorted linked list.
 - **Contracts:** [`contracts/ClaimPool.cash`](contracts/ClaimPool.cash) checks claims;
-  [`contracts/PoolVault.cash`](contracts/PoolVault.cash) holds reward tokens and receipts. Layout and reasons:
-  [ADR 0002](docs/decisions/0002-claim-pool-and-receipts.md). Measured claim sizes:
-  [`reports/claim-sizes.json`](reports/claim-sizes.json).
+  [`contracts/PoolVault.cash`](contracts/PoolVault.cash) holds reward tokens and receipts;
+  [`contracts/RootGate.cash`](contracts/RootGate.cash) holds the pending root and enforces 2 of 3 and the delay.
+  Layout and reasons: [ADR 0002](docs/decisions/0002-claim-pool-and-receipts.md),
+  [ADR 0003](docs/decisions/0003-root-gate.md). Measured sizes and VM limits by proof depth:
+  [`docs/DEPTH.md`](docs/DEPTH.md), generated from [`reports/claim-sizes.json`](reports/claim-sizes.json).
 - **Inputs hash:** the root is published together with a hash of the input manifest so anyone can recompute it.
 
 Decisions are recorded in [`docs/decisions/`](docs/decisions/). Test vectors for the leaf and tree format
@@ -37,7 +39,7 @@ npm ci
 npm test                       # unit and contract tests (offline)
 npm run vectors                # regenerate examples/vectors.json
 npm run contracts              # compile contracts/*.cash into src/contracts/artifacts
-npm run claim-sizes            # regenerate reports/claim-sizes.json (mock network)
+npm run claim-sizes            # regenerate reports/claim-sizes.json and docs/DEPTH.md (mock network)
 bash scripts/gerbang-ujian.sh  # full offline gate: lint, typecheck, contract compile check, tests
 ```
 
