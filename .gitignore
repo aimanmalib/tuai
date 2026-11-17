@@ -1,0 +1,34 @@
+node_modules/
+dist/
+coverage/
+test-results/
+playwright-report/
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+data/
+*.db
+*.sqlite
+
+# local working notes, kept outside the public repo
+/NEXT.md
+/CLAUDE.md
+/CLAUDE.local.md
+/.claude/
+/PELAN-*.md
+/PASTE*.md
+/PRD-*.md
+/docs/hantar/
+/dalaman/
+/state/
+
+# host values and deploy state
+/deploy/hos.env
+/deploy/CURRENT_TAG
+/deploy/PREVIOUS_TAG
+
+# wallets and keys are never tracked
+/keys/
+*.wif

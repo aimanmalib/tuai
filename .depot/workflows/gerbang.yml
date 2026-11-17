@@ -1,0 +1,19 @@
+# Gate workflow for the FoldingCash pull-claim contracts and tools (Node + npm, package-lock.json). Manual dispatch only.
+# No secrets and no network: contracts run on the CashScript mock network; CI checks types, unit tests, contract tests and the static build.
+name: gerbang
+on: workflow_dispatch
+jobs:
+  gerbang:
+    runs-on: depot-ubuntu-24.04-4
+    timeout-minutes: 30
+    env:
+      NO_COLOR: "1"
+      CI: "1"
+      TERM: dumb
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: bash scripts/gerbang-ujian.sh
