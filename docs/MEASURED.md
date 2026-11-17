@@ -18,6 +18,17 @@ from [`examples/distro-example.json`](../examples/distro-example.json): the same
 recipients written by `scripts/example-distro.ts`. Rebuild and check it with
 `npx tsx bin/tuai.ts epoch verify deployments/fixtures/example-distro/epoch-1.json`.
 
+## Sponsor push distributions on mainnet
+
+Measured 2026-11-17 16:14 UTC by `npm run push-measure`: the public indexer returned 100 candidate transactions for
+the reward token category; each was read from Electrum `bch.imaginary.cash` and 22 have the push distribution layout
+(one per month from 2025-01-11 to 2026-10-13, 1 to 3 recipients each, 262 to 557 bytes, fee = size + 1 sat, 1,000
+sat of dust per recipient). Every txid, size and fee is in [`reports/push-distributions.json`](../reports/push-distributions.json)
+and in the table of [`COST.md`](COST.md). BCH price at the same time: 208.16 USD (CoinGecko simple price API).
+
+An earlier run on the same day read every candidate but failed on exit (`Manual connection management is disabled` when
+closing the Electrum connection); the script now opens one managed connection and the rerun above completed.
+
 ## Chipnet
 
 No transactions yet.

@@ -1,0 +1,236 @@
+{
+  "description": "Live push distributions of the sponsor reward token on mainnet: output 0 is BCH change to the distributor and every other output carries the dust amount and tokens to one P2PKH recipient. Candidates come from the public indexer; every transaction and every spent output is fetched from Electrum and measured here.",
+  "generatedBy": "scripts/push-measure.ts",
+  "measuredAtUtc": "2026-11-17T16:14:09.257Z",
+  "indexer": "https://gql.chaingraph.pat.mn/v1/graphql",
+  "electrum": "bch.imaginary.cash",
+  "category": "0adb865ee9cc3038de87fba682e6cd361414edc9acff0da2fd0690d75341c640",
+  "candidatesChecked": 100,
+  "price": {
+    "usdPerBch": 208.16,
+    "source": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin-cash&vs_currencies=usd",
+    "measuredAtUtc": "2026-11-17T16:14:09.660Z"
+  },
+  "distributions": [
+    {
+      "txid": "79eac3edea92ecd37ae952f13384389c88fc3ddab0a21db94b313a1c7617a8a3",
+      "bytes": 416,
+      "inputs": 1,
+      "recipients": 3,
+      "feeSats": 417,
+      "dustSats": 3000,
+      "blockHeight": 880526,
+      "blockTimeUtc": "2025-01-11T05:10:04.000Z"
+    },
+    {
+      "txid": "289dd4fe62ee31bfe5ed83a161661d43011b2e74e8dda8b799e4f1f1f4cc77a3",
+      "bytes": 339,
+      "inputs": 1,
+      "recipients": 2,
+      "feeSats": 340,
+      "dustSats": 2000,
+      "blockHeight": 883738,
+      "blockTimeUtc": "2025-02-03T04:51:55.000Z"
+    },
+    {
+      "txid": "5f0644b5420c4dbb7d48814ae96ad64793b736c051d2b810336058e41f17edbe",
+      "bytes": 557,
+      "inputs": 2,
+      "recipients": 3,
+      "feeSats": 558,
+      "dustSats": 3000,
+      "blockHeight": 888970,
+      "blockTimeUtc": "2025-03-11T02:39:27.000Z"
+    },
+    {
+      "txid": "64eca2cdd6babffc8a186cf7f80e693ae130e78cce03909b479f5bbe07f7b22e",
+      "bytes": 416,
+      "inputs": 1,
+      "recipients": 3,
+      "feeSats": 417,
+      "dustSats": 3000,
+      "blockHeight": 892380,
+      "blockTimeUtc": "2025-04-04T03:34:41.000Z"
+    },
+    {
+      "txid": "cc842a220380560186d18da7f1a0a0118076539a92204dd558e78aea8910a405",
+      "bytes": 339,
+      "inputs": 1,
+      "recipients": 2,
+      "feeSats": 340,
+      "dustSats": 2000,
+      "blockHeight": 896814,
+      "blockTimeUtc": "2025-05-04T17:13:41.000Z"
+    },
+    {
+      "txid": "11e8a2a1e132ea3afa073fc4ce3804ddbc6959347ca08d1b5202cedd18fef37c",
+      "bytes": 339,
+      "inputs": 1,
+      "recipients": 2,
+      "feeSats": 340,
+      "dustSats": 2000,
+      "blockHeight": 903242,
+      "blockTimeUtc": "2025-06-17T19:19:30.000Z"
+    },
+    {
+      "txid": "a143e19f313aba7741de509a9c8cf6f3fbd1f4963683145e2eb67d078af05bb6",
+      "bytes": 416,
+      "inputs": 1,
+      "recipients": 3,
+      "feeSats": 417,
+      "dustSats": 3000,
+      "blockHeight": 906003,
+      "blockTimeUtc": "2025-07-07T03:20:06.000Z"
+    },
+    {
+      "txid": "1ca23c09abc4ea1a1d6ae43cd5bca35ae8a35b72db29a475c9d26e8a679a5675",
+      "bytes": 339,
+      "inputs": 1,
+      "recipients": 2,
+      "feeSats": 340,
+      "dustSats": 2000,
+      "blockHeight": 910334,
+      "blockTimeUtc": "2025-08-05T17:06:20.000Z"
+    },
+    {
+      "txid": "ab875f23fbcccc735159b6644321a728a493894eef79f99ef714a7c245f2a741",
+      "bytes": 339,
+      "inputs": 1,
+      "recipients": 2,
+      "feeSats": 340,
+      "dustSats": 2000,
+      "blockHeight": 914998,
+      "blockTimeUtc": "2025-09-06T17:29:09.000Z"
+    },
+    {
+      "txid": "ed2cfe72ae2e2b7900902d1239d3366f8eb216f8ddc756c7e1a76dd66b18d8c5",
+      "bytes": 416,
+      "inputs": 1,
+      "recipients": 3,
+      "feeSats": 417,
+      "dustSats": 3000,
+      "blockHeight": 918961,
+      "blockTimeUtc": "2025-10-04T02:59:59.000Z"
+    },
+    {
+      "txid": "8e000a087ef5562f558f52549c96769556a718c47260910555afe41e2a82fec9",
+      "bytes": 339,
+      "inputs": 1,
+      "recipients": 2,
+      "feeSats": 340,
+      "dustSats": 2000,
+      "blockHeight": 923295,
+      "blockTimeUtc": "2025-11-03T04:47:17.000Z"
+    },
+    {
+      "txid": "f1f4880f42de9f207c9d838c4fe756edb28e72c9d4a1d1d169e41b46822f7b87",
+      "bytes": 416,
+      "inputs": 1,
+      "recipients": 3,
+      "feeSats": 417,
+      "dustSats": 3000,
+      "blockHeight": 927492,
+      "blockTimeUtc": "2025-12-01T20:34:06.000Z"
+    },
+    {
+      "txid": "0436bca73a1c9fdaa269c2787d14c3aa2e0c92670a64acb525cd5677d561b515",
+      "bytes": 416,
+      "inputs": 1,
+      "recipients": 3,
+      "feeSats": 417,
+      "dustSats": 3000,
+      "blockHeight": 933162,
+      "blockTimeUtc": "2026-01-09T20:17:20.000Z"
+    },
+    {
+      "txid": "4b0e7af3872da67b8046bd3eab5c501482a6a0d6bb9b28725a3f6e528abdd5e4",
+      "bytes": 339,
+      "inputs": 1,
+      "recipients": 2,
+      "feeSats": 340,
+      "dustSats": 2000,
+      "blockHeight": 938776,
+      "blockTimeUtc": "2026-02-17T18:08:01.000Z"
+    },
+    {
+      "txid": "cbcbfb37bb98e7af2c225e80d98f33f6f5174225c09adbaacf29483a05b2d3fc",
+      "bytes": 339,
+      "inputs": 1,
+      "recipients": 2,
+      "feeSats": 340,
+      "dustSats": 2000,
+      "blockHeight": 942206,
+      "blockTimeUtc": "2026-03-13T19:40:31.000Z"
+    },
+    {
+      "txid": "82628c46140afd44a6786e539fe6a2c34cb39a693583d67da1a4d464e4ef0f1d",
+      "bytes": 262,
+      "inputs": 1,
+      "recipients": 1,
+      "feeSats": 263,
+      "dustSats": 1000,
+      "blockHeight": 945185,
+      "blockTimeUtc": "2026-04-03T15:05:58.000Z"
+    },
+    {
+      "txid": "2b9d5931f427da5a8e1a52ff770815f108d40bb45c3d20f34c8c796e7301f37c",
+      "bytes": 262,
+      "inputs": 1,
+      "recipients": 1,
+      "feeSats": 263,
+      "dustSats": 1000,
+      "blockHeight": 949856,
+      "blockTimeUtc": "2026-05-06T13:51:18.000Z"
+    },
+    {
+      "txid": "b56e96cf1f62726a7177bb0c43d2e1dc0276f6461e7d2402f592e8bbd659513f",
+      "bytes": 262,
+      "inputs": 1,
+      "recipients": 1,
+      "feeSats": 263,
+      "dustSats": 1000,
+      "blockHeight": 955043,
+      "blockTimeUtc": "2026-06-12T19:29:18.000Z"
+    },
+    {
+      "txid": "fdb558082d2822be06eab21d02558ebe1ca1c3e29be087f66fcfd45774bf2e9c",
+      "bytes": 262,
+      "inputs": 1,
+      "recipients": 1,
+      "feeSats": 263,
+      "dustSats": 1000,
+      "blockHeight": 958500,
+      "blockTimeUtc": "2026-07-06T18:17:14.000Z"
+    },
+    {
+      "txid": "b8a7f29dc9550239d6a3c410d685158bc54ffdbceae157cd3e218ca8ac5b4239",
+      "bytes": 262,
+      "inputs": 1,
+      "recipients": 1,
+      "feeSats": 263,
+      "dustSats": 1000,
+      "blockHeight": 968675,
+      "blockTimeUtc": "2026-09-15T20:45:57.000Z"
+    },
+    {
+      "txid": "bbd85b12eebbc1c2e55f54890cba96bbb0594d1499a3ed470ab12777424bef85",
+      "bytes": 262,
+      "inputs": 1,
+      "recipients": 1,
+      "feeSats": 263,
+      "dustSats": 1000,
+      "blockHeight": 968675,
+      "blockTimeUtc": "2026-09-15T20:45:57.000Z"
+    },
+    {
+      "txid": "007923e7b00b16d5f17c404f7dba775e36f04668a56cec95beed04840827d753",
+      "bytes": 339,
+      "inputs": 1,
+      "recipients": 2,
+      "feeSats": 340,
+      "dustSats": 2000,
+      "blockHeight": 972707,
+      "blockTimeUtc": "2026-10-13T15:58:49.000Z"
+    }
+  ]
+}

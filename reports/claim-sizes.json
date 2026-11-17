@@ -21,6 +21,18 @@
       }
     },
     {
+      "depth": 7,
+      "firstClaimBytes": 1825,
+      "additionalClaimBytes": 1674,
+      "poolInput": {
+        "unlockingBytes": 832,
+        "operationCost": 116268,
+        "maximumOperationCost": 698400,
+        "hashDigestIterations": 26,
+        "maximumHashDigestIterations": 436
+      }
+    },
+    {
       "depth": 9,
       "firstClaimBytes": 1891,
       "additionalClaimBytes": 1740,
@@ -30,6 +42,30 @@
         "maximumOperationCost": 751200,
         "hashDigestIterations": 30,
         "maximumHashDigestIterations": 469
+      }
+    },
+    {
+      "depth": 10,
+      "firstClaimBytes": 1923,
+      "additionalClaimBytes": 1772,
+      "poolInput": {
+        "unlockingBytes": 930,
+        "operationCost": 145399,
+        "maximumOperationCost": 776800,
+        "hashDigestIterations": 32,
+        "maximumHashDigestIterations": 485
+      }
+    },
+    {
+      "depth": 14,
+      "firstClaimBytes": 2051,
+      "additionalClaimBytes": 1900,
+      "poolInput": {
+        "unlockingBytes": 1058,
+        "operationCost": 187375,
+        "maximumOperationCost": 879200,
+        "hashDigestIterations": 40,
+        "maximumHashDigestIterations": 549
       }
     },
     {

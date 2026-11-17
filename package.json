@@ -16,7 +16,9 @@
     "gate": "bash scripts/gerbang-ujian.sh",
     "vectors": "tsx scripts/vectors.ts",
     "claim-sizes": "tsx scripts/claim-sizes.ts",
-    "tuai": "tsx bin/tuai.ts"
+    "tuai": "tsx bin/tuai.ts",
+    "push-measure": "tsx scripts/push-measure.ts",
+    "cost": "tsx scripts/cost.ts"
   },
   "dependencies": {
     "@bitauth/libauth": "3.0.0",

@@ -3,7 +3,8 @@
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { TransactionBuilder } from 'cashscript';
-import { REPO_ROOT } from '../src/config.ts';
+import { REPO_ROOT, loadConfig } from '../src/config.ts';
+import { treeDepth } from '../src/merkle/tree.ts';
 import { leafFromAddress } from '../src/leaf.ts';
 import { readPending, readPool } from '../src/pool/utxos.ts';
 import { assembleClaim } from '../src/tx/claim.ts';
@@ -15,7 +16,10 @@ import {
 import { DEPTH_DOC_PATH, renderDepthDoc, type ClaimSizeReport, type PoolInputUsage } from './depth-doc.ts';
 
 export const REPORT_PATH = resolve(REPO_ROOT, 'reports/claim-sizes.json');
-export const DEPTHS = [1, 9, 16, 24];
+/** Depths shown in docs/DEPTH.md plus the tree depth of every recipient count in the cost comparison (docs/COST.md). */
+export const DEPTHS = [...new Set([1, 9, 16, 24, ...loadConfig().cost.recipientCounts.map((n) => Math.max(1, treeDepth(n)))])].sort(
+  (a, b) => a - b,
+);
 /** The VM adds this many bytes to the unlocking bytecode length when it sets an input's density budgets. */
 const DENSITY_OVERHEAD_BYTES = 41;
 

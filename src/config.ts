@@ -32,6 +32,23 @@ export interface TuaiConfig {
   rewards: { decimals: number };
   budget: { mainnetMaxSats: number; ledgerPath: string };
   banner: { event: string; bounty: string; prizeAddress: string };
+  cost: CostConfig;
+}
+
+/** Inputs of the push-versus-pull cost comparison (docs/COST.md). */
+export interface CostConfig {
+  /** Recipient counts compared per epoch. */
+  recipientCounts: number[];
+  epochsPerYear: number;
+  /** Standard relay limit on one transaction; larger push distributions are split. */
+  maxStandardTxBytes: number;
+  /** Fungible amount per push output in base units, as a decimal string (sets the output's amount encoding). */
+  pushTokenAmountPerRecipient: string;
+  /** Token category of the sponsor's live push distributions. */
+  sponsorCategory: string;
+  indexerGraphqlUrl: string;
+  priceUrl: string;
+  reportPath: string;
 }
 
 export const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -84,6 +101,23 @@ export function validateConfig(c: TuaiConfig): string[] {
   if (api && !isPositiveInt(api.timeoutSeconds)) problems.push('sponsorApi.timeoutSeconds must be > 0');
   if (!isPositiveInt(c.budget?.mainnetMaxSats)) problems.push('budget.mainnetMaxSats must be > 0');
   if (!c.banner?.prizeAddress?.startsWith('bitcoincash:')) problems.push('banner.prizeAddress must be a mainnet address');
+  problems.push(...validateCost(c.cost));
+  return problems;
+}
+
+function validateCost(k: CostConfig | undefined): string[] {
+  if (!k) return ['cost is missing'];
+  const problems: string[] = [];
+  if (!Array.isArray(k.recipientCounts) || k.recipientCounts.length === 0 || !k.recipientCounts.every(isPositiveInt)) {
+    problems.push('cost.recipientCounts must be positive integers');
+  }
+  if (!isPositiveInt(k.epochsPerYear)) problems.push('cost.epochsPerYear must be > 0');
+  if (!isPositiveInt(k.maxStandardTxBytes)) problems.push('cost.maxStandardTxBytes must be > 0');
+  if (!/^[1-9][0-9]*$/.test(k.pushTokenAmountPerRecipient ?? '')) problems.push('cost.pushTokenAmountPerRecipient must be a positive integer string');
+  if (!/^[0-9a-f]{64}$/.test(k.sponsorCategory ?? '')) problems.push('cost.sponsorCategory must be 32 bytes of hex');
+  if (!/^https:\/\//.test(k.indexerGraphqlUrl ?? '') || !/^https:\/\//.test(k.priceUrl ?? '')) {
+    problems.push('cost URLs must be https');
+  }
   return problems;
 }
 

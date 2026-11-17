@@ -28,6 +28,15 @@ describe('config/tuai.json', () => {
     expect(validateConfig(c).join()).toMatch(/maxDepth/);
   });
 
+  it('rejects an invalid cost comparison setup', () => {
+    const c = clone();
+    c.cost.recipientCounts = [0];
+    c.cost.sponsorCategory = 'xyz';
+    const problems = validateConfig(c).join();
+    expect(problems).toMatch(/cost.recipientCounts/);
+    expect(problems).toMatch(/cost.sponsorCategory/);
+  });
+
   it('rejects a sponsor API interval below one minute', () => {
     const c = clone();
     c.sponsorApi.minIntervalSeconds = 10;
