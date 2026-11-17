@@ -1,0 +1,15 @@
+{
+  "cli": {
+    "usage": "Penggunaan: tuai <arahan> [pilihan]",
+    "unknownCommand": "Arahan tidak dikenali: {command}",
+    "unknownNetwork": "Rangkaian tidak dikenali: {network}. Pilih salah satu: {networks}",
+    "configInvalid": "Konfigurasi tidak sah di {path}: {reason}"
+  },
+  "budget": {
+    "exceeded": "Bajet mainnet melebihi had: {spent} + {next} sat melepasi had {limit} sat",
+    "remaining": "Bajet mainnet: {spent} daripada {limit} sat dibelanja, baki {remaining}"
+  },
+  "wallet": {
+    "address": "{role}: {address}"
+  }
+}

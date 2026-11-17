@@ -1,0 +1,11 @@
+.git
+node_modules
+state
+dalaman
+data
+.env
+.env.*
+docs/hantar
+coverage
+test-results
+playwright-report

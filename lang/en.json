@@ -1,0 +1,15 @@
+{
+  "cli": {
+    "usage": "Usage: tuai <command> [options]",
+    "unknownCommand": "Unknown command: {command}",
+    "unknownNetwork": "Unknown network: {network}. Use one of: {networks}",
+    "configInvalid": "Invalid config at {path}: {reason}"
+  },
+  "budget": {
+    "exceeded": "Mainnet budget exceeded: {spent} + {next} sats is above the limit of {limit} sats",
+    "remaining": "Mainnet budget: {spent} of {limit} sats spent, {remaining} remaining"
+  },
+  "wallet": {
+    "address": "{role}: {address}"
+  }
+}

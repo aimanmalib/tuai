@@ -1,0 +1,59 @@
+{
+  "project": {
+    "name": "Tuai",
+    "subtitle": "pull-based reward claims for FoldingCash",
+    "repoUrl": "https://github.com/aimanmalib/tuai",
+    "siteUrl": "https://tuai.sasateguh.com"
+  },
+  "networks": {
+    "mock": {
+      "addressPrefix": "bchtest",
+      "activationDelayBlocks": 3
+    },
+    "chipnet": {
+      "addressPrefix": "bchtest",
+      "electrum": { "hostname": "chipnet.bch.ninja" },
+      "activationDelayBlocks": 3,
+      "rewardCategory": ""
+    },
+    "mainnet": {
+      "addressPrefix": "bitcoincash",
+      "electrum": { "hostname": "bch.imaginary.cash" },
+      "activationDelayBlocks": 6,
+      "rewardCategory": ""
+    }
+  },
+  "production": {
+    "activationDelayBlocks": 144
+  },
+  "tree": {
+    "maxDepth": 24
+  },
+  "operators": {
+    "threshold": 2,
+    "total": 3,
+    "publicKeys": []
+  },
+  "fees": {
+    "satsPerByte": 1,
+    "tokenOutputDustSats": 1000,
+    "receiptDustSats": 1000
+  },
+  "sponsorApi": {
+    "baseUrl": "https://api.folding.cash",
+    "distroPath": "/v1/GetDistro",
+    "includeFoldingUserTypes": 8,
+    "minIntervalSeconds": 60,
+    "timeoutSeconds": 180,
+    "cacheDir": "state/api"
+  },
+  "budget": {
+    "mainnetMaxSats": 200000,
+    "ledgerPath": "state/belanja.json"
+  },
+  "banner": {
+    "event": "BCH BLAZE 2026",
+    "bounty": "Trust-minimized, pull-based reward claims for FoldingCash",
+    "prizeAddress": "bitcoincash:zplrydnf2z4pj4z9rv7uhmwsuxyrm8hj7uken87e7q"
+  }
+}
