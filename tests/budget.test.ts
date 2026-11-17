@@ -37,7 +37,8 @@ describe('mainnet budget guard', () => {
 
   it('records every mainnet broadcast in the ledger and the run log', async () => {
     f = cliFixture({}, 'mainnet');
-    f.fund('payer-mainnet', 100_000n, 'mainnet');
+    // a funding output at index 1 makes genesis need its preparation transaction, so two broadcasts are recorded
+    f.fund('payer-mainnet', 100_000n, 'mainnet', 1);
     const r = await f.run('token', 'genesis', '--amount', '1000', '--network', 'mainnet');
     expect(r.code, r.text).toBe(0);
     const ledger = readLedger(join(f.dir, 'state/belanja.json'));

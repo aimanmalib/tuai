@@ -17,7 +17,8 @@ export interface CliFixture {
   lines: string[];
   run: (...argv: string[]) => Promise<{ code: number; json: Record<string, unknown> | undefined; text: string }>;
   address: (role: string, network?: NetworkName) => string;
-  fund: (role: string, sats?: bigint, network?: NetworkName) => void;
+  /** `vout` pins the output index; left out, the index is random as on a real wallet. */
+  fund: (role: string, sats?: bigint, network?: NetworkName, vout?: number) => void;
   file: (name: string, content: unknown) => string;
   cleanup: () => void;
 }
@@ -52,8 +53,8 @@ export function cliFixture(extra: ContextOverrides = {}, mockAs?: 'mainnet'): Cl
       return { code, json, text };
     },
     address,
-    fund(role, sats = 1_000_000n, network: NetworkName = 'mock') {
-      provider.addUtxo(address(role, network), randomUtxo({ satoshis: sats }));
+    fund(role, sats = 1_000_000n, network: NetworkName = 'mock', vout?: number) {
+      provider.addUtxo(address(role, network), randomUtxo({ satoshis: sats, ...(vout === undefined ? {} : { vout }) }));
     },
     file(name, content) {
       const path = join(dir, name);
