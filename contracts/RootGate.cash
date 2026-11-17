@@ -1,0 +1,62 @@
+pragma cashscript ^0.14.0;
+
+// Root gate: holds the pending-root NFT (pool category, mutable). See docs/decisions/0003-root-gate.md.
+//
+// propose: 2 of the 3 operator keys replace the pending commitment root(32) epoch(4) inputsHash(32).
+//   Input 0: this contract, pending NFT.     Output 0: this contract, pending NFT with the new commitment.
+//   The epoch may not go down. Replacing the pending NFT creates a new UTXO, so the activation delay starts again.
+//
+// activate: anyone, once the pending UTXO is `delay` blocks old (relative timelock on this input).
+//   Input 0: ClaimPool, state NFT (activate).  Output 0: ClaimPool, state NFT with the pending commitment.
+//   Input 1: this contract, pending NFT.       Output 1: this contract, pending NFT unchanged.
+//   Inputs 2..: funding without tokens.        Outputs 2..: change without tokens.
+//   The pending epoch must be above the active epoch.
+contract RootGate(pubkey operatorA, pubkey operatorB, pubkey operatorC, int delay, bytes32 poolCategory) {
+    function propose(sig first, sig second) {
+        require(this.activeInputIndex == 0);
+        require(checkMultiSig([first, second], [operatorA, operatorB, operatorC]));
+
+        bytes pending = tx.inputs[0].nftCommitment;
+        bytes proposed = tx.outputs[0].nftCommitment;
+        require(tx.outputs[0].lockingBytecode == tx.inputs[0].lockingBytecode);
+        require(tx.outputs[0].tokenCategory == poolCategory + 0x01);
+        require(tx.outputs[0].value == tx.inputs[0].value);
+        require(proposed.length == 68);
+        require(int(proposed.slice(32, 36)) >= int(pending.slice(32, 36)));
+    }
+
+    function activate() {
+        require(this.activeInputIndex == 1);
+        require(this.age >= delay);
+        require(tx.inputs[0].tokenCategory == poolCategory + 0x02);
+        require(tx.inputs[1].tokenCategory == poolCategory + 0x01);
+
+        bytes pending = tx.inputs[1].nftCommitment;
+        require(int(pending.slice(32, 36)) > int(tx.inputs[0].nftCommitment.slice(32, 36)));
+
+        // No other pool, vault or token UTXO moves in an activation.
+        int i = 2;
+        while (i < tx.inputs.length) {
+            require(tx.inputs[i].tokenCategory == 0x);
+            i = i + 1;
+        }
+        int o = 2;
+        while (o < tx.outputs.length) {
+            require(tx.outputs[o].tokenCategory == 0x);
+            o = o + 1;
+        }
+
+        // The state NFT takes the pending commitment and stays at the pool.
+        require(tx.outputs[0].lockingBytecode == tx.inputs[0].lockingBytecode);
+        require(tx.outputs[0].tokenCategory == tx.inputs[0].tokenCategory);
+        require(tx.outputs[0].nftCommitment == pending);
+        require(tx.outputs[0].tokenAmount == 0);
+        require(tx.outputs[0].value == tx.inputs[0].value);
+
+        // The pending NFT stays here unchanged.
+        require(tx.outputs[1].lockingBytecode == tx.inputs[1].lockingBytecode);
+        require(tx.outputs[1].tokenCategory == tx.inputs[1].tokenCategory);
+        require(tx.outputs[1].nftCommitment == pending);
+        require(tx.outputs[1].value == tx.inputs[1].value);
+    }
+}

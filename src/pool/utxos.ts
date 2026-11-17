@@ -24,6 +24,10 @@ export const isReceiptUtxo = (u: SpendableUtxo, poolCategory: string): boolean =
 export const isRewardUtxo = (u: SpendableUtxo, rewardCategory: string): boolean =>
   u.token?.category === rewardCategory && u.token.nft === undefined && u.token.amount > 0n;
 
+/** The root gate's pending-root NFT: the only mutable NFT of the pool category. */
+export const isPendingUtxo = (u: SpendableUtxo, poolCategory: string): boolean =>
+  u.token?.category === poolCategory && u.token.nft?.capability === 'mutable';
+
 export const receiptOf = (u: SpendableUtxo): Receipt => decodeReceipt(u.token?.nft?.commitment ?? '');
 
 /** Reads the pool's state NFT, reward token UTXOs (largest first) and receipts from the network. */
@@ -38,6 +42,19 @@ export async function readPool(contracts: PoolContracts): Promise<PoolUtxos> {
     .sort((a, b) => (a.token?.amount ?? 0n) < (b.token?.amount ?? 0n) ? 1 : -1);
   const receipts = vaultUtxos.filter((u) => isReceiptUtxo(u, poolCategory)).map((utxo) => ({ utxo, receipt: receiptOf(utxo) }));
   return { state, decodedState: decodeState(state.token?.nft?.commitment ?? ''), rewards, receipts };
+}
+
+export interface PendingUtxo {
+  utxo: SpendableUtxo;
+  pending: PoolState;
+}
+
+/** Reads the root gate's pending-root NFT. */
+export async function readPending(contracts: PoolContracts): Promise<PendingUtxo> {
+  const found = (await contracts.gate.getUtxos()).filter((u) => isPendingUtxo(u, contracts.params.poolCategory));
+  if (found.length !== 1) throw new Error(`expected one pending-root NFT, found ${found.length}`);
+  const utxo = found[0] as SpendableUtxo;
+  return { utxo, pending: decodeState(utxo.token?.nft?.commitment ?? '') };
 }
 
 /** Total reward tokens still held by the pool. */

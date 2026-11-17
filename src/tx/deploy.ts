@@ -13,6 +13,9 @@ export interface DeployOptions {
   /** Reward token UTXOs held by the payer (one category, fungible only); all of them move into the vault. */
   rewardUtxos: SpendableUtxo[];
   maxDepth: number;
+  /** Root gate: three operator public keys (hex) and the activation delay in blocks. */
+  operatorKeys: readonly string[];
+  activationDelay: number;
   /** Defaults to an empty root (epoch 0): nothing is claimable before the first root is activated. */
   initialState?: PoolState;
   /** Satoshis kept with each pool output (state NFT, head receipt, reward tokens). */
@@ -27,7 +30,8 @@ export interface DeployPlan {
 
 /**
  * One transaction creates the pool: the minting state NFT (pool contract), the receipt list head and the
- * reward tokens (vault contract). Only the state NFT holds minting rights, and only the pool script can move it.
+ * reward tokens (vault contract), and the pending-root NFT (gate contract) holding the same state.
+ * Only the state NFT holds minting rights, and only the pool script can move it.
  */
 export function buildDeploy(o: DeployOptions): DeployPlan {
   if (o.genesisUtxo.vout !== 0 || o.genesisUtxo.token) throw new Error('genesis input must be a plain BCH output at index 0');
@@ -38,7 +42,11 @@ export function buildDeploy(o: DeployOptions): DeployPlan {
   }
   const rewardAmount = o.rewardUtxos.reduce((sum, u) => sum + (u.token?.amount ?? 0n), 0n);
   const poolCategory = o.genesisUtxo.txid;
-  const contracts = poolContracts({ poolCategory, rewardCategory, maxDepth: o.maxDepth }, o.provider);
+  const contracts = poolContracts(
+    { poolCategory, rewardCategory, maxDepth: o.maxDepth, operatorKeys: o.operatorKeys, activationDelay: o.activationDelay },
+    o.provider,
+  );
+  const initial = binToHex(encodeState(o.initialState ?? EMPTY_STATE));
   const unlocker = o.signer.unlockP2PKH();
   const builder = new TransactionBuilder({ provider: o.provider })
     .addInput(o.genesisUtxo, unlocker)
@@ -49,7 +57,7 @@ export function buildDeploy(o: DeployOptions): DeployPlan {
       token: {
         category: poolCategory,
         amount: 0n,
-        nft: { capability: 'minting', commitment: binToHex(encodeState(o.initialState ?? EMPTY_STATE)) },
+        nft: { capability: 'minting', commitment: initial },
       },
     })
     .addOutput({
@@ -58,6 +66,11 @@ export function buildDeploy(o: DeployOptions): DeployPlan {
       token: { category: poolCategory, amount: 0n, nft: { capability: 'none', commitment: binToHex(encodeReceipt(HEAD_RECEIPT)) } },
     })
     .addOutput({ to: contracts.vault.tokenAddress, amount: o.outputSats, token: { category: rewardCategory, amount: rewardAmount } })
+    .addOutput({
+      to: contracts.gate.tokenAddress,
+      amount: o.outputSats,
+      token: { category: poolCategory, amount: 0n, nft: { capability: 'mutable', commitment: initial } },
+    })
     .addBchChangeOutputIfNeeded({ to: o.payerAddress, feeRate: o.feeRate });
   return { builder, contracts };
 }

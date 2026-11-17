@@ -9,7 +9,7 @@ import { readPool, receiptOf } from '../src/pool/utxos.ts';
 import { unlockerFor } from '../src/pool/contracts.ts';
 import type { ClaimPlan } from '../src/tx/claim.ts';
 import {
-  REWARD_SUPPLY, claim, claimPlan, fund, deployPool, replaceState, sendPlan, stateFor, syntheticProof, testKey, treeOf,
+  REWARD_SUPPLY, claim, claimPlan, fund, deployPool, advanceState, sendPlan, stateFor, syntheticProof, testKey, treeOf,
   type PoolFixture,
 } from './helpers/pool-fixture.ts';
 
@@ -95,7 +95,7 @@ describe('honest claims', () => {
     await claim(f, e.leaves[0] as Leaf, e.proof(0), alice);
     const next = [leafOf(alice, 160n), leafOf(bob, 300n)];
     const t2 = treeOf(next);
-    const pool = await replaceState(f, stateFor(t2.tree.root, 2));
+    const pool = await advanceState(f, stateFor(t2.tree.root, 2));
     const plan = claimPlan(f, pool, next[0] as Leaf, t2.proof(0), alice);
     expect(plan.kind).toBe('additional');
     expect(plan.payment).toBe(60n);

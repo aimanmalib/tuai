@@ -12,7 +12,14 @@ pragma cashscript ^0.14.0;
 // Receipt commitment: key(32) next(32) claimed(8 LE), key = sha256(leaf locking bytecode).
 // Receipts form a list sorted by key read as a little-endian unsigned integer. A first claim spends the
 // predecessor (key < k < next) as proof that k has no receipt yet and inserts k after it.
+// activate: input 1 must be the pending-root NFT (the pool category's only mutable NFT, which never leaves RootGate);
+// RootGate.activate checks the timelock and every output.
 contract ClaimPool(bytes32 poolCategory, bytes32 rewardCategory, bytes vaultBytecode, int maxDepth) {
+    function activate() {
+        require(this.activeInputIndex == 0);
+        require(tx.inputs[1].tokenCategory == poolCategory + 0x01);
+    }
+
     function claim(bytes1 method, bytes8 cumulativeBytes, bytes lockingBytecode, int index, bytes proof) {
         require(this.activeInputIndex == 0);
         require(tx.inputs[0].tokenCategory == poolCategory + 0x02);
