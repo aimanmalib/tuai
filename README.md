@@ -21,7 +21,8 @@ that a CashScript contract checks. The operator's cost per period no longer grow
   a claim cannot redirect the payment. Claim receipts stay inside the contract as a sorted linked list.
 - **Inputs hash:** the root is published together with a hash of the input manifest so anyone can recompute it.
 
-Decisions are recorded in [`docs/decisions/`](docs/decisions/).
+Decisions are recorded in [`docs/decisions/`](docs/decisions/). Test vectors for the leaf and tree format
+(1 to 300 leaves, with preimages and proofs) are in [`examples/vectors.json`](examples/vectors.json).
 
 ## Run it
 
@@ -30,6 +31,7 @@ Requires Node 22.
 ```sh
 npm ci
 npm test                       # unit and contract tests (offline)
+npm run vectors                # regenerate examples/vectors.json
 bash scripts/gerbang-ujian.sh  # full offline gate: lint, typecheck, contract compile check, tests
 ```
 

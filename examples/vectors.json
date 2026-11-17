@@ -1,0 +1,409 @@
+{
+  "description": "Leaf = sha256(0x00 || method || uint64le(cumulative) || lockingBytecode); node = sha256(0x01 || left || right); direction from the index bits (0 = running hash on the left); odd levels padded with 32 zero bytes.",
+  "generator": "scripts/vectors.ts",
+  "vectors": [
+    {
+      "name": "1-leaf",
+      "leafCount": 1,
+      "depth": 0,
+      "root": "9ec461d865c3c5e83861d21150d21e95fef4c389cdff80db8b5bb80680ef2695",
+      "leaves": [
+        {
+          "index": 0,
+          "address": "bitcoincash:zznl9206tl5jj75u233wgua6see0v7psxcu4l42qke",
+          "method": 0,
+          "cumulative": "1000",
+          "lockingBytecode": "76a914a7f2a9fa5fe9297a9c5462e473ba8672f678303688ac",
+          "preimage": "0000e80300000000000076a914a7f2a9fa5fe9297a9c5462e473ba8672f678303688ac",
+          "hash": "9ec461d865c3c5e83861d21150d21e95fef4c389cdff80db8b5bb80680ef2695",
+          "proof": {
+            "index": 0,
+            "siblings": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "2-leaf",
+      "leafCount": 2,
+      "depth": 1,
+      "root": "0e11bf32a63b38b62c463dd73a2ebd98c1aa06f4096f883a89e0adc94e7651a1",
+      "leaves": [
+        {
+          "index": 0,
+          "address": "bitcoincash:zznl9206tl5jj75u233wgua6see0v7psxcu4l42qke",
+          "method": 0,
+          "cumulative": "1000",
+          "lockingBytecode": "76a914a7f2a9fa5fe9297a9c5462e473ba8672f678303688ac",
+          "preimage": "0000e80300000000000076a914a7f2a9fa5fe9297a9c5462e473ba8672f678303688ac",
+          "hash": "9ec461d865c3c5e83861d21150d21e95fef4c389cdff80db8b5bb80680ef2695",
+          "proof": {
+            "index": 0,
+            "siblings": [
+              "9970835103be66f9380102de333806068939d36167201aec1d09e6715d4e94bc"
+            ]
+          }
+        },
+        {
+          "index": 1,
+          "address": "bitcoincash:zrfn3mt8068cjap3ejyvam220ckdxnwrqgxjstv6dw",
+          "method": 0,
+          "cumulative": "2001",
+          "lockingBytecode": "76a914d338ed677e8f897431cc88ceed4a7e2cd34dc30288ac",
+          "preimage": "0000d10700000000000076a914d338ed677e8f897431cc88ceed4a7e2cd34dc30288ac",
+          "hash": "9970835103be66f9380102de333806068939d36167201aec1d09e6715d4e94bc",
+          "proof": {
+            "index": 1,
+            "siblings": [
+              "9ec461d865c3c5e83861d21150d21e95fef4c389cdff80db8b5bb80680ef2695"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3-leaf",
+      "leafCount": 3,
+      "depth": 2,
+      "root": "d94cb78d041669ed9967e167b367257d0a9e58f37b4df25a85678d0ebaceb6d5",
+      "leaves": [
+        {
+          "index": 0,
+          "address": "bitcoincash:zznl9206tl5jj75u233wgua6see0v7psxcu4l42qke",
+          "method": 0,
+          "cumulative": "1000",
+          "lockingBytecode": "76a914a7f2a9fa5fe9297a9c5462e473ba8672f678303688ac",
+          "preimage": "0000e80300000000000076a914a7f2a9fa5fe9297a9c5462e473ba8672f678303688ac",
+          "hash": "9ec461d865c3c5e83861d21150d21e95fef4c389cdff80db8b5bb80680ef2695",
+          "proof": {
+            "index": 0,
+            "siblings": [
+              "9970835103be66f9380102de333806068939d36167201aec1d09e6715d4e94bc",
+              "bb59f5c6f694756b608e08fc1714a3b7f2b106e8de51d6373ff3373ffab0db4c"
+            ]
+          }
+        },
+        {
+          "index": 1,
+          "address": "bitcoincash:zrfn3mt8068cjap3ejyvam220ckdxnwrqgxjstv6dw",
+          "method": 0,
+          "cumulative": "2001",
+          "lockingBytecode": "76a914d338ed677e8f897431cc88ceed4a7e2cd34dc30288ac",
+          "preimage": "0000d10700000000000076a914d338ed677e8f897431cc88ceed4a7e2cd34dc30288ac",
+          "hash": "9970835103be66f9380102de333806068939d36167201aec1d09e6715d4e94bc",
+          "proof": {
+            "index": 1,
+            "siblings": [
+              "9ec461d865c3c5e83861d21150d21e95fef4c389cdff80db8b5bb80680ef2695",
+              "bb59f5c6f694756b608e08fc1714a3b7f2b106e8de51d6373ff3373ffab0db4c"
+            ]
+          }
+        },
+        {
+          "index": 2,
+          "address": "bitcoincash:zp6yucpxhkkangch9f6hus7kfcm8km835ufw5yllkw",
+          "method": 0,
+          "cumulative": "3002",
+          "lockingBytecode": "76a914744e6026bdadd9a3172a757e43d64e367b6cf1a788ac",
+          "preimage": "0000ba0b00000000000076a914744e6026bdadd9a3172a757e43d64e367b6cf1a788ac",
+          "hash": "10f14a49c9c9635767c55afbc29b38697327aac262fb3ed7bf166480b0789f31",
+          "proof": {
+            "index": 2,
+            "siblings": [
+              "0000000000000000000000000000000000000000000000000000000000000000",
+              "0e11bf32a63b38b62c463dd73a2ebd98c1aa06f4096f883a89e0adc94e7651a1"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4-leaf",
+      "leafCount": 4,
+      "depth": 2,
+      "root": "d7bea4c6e300acb5de0b09a0556ca45e43cc128cbf1cc0fa341671a48f61d542",
+      "leaves": [
+        {
+          "index": 0,
+          "address": "bitcoincash:zznl9206tl5jj75u233wgua6see0v7psxcu4l42qke",
+          "method": 0,
+          "cumulative": "1000",
+          "lockingBytecode": "76a914a7f2a9fa5fe9297a9c5462e473ba8672f678303688ac",
+          "preimage": "0000e80300000000000076a914a7f2a9fa5fe9297a9c5462e473ba8672f678303688ac",
+          "hash": "9ec461d865c3c5e83861d21150d21e95fef4c389cdff80db8b5bb80680ef2695",
+          "proof": {
+            "index": 0,
+            "siblings": [
+              "9970835103be66f9380102de333806068939d36167201aec1d09e6715d4e94bc",
+              "3e51accd95857e47cca8420edd721f11eee939c52b57e20e11fc4ee96ab75394"
+            ]
+          }
+        },
+        {
+          "index": 1,
+          "address": "bitcoincash:zrfn3mt8068cjap3ejyvam220ckdxnwrqgxjstv6dw",
+          "method": 0,
+          "cumulative": "2001",
+          "lockingBytecode": "76a914d338ed677e8f897431cc88ceed4a7e2cd34dc30288ac",
+          "preimage": "0000d10700000000000076a914d338ed677e8f897431cc88ceed4a7e2cd34dc30288ac",
+          "hash": "9970835103be66f9380102de333806068939d36167201aec1d09e6715d4e94bc",
+          "proof": {
+            "index": 1,
+            "siblings": [
+              "9ec461d865c3c5e83861d21150d21e95fef4c389cdff80db8b5bb80680ef2695",
+              "3e51accd95857e47cca8420edd721f11eee939c52b57e20e11fc4ee96ab75394"
+            ]
+          }
+        },
+        {
+          "index": 2,
+          "address": "bitcoincash:zp6yucpxhkkangch9f6hus7kfcm8km835ufw5yllkw",
+          "method": 0,
+          "cumulative": "3002",
+          "lockingBytecode": "76a914744e6026bdadd9a3172a757e43d64e367b6cf1a788ac",
+          "preimage": "0000ba0b00000000000076a914744e6026bdadd9a3172a757e43d64e367b6cf1a788ac",
+          "hash": "10f14a49c9c9635767c55afbc29b38697327aac262fb3ed7bf166480b0789f31",
+          "proof": {
+            "index": 2,
+            "siblings": [
+              "abc11875320643d72cd36627894fe7a0a4bd3fa77a4b9e0ef0ccbce3538b0242",
+              "0e11bf32a63b38b62c463dd73a2ebd98c1aa06f4096f883a89e0adc94e7651a1"
+            ]
+          }
+        },
+        {
+          "index": 3,
+          "address": "bitcoincash:zz2grtjzxddzxed924ceupvdeqps2n0h7vmu7n8yf9",
+          "method": 0,
+          "cumulative": "4003",
+          "lockingBytecode": "76a9149481ae42335a2365a555719e058dc803054df7f388ac",
+          "preimage": "0000a30f00000000000076a9149481ae42335a2365a555719e058dc803054df7f388ac",
+          "hash": "abc11875320643d72cd36627894fe7a0a4bd3fa77a4b9e0ef0ccbce3538b0242",
+          "proof": {
+            "index": 3,
+            "siblings": [
+              "10f14a49c9c9635767c55afbc29b38697327aac262fb3ed7bf166480b0789f31",
+              "0e11bf32a63b38b62c463dd73a2ebd98c1aa06f4096f883a89e0adc94e7651a1"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5-leaf",
+      "leafCount": 5,
+      "depth": 3,
+      "root": "c2be93762ad1d7db1957e878bf5eeab7bb62656cfe3e324230b3500f6a23fe7f",
+      "leaves": [
+        {
+          "index": 0,
+          "address": "bitcoincash:zznl9206tl5jj75u233wgua6see0v7psxcu4l42qke",
+          "method": 0,
+          "cumulative": "1000",
+          "lockingBytecode": "76a914a7f2a9fa5fe9297a9c5462e473ba8672f678303688ac",
+          "preimage": "0000e80300000000000076a914a7f2a9fa5fe9297a9c5462e473ba8672f678303688ac",
+          "hash": "9ec461d865c3c5e83861d21150d21e95fef4c389cdff80db8b5bb80680ef2695",
+          "proof": {
+            "index": 0,
+            "siblings": [
+              "9970835103be66f9380102de333806068939d36167201aec1d09e6715d4e94bc",
+              "3e51accd95857e47cca8420edd721f11eee939c52b57e20e11fc4ee96ab75394",
+              "9f79dfc506e01958d73c096bf6f87e21a46a5e1b5c7b605eb92080f9abfa3a9a"
+            ]
+          }
+        },
+        {
+          "index": 1,
+          "address": "bitcoincash:zrfn3mt8068cjap3ejyvam220ckdxnwrqgxjstv6dw",
+          "method": 0,
+          "cumulative": "2001",
+          "lockingBytecode": "76a914d338ed677e8f897431cc88ceed4a7e2cd34dc30288ac",
+          "preimage": "0000d10700000000000076a914d338ed677e8f897431cc88ceed4a7e2cd34dc30288ac",
+          "hash": "9970835103be66f9380102de333806068939d36167201aec1d09e6715d4e94bc",
+          "proof": {
+            "index": 1,
+            "siblings": [
+              "9ec461d865c3c5e83861d21150d21e95fef4c389cdff80db8b5bb80680ef2695",
+              "3e51accd95857e47cca8420edd721f11eee939c52b57e20e11fc4ee96ab75394",
+              "9f79dfc506e01958d73c096bf6f87e21a46a5e1b5c7b605eb92080f9abfa3a9a"
+            ]
+          }
+        },
+        {
+          "index": 2,
+          "address": "bitcoincash:zp6yucpxhkkangch9f6hus7kfcm8km835ufw5yllkw",
+          "method": 0,
+          "cumulative": "3002",
+          "lockingBytecode": "76a914744e6026bdadd9a3172a757e43d64e367b6cf1a788ac",
+          "preimage": "0000ba0b00000000000076a914744e6026bdadd9a3172a757e43d64e367b6cf1a788ac",
+          "hash": "10f14a49c9c9635767c55afbc29b38697327aac262fb3ed7bf166480b0789f31",
+          "proof": {
+            "index": 2,
+            "siblings": [
+              "abc11875320643d72cd36627894fe7a0a4bd3fa77a4b9e0ef0ccbce3538b0242",
+              "0e11bf32a63b38b62c463dd73a2ebd98c1aa06f4096f883a89e0adc94e7651a1",
+              "9f79dfc506e01958d73c096bf6f87e21a46a5e1b5c7b605eb92080f9abfa3a9a"
+            ]
+          }
+        },
+        {
+          "index": 3,
+          "address": "bitcoincash:zz2grtjzxddzxed924ceupvdeqps2n0h7vmu7n8yf9",
+          "method": 0,
+          "cumulative": "4003",
+          "lockingBytecode": "76a9149481ae42335a2365a555719e058dc803054df7f388ac",
+          "preimage": "0000a30f00000000000076a9149481ae42335a2365a555719e058dc803054df7f388ac",
+          "hash": "abc11875320643d72cd36627894fe7a0a4bd3fa77a4b9e0ef0ccbce3538b0242",
+          "proof": {
+            "index": 3,
+            "siblings": [
+              "10f14a49c9c9635767c55afbc29b38697327aac262fb3ed7bf166480b0789f31",
+              "0e11bf32a63b38b62c463dd73a2ebd98c1aa06f4096f883a89e0adc94e7651a1",
+              "9f79dfc506e01958d73c096bf6f87e21a46a5e1b5c7b605eb92080f9abfa3a9a"
+            ]
+          }
+        },
+        {
+          "index": 4,
+          "address": "bitcoincash:rwgyx2gvzfmxrhrn5wz7fz5nlrdnvhs5s3a26at4exhuzn03nvafyquellqd0",
+          "method": 0,
+          "cumulative": "5004",
+          "lockingBytecode": "aa209043290c127661dc73a385e48a93f8db365e14847aad7575c9afc14df19b3a9287",
+          "preimage": "00008c13000000000000aa209043290c127661dc73a385e48a93f8db365e14847aad7575c9afc14df19b3a9287",
+          "hash": "7cb6fcf21d9e4aaeaba27d5984150b02453d3740d13fd127adea334091208c2a",
+          "proof": {
+            "index": 4,
+            "siblings": [
+              "0000000000000000000000000000000000000000000000000000000000000000",
+              "0000000000000000000000000000000000000000000000000000000000000000",
+              "d7bea4c6e300acb5de0b09a0556ca45e43cc128cbf1cc0fa341671a48f61d542"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "300-leaf",
+      "leafCount": 300,
+      "depth": 9,
+      "root": "e7611dfb159ceed765dc842fb63b58e1d4eee0a32124ea1efb582e87004b17ef",
+      "leaves": [
+        {
+          "index": 0,
+          "address": "bitcoincash:zznl9206tl5jj75u233wgua6see0v7psxcu4l42qke",
+          "method": 0,
+          "cumulative": "1000",
+          "lockingBytecode": "76a914a7f2a9fa5fe9297a9c5462e473ba8672f678303688ac",
+          "preimage": "0000e80300000000000076a914a7f2a9fa5fe9297a9c5462e473ba8672f678303688ac",
+          "hash": "9ec461d865c3c5e83861d21150d21e95fef4c389cdff80db8b5bb80680ef2695",
+          "proof": {
+            "index": 0,
+            "siblings": [
+              "9970835103be66f9380102de333806068939d36167201aec1d09e6715d4e94bc",
+              "3e51accd95857e47cca8420edd721f11eee939c52b57e20e11fc4ee96ab75394",
+              "f81946f23f27704bcd072f842d78838a14eb5b70ecb8827e988f6714dfd6772e",
+              "db131f743310069f4722f25642ab978e075b283d55db9719d2a263a6cd909471",
+              "19815296b69114d0a745227b332c7aede897909d48e462b488d0aef3a32d33cc",
+              "ebeb0a855c629c6cd444e348aeee3101a4f2b575caae3cf7b9999d40eff5f1cb",
+              "cd6cf479cae7f77016b4c6caef5eba05f3749fee5e5632c8924de294c17f25f9",
+              "8fe72fc2600cbe5d37fbb073d417835803e00096c15c5323e00b86fb1fa962fc",
+              "3a99be1e6878c7795a9880963f25266804932985ce5ba47e64ad3269ad43c000"
+            ]
+          }
+        },
+        {
+          "index": 1,
+          "address": "bitcoincash:zrfn3mt8068cjap3ejyvam220ckdxnwrqgxjstv6dw",
+          "method": 0,
+          "cumulative": "2001",
+          "lockingBytecode": "76a914d338ed677e8f897431cc88ceed4a7e2cd34dc30288ac",
+          "preimage": "0000d10700000000000076a914d338ed677e8f897431cc88ceed4a7e2cd34dc30288ac",
+          "hash": "9970835103be66f9380102de333806068939d36167201aec1d09e6715d4e94bc",
+          "proof": {
+            "index": 1,
+            "siblings": [
+              "9ec461d865c3c5e83861d21150d21e95fef4c389cdff80db8b5bb80680ef2695",
+              "3e51accd95857e47cca8420edd721f11eee939c52b57e20e11fc4ee96ab75394",
+              "f81946f23f27704bcd072f842d78838a14eb5b70ecb8827e988f6714dfd6772e",
+              "db131f743310069f4722f25642ab978e075b283d55db9719d2a263a6cd909471",
+              "19815296b69114d0a745227b332c7aede897909d48e462b488d0aef3a32d33cc",
+              "ebeb0a855c629c6cd444e348aeee3101a4f2b575caae3cf7b9999d40eff5f1cb",
+              "cd6cf479cae7f77016b4c6caef5eba05f3749fee5e5632c8924de294c17f25f9",
+              "8fe72fc2600cbe5d37fbb073d417835803e00096c15c5323e00b86fb1fa962fc",
+              "3a99be1e6878c7795a9880963f25266804932985ce5ba47e64ad3269ad43c000"
+            ]
+          }
+        },
+        {
+          "index": 150,
+          "address": "bitcoincash:zqed4d5pxuxqljatd06uk0wzg0z9tctal59lgg8zm9",
+          "method": 0,
+          "cumulative": "151150",
+          "lockingBytecode": "76a91432dab681370c0fcbab6bf5cb3dc243c455e17dfd88ac",
+          "preimage": "00006e4e02000000000076a91432dab681370c0fcbab6bf5cb3dc243c455e17dfd88ac",
+          "hash": "8ba3a3614b2a60de27dc712ebe42c7fa694ca84993b4830a8724bb7dfd9fddb5",
+          "proof": {
+            "index": 150,
+            "siblings": [
+              "39c231ef6e8710e5e2dc8d81b1146d1531464cf89d5a279592af750c314154fc",
+              "c6426ba166d59c54b880b0de53924e9a67eb32c8e10894117aba4467bbbf4a5f",
+              "9fae917e8d6edd254f91b48bd8e5e0f68c7ea245e1f19b562dc3419ac1e81375",
+              "4e9ad8ac23b2f51da4554c30cab1ad3eb1c3ea78355413a710f02780e0b4aabc",
+              "2f97cf6573eb07d2abdfe3db95279da8dc69c800b810ce429c0cf069d68a9e91",
+              "698c2f689983750f002681593939472f93fabe8900a71a9f18a2f01b5e528bac",
+              "936f5d887b6278c8004554774ce4a603b26d1b76fd8215d001a736e42eb7dad2",
+              "f505d092575d244b687912ac6f223ab1441e6fdbbcf6969db9ca085aa4c891f2",
+              "3a99be1e6878c7795a9880963f25266804932985ce5ba47e64ad3269ad43c000"
+            ]
+          }
+        },
+        {
+          "index": 298,
+          "address": "bitcoincash:zra56jzcvajftmdjwntc9378989pk6ffjccex64fzg",
+          "method": 0,
+          "cumulative": "299298",
+          "lockingBytecode": "76a914fb4d4858676495edb274d782c7c729ca1b69299688ac",
+          "preimage": "0000229104000000000076a914fb4d4858676495edb274d782c7c729ca1b69299688ac",
+          "hash": "311825e994e526d16825a471f3e81449fc333d016ca99eeef06c47397ba68eca",
+          "proof": {
+            "index": 298,
+            "siblings": [
+              "eccea8acfcc22c642abbe359457b8d9f203d9a001d345ba449f0d750bd6577b7",
+              "10d74cd48f527f90c0787d7b2cfeb34d01e3c15c26756abdfc8037c03e3afc33",
+              "0000000000000000000000000000000000000000000000000000000000000000",
+              "5df93b8bbdb5068c2b63a271e75382d54b7bcda21397b5a4c84958eb4a740d51",
+              "0000000000000000000000000000000000000000000000000000000000000000",
+              "1fe300368280464aea3fd740856dc4d4d1171851e6a4a438e0b6393cfdcb9c0d",
+              "0000000000000000000000000000000000000000000000000000000000000000",
+              "0000000000000000000000000000000000000000000000000000000000000000",
+              "8c78d5aa54a98a2c2e36504dc94e47bf983571aeafd654b4fe6650e2772e32da"
+            ]
+          }
+        },
+        {
+          "index": 299,
+          "address": "bitcoincash:rwm9hhlcr5xj7xln2ypg83rcwk48gm9kccpax3wglrgwh956c0tqcgeaflmsq",
+          "method": 0,
+          "cumulative": "300299",
+          "lockingBytecode": "aa20b65bdff81d0d2f1bf3510283c47875aa746cb6c603d345c8f8d0eb969ac3d60c87",
+          "preimage": "00000b95040000000000aa20b65bdff81d0d2f1bf3510283c47875aa746cb6c603d345c8f8d0eb969ac3d60c87",
+          "hash": "eccea8acfcc22c642abbe359457b8d9f203d9a001d345ba449f0d750bd6577b7",
+          "proof": {
+            "index": 299,
+            "siblings": [
+              "311825e994e526d16825a471f3e81449fc333d016ca99eeef06c47397ba68eca",
+              "10d74cd48f527f90c0787d7b2cfeb34d01e3c15c26756abdfc8037c03e3afc33",
+              "0000000000000000000000000000000000000000000000000000000000000000",
+              "5df93b8bbdb5068c2b63a271e75382d54b7bcda21397b5a4c84958eb4a740d51",
+              "0000000000000000000000000000000000000000000000000000000000000000",
+              "1fe300368280464aea3fd740856dc4d4d1171851e6a4a438e0b6393cfdcb9c0d",
+              "0000000000000000000000000000000000000000000000000000000000000000",
+              "0000000000000000000000000000000000000000000000000000000000000000",
+              "8c78d5aa54a98a2c2e36504dc94e47bf983571aeafd654b4fe6650e2772e32da"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
