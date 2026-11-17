@@ -15,6 +15,10 @@ const mallory = testKey('mallory');
 const keeper = testKey('keeper');
 const alice = testKey('alice');
 const failing = (statement: string): RegExp => new RegExp(`Failing statement: require\\(${statement.replace(/[().[\]+]/g, '\\$&')}`);
+const escape = (text: string): string => text.replace(/[().[\]+]/g, '\\$&');
+/** Like `failing`, but also names the contract whose require failed, so a check in one contract cannot stand in for the other. */
+const failingIn = (contract: 'ClaimPool' | 'RootGate', statement: string): RegExp =>
+  new RegExp(`^${contract}\\.cash:\\d+ Require statement failed[\\s\\S]*Failing statement: require\\(${escape(statement)}`);
 
 const epochOne = (): { leaves: Leaf[]; tree: ReturnType<typeof treeOf> } => {
   const leaves = [leafFromAddress(alice.address, 100n), leafFromAddress(testKey('bob').address, 40n)];
@@ -166,7 +170,7 @@ describe('activate (anyone, after the delay)', () => {
     await expect(sendActivate(f, plan)).rejects.toThrow(failing('tx.inputs[i].tokenCategory == 0x'));
   });
 
-  it('rejects a look-alike pending NFT of another category sent to the gate', async () => {
+  it('rejects a look-alike pending NFT of another category sent to the gate (ClaimPool)', async () => {
     const f = await freshGate();
     const fake = f.provider.addUtxo(f.contracts.gate.tokenAddress, {
       ...randomUtxo({ satoshis: 1000n }),
@@ -176,8 +180,54 @@ describe('activate (anyone, after the delay)', () => {
     const plan = await activatePlanFor(f, { utxo: fake, pending: nextState(2) });
     plan.outputs[1] = { ...plan.outputs[1]!, token: fake.token! };
     expect(pending.pending.epoch).toBe(1);
-    await expect(sendActivate(f, plan)).rejects.toThrow(failing('tx.inputs[1].tokenCategory == poolCategory + 0x01'));
+    await expect(sendActivate(f, plan)).rejects.toThrow(failingIn('ClaimPool', 'tx.inputs[1].tokenCategory == poolCategory + 0x01'));
   });
+
+  it('rejects a look-alike pending NFT in RootGate itself, without the pool contract in the transaction', async () => {
+    // Defence in depth: input 0 carries the pool category's minting capability but is not the ClaimPool, so only
+    // RootGate's own category check on input 1 stands between the look-alike and an activation.
+    const f = await freshGate();
+    const poolCategory = f.contracts.params.poolCategory;
+    const stand = f.provider.addUtxo(keeper.address, {
+      ...randomUtxo({ satoshis: 1000n }),
+      token: { category: poolCategory, amount: 0n, nft: { capability: 'minting', commitment: binToHex(encodeState(stateFor(epochOne().tree.tree.root, 1))) } },
+    });
+    const fake = f.provider.addUtxo(f.contracts.gate.tokenAddress, {
+      ...randomUtxo({ satoshis: 1000n }),
+      token: { category: binToHex(new Uint8Array(32).fill(7)), amount: 0n, nft: { capability: 'mutable', commitment: binToHex(encodeState(nextState(2))) } },
+    });
+    const plan = await activatePlanFor(f, { utxo: fake, pending: nextState(2) });
+    plan.inputs[0] = { utxo: stand, unlocker: keeper.signer.unlockP2PKH() };
+    plan.outputs[0] = { ...plan.outputs[0]!, to: keeper.address, token: { ...stand.token!, nft: { ...stand.token!.nft!, commitment: fake.token!.nft!.commitment } } };
+    plan.outputs[1] = { ...plan.outputs[1]!, token: fake.token! };
+    await expect(sendActivate(f, plan)).rejects.toThrow(failingIn('RootGate', 'tx.inputs[1].tokenCategory == poolCategory + 0x01'));
+  });
+
+  for (const [label, token] of [
+    ['holds no token', undefined],
+    ['holds a mutable NFT of another category', { category: binToHex(new Uint8Array(32).fill(9)), amount: 0n, nft: { capability: 'mutable' as const, commitment: binToHex(encodeState(nextState(2))) } }],
+  ] as const) {
+    it(`rejects a pool activation whose input 1 is an attacker wallet that ${label}`, async () => {
+      // The attack: spend the pool state NFT (minting, controls the vault) with ClaimPool.activate and pair it
+      // with any UTXO the attacker can sign for, so RootGate never runs; then send the state NFT to the attacker.
+      const f = await freshGate();
+      const state = (await readPool(f.contracts)).state;
+      const own = f.provider.addUtxo(mallory.address, { ...randomUtxo({ satoshis: 5000n }), ...(token ? { token } : {}) });
+      const outputs: Output[] = [{ to: mallory.address, amount: state.satoshis, token: state.token! }];
+      if (own.token) outputs.push({ to: mallory.address, amount: 1000n, token: own.token });
+      const plan: ActivatePlan = {
+        inputs: [
+          { utxo: state, unlocker: unlockerFor(f.contracts.pool, 'activate')() },
+          { utxo: own, unlocker: mallory.signer.unlockP2PKH() },
+        ],
+        outputs,
+        changeAddress: mallory.address,
+        feeRate: FEE_RATE,
+      };
+      await expect(sendActivate(f, plan)).rejects.toThrow(failingIn('ClaimPool', 'tx.inputs[1].tokenCategory == poolCategory + 0x01'));
+      expect((await readPool(f.contracts)).state.txid).toBe(state.txid);
+    });
+  }
 
   it('rejects a claim against a root that is only pending', async () => {
     const f = await freshGate();

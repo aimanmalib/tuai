@@ -37,8 +37,11 @@ is limited, visible and auditable before the root takes effect.
    - The mutable NFT never leaves the gate: `propose` and `activate` both put it back at the gate's own bytecode,
      and no other path can spend it. `propose` only runs at input 0 and `activate` only at input 1; a claim has the
      state NFT at input 0 and a vault UTXO at input 1, so the pending NFT cannot be burned inside a claim.
-   - A look-alike NFT of another category sent to the gate address cannot become the pool root: activation checks
-     input 1's category.
+   - A look-alike NFT of another category sent to the gate address cannot become the pool root: `ClaimPool.activate`
+     checks input 1's category, and `RootGate.activate` checks it again so the gate does not rely on the pool alone.
+   - `ClaimPool.activate`'s category check is what binds an activation to the gate: without it, input 1 could be
+     any UTXO the caller can sign for, RootGate would never run, and the state NFT could be sent anywhere.
+     `tests/root-gate.test.ts` tries that attack and expects ClaimPool to refuse it.
    - An activation cannot move vault tokens or receipts even though the minting NFT is present: every input from
      index 2 must carry no tokens.
    - Re-proposing creates a new UTXO, so the delay starts again from its confirmation.
@@ -55,7 +58,8 @@ blocks left, and the chipnet demo records an activation refused before the delay
 ## Consequences and known limits
 
 - The delay is an audit window, not a veto: anyone can recompute a pending root from the published epoch files and
-  raise an alarm, but two operators can still activate after the delay. A one-key cancel function was considered
+  raise an alarm, but a root two operators proposed still activates after the delay, and anyone may
+  submit that activation. A one-key cancel function was considered
   and not taken, because a single faulty key could then block every epoch.
 - Operator keys are fixed in the gate's bytecode. Rotating them means deploying a new gate and pool and moving the
   remaining reward tokens with the old operators' cooperation (a later extension).
