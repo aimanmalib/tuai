@@ -1,0 +1,10 @@
+pragma cashscript ^0.14.0;
+
+// Holds the claim pool's reward tokens and claim receipts.
+// A vault output can only be spent next to the pool's minting state NFT at input 0. That NFT never leaves
+// the ClaimPool contract, so the ClaimPool script at input 0 decides every vault spend.
+contract PoolVault(bytes32 poolCategory) {
+    function spend() {
+        require(tx.inputs[0].tokenCategory == poolCategory + 0x02);
+    }
+}

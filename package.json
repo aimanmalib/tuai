@@ -14,7 +14,8 @@
     "test": "vitest run",
     "contracts": "tsx scripts/compile-contracts.ts",
     "gate": "bash scripts/gerbang-ujian.sh",
-    "vectors": "tsx scripts/vectors.ts"
+    "vectors": "tsx scripts/vectors.ts",
+    "claim-sizes": "tsx scripts/claim-sizes.ts"
   },
   "dependencies": {
     "@bitauth/libauth": "3.0.0",

@@ -1,0 +1,31 @@
+{
+  "description": "Claim transaction sizes in bytes, measured on the CashScript mock network (BCH_2026_05 VM). One P2PKH funding input and one change output; Schnorr signatures. Proofs use the deepest index at each depth.",
+  "generatedBy": "scripts/claim-sizes.ts",
+  "feeRateSatsPerByte": 1,
+  "contractBytes": {
+    "ClaimPool": 540,
+    "PoolVault": 39
+  },
+  "claims": [
+    {
+      "depth": 1,
+      "firstClaimBytes": 1607,
+      "additionalClaimBytes": 1456
+    },
+    {
+      "depth": 9,
+      "firstClaimBytes": 1867,
+      "additionalClaimBytes": 1716
+    },
+    {
+      "depth": 16,
+      "firstClaimBytes": 2092,
+      "additionalClaimBytes": 1941
+    },
+    {
+      "depth": 24,
+      "firstClaimBytes": 2349,
+      "additionalClaimBytes": 2198
+    }
+  ]
+}

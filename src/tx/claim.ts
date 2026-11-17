@@ -1,0 +1,112 @@
+import { TransactionBuilder, type Output, type SignatureTemplate, type SpendableUtxo, type Unlocker, type NetworkProvider } from 'cashscript';
+import { binToHex } from '@bitauth/libauth';
+import { concat, uint64le } from '../bytes.ts';
+import { assertLeaf, type Leaf } from '../leaf.ts';
+import type { MerkleProof } from '../merkle/proof.ts';
+import { encodeReceipt, findReceipt, receiptKey, type Receipt } from '../pool/encoding.ts';
+import { unlockerFor, type PoolContracts } from '../pool/contracts.ts';
+import type { PoolUtxos, ReceiptUtxo } from '../pool/utxos.ts';
+
+export interface ClaimOptions {
+  contracts: PoolContracts;
+  pool: PoolUtxos;
+  leaf: Leaf;
+  proof: MerkleProof;
+  /** Anyone may fund a claim; the payment still goes to the leaf's locking bytecode. */
+  funding: { utxos: SpendableUtxo[]; signer: SignatureTemplate; changeAddress: string };
+  /** Satoshis carried by the payment output and by a newly inserted receipt (paid by the claimant). */
+  paymentSats: bigint;
+  receiptSats: bigint;
+  feeRate: number;
+}
+
+export interface ClaimInput {
+  utxo: SpendableUtxo;
+  unlocker: Unlocker;
+}
+
+/** A claim before it is assembled; tests alter it to prove the contract rejects tampered transactions. */
+export interface ClaimPlan {
+  kind: 'first' | 'additional';
+  payment: bigint;
+  receipt: ReceiptUtxo;
+  inputs: ClaimInput[];
+  outputs: Output[];
+  changeAddress: string;
+  feeRate: number;
+}
+
+const receiptToken = (category: string, receipt: Receipt) => ({
+  category,
+  amount: 0n,
+  nft: { capability: 'none' as const, commitment: binToHex(encodeReceipt(receipt)) },
+});
+
+/** Plans a claim paying `leaf.cumulative - claimed` reward tokens to the leaf's own locking bytecode. */
+export function planClaim(o: ClaimOptions): ClaimPlan {
+  assertLeaf(o.leaf);
+  const { pool, vault, params } = o.contracts;
+  const key = receiptKey(o.leaf.lockingBytecode);
+  const match = findReceipt(o.pool.receipts, (r) => r.receipt, key);
+  if (!match) throw new Error('no receipt to spend for this claim: the receipt list is inconsistent');
+  const claimed = match.kind === 'own' ? match.receipt.claimed : 0n;
+  const payment = o.leaf.cumulative - claimed;
+  if (payment <= 0n) throw new Error('nothing to claim: this leaf is already fully claimed');
+  const reward = o.pool.rewards.find((u) => (u.token?.amount ?? 0n) > payment);
+  if (!reward?.token) throw new Error('no reward UTXO holds more than the payment');
+  const state = o.pool.state;
+  if (!state.token) throw new Error('pool state UTXO has no token');
+
+  const claim = unlockerFor(pool, 'claim')(
+    Uint8Array.of(o.leaf.method),
+    uint64le(o.leaf.cumulative),
+    o.leaf.lockingBytecode,
+    BigInt(o.proof.index),
+    concat(...o.proof.siblings),
+  );
+  const spend = unlockerFor(vault, 'spend')();
+  const signer = o.funding.signer.unlockP2PKH();
+  const inputs: ClaimInput[] = [
+    { utxo: state, unlocker: claim },
+    { utxo: reward, unlocker: spend },
+    { utxo: match.item.utxo, unlocker: spend },
+    ...o.funding.utxos.map((utxo) => ({ utxo, unlocker: signer })),
+  ];
+  const prev = match.receipt;
+  const kept = match.item.utxo.satoshis;
+  const outputs: Output[] = [
+    { to: pool.tokenAddress, amount: state.satoshis, token: state.token },
+    { to: vault.tokenAddress, amount: reward.satoshis, token: { category: params.rewardCategory, amount: reward.token.amount - payment } },
+    { to: o.leaf.lockingBytecode, amount: o.paymentSats, token: { category: params.rewardCategory, amount: payment } },
+  ];
+  if (match.kind === 'own') {
+    outputs.push({ to: vault.tokenAddress, amount: kept, token: receiptToken(params.poolCategory, { ...prev, claimed: o.leaf.cumulative }) });
+  } else {
+    outputs.push(
+      { to: vault.tokenAddress, amount: kept, token: receiptToken(params.poolCategory, { ...prev, next: key }) },
+      {
+        to: vault.tokenAddress,
+        amount: o.receiptSats,
+        token: receiptToken(params.poolCategory, { key, next: prev.next, claimed: o.leaf.cumulative }),
+      },
+    );
+  }
+  return {
+    kind: match.kind === 'own' ? 'additional' : 'first',
+    payment,
+    receipt: match.item,
+    inputs,
+    outputs,
+    changeAddress: o.funding.changeAddress,
+    feeRate: o.feeRate,
+  };
+}
+
+/** Turns a plan into a transaction builder; claimant change (no tokens) is added last. */
+export function assembleClaim(plan: ClaimPlan, provider: NetworkProvider, allowBurn = false): TransactionBuilder {
+  const builder = new TransactionBuilder({ provider, allowImplicitFungibleTokenBurn: allowBurn });
+  for (const input of plan.inputs) builder.addInput(input.utxo, input.unlocker);
+  return builder.addOutputs(plan.outputs).addBchChangeOutputIfNeeded({ to: plan.changeAddress, feeRate: plan.feeRate });
+}
+
+export const buildClaim = (o: ClaimOptions): TransactionBuilder => assembleClaim(planClaim(o), o.contracts.pool.provider);

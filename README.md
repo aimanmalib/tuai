@@ -19,6 +19,10 @@ that a CashScript contract checks. The operator's cost per period no longer grow
   block timelock (`activationDelayBlocks` in `config/tuai.json`). Anyone can activate it after the delay.
 - **Claim pool:** pays `cumulative - alreadyClaimed` to the locking bytecode in the leaf, so whoever submits
   a claim cannot redirect the payment. Claim receipts stay inside the contract as a sorted linked list.
+- **Contracts:** [`contracts/ClaimPool.cash`](contracts/ClaimPool.cash) checks claims;
+  [`contracts/PoolVault.cash`](contracts/PoolVault.cash) holds reward tokens and receipts. Layout and reasons:
+  [ADR 0002](docs/decisions/0002-claim-pool-and-receipts.md). Measured claim sizes:
+  [`reports/claim-sizes.json`](reports/claim-sizes.json).
 - **Inputs hash:** the root is published together with a hash of the input manifest so anyone can recompute it.
 
 Decisions are recorded in [`docs/decisions/`](docs/decisions/). Test vectors for the leaf and tree format
@@ -32,6 +36,8 @@ Requires Node 22.
 npm ci
 npm test                       # unit and contract tests (offline)
 npm run vectors                # regenerate examples/vectors.json
+npm run contracts              # compile contracts/*.cash into src/contracts/artifacts
+npm run claim-sizes            # regenerate reports/claim-sizes.json (mock network)
 bash scripts/gerbang-ujian.sh  # full offline gate: lint, typecheck, contract compile check, tests
 ```
 

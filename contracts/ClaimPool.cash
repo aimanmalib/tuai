@@ -1,0 +1,105 @@
+pragma cashscript ^0.14.0;
+
+// Claim pool state and claim rules. See docs/decisions/0002-claim-pool.md for the transaction layout.
+//
+// Input 0: this contract, state NFT (pool category, minting), commitment root(32) epoch(4) inputsHash(32).
+// Input 1: PoolVault, reward tokens.         Output 0: state NFT, unchanged.
+// Input 2: PoolVault, receipt NFT.           Output 1: PoolVault, reward tokens minus the payment.
+// Inputs 3..: claimant funding (no pool      Output 2: payment to the leaf's locking bytecode.
+//   or vault UTXOs).                         Output 3 (and 4 on a first claim): receipts.
+//                                            Outputs after that: claimant change, no tokens.
+//
+// Receipt commitment: key(32) next(32) claimed(8 LE), key = sha256(leaf locking bytecode).
+// Receipts form a list sorted by key read as a little-endian unsigned integer. A first claim spends the
+// predecessor (key < k < next) as proof that k has no receipt yet and inserts k after it.
+contract ClaimPool(bytes32 poolCategory, bytes32 rewardCategory, bytes vaultBytecode, int maxDepth) {
+    function claim(bytes1 method, bytes8 cumulativeBytes, bytes lockingBytecode, int index, bytes proof) {
+        require(this.activeInputIndex == 0);
+        require(tx.inputs[0].tokenCategory == poolCategory + 0x02);
+
+        // State NFT is recreated unchanged.
+        bytes poolBytecode = tx.inputs[0].lockingBytecode;
+        bytes state = tx.inputs[0].nftCommitment;
+        require(tx.outputs[0].lockingBytecode == poolBytecode);
+        require(tx.outputs[0].tokenCategory == tx.inputs[0].tokenCategory);
+        require(tx.outputs[0].nftCommitment == state);
+        require(tx.outputs[0].tokenAmount == 0);
+        require(tx.outputs[0].value == tx.inputs[0].value);
+
+        // Merkle proof: leaf = sha256(0x00 method cumulative lockingBytecode), node = sha256(0x01 left right).
+        int depth = proof.length / 32;
+        require(proof.length == depth * 32);
+        require(depth <= maxDepth);
+        require(index >= 0);
+        bytes hash = sha256(0x00 + method + cumulativeBytes + lockingBytecode);
+        int position = index;
+        int offset = 0;
+        while (offset < proof.length) {
+            bytes sibling = proof.slice(offset, offset + 32);
+            if (position % 2 == 1) {
+                hash = sha256(0x01 + sibling + hash);
+            } else {
+                hash = sha256(0x01 + hash + sibling);
+            }
+            position = position / 2;
+            offset = offset + 32;
+        }
+        require(position == 0);
+        require(hash == state.slice(0, 32));
+
+        // Receipt: update our own, or insert after the predecessor.
+        bytes32 key = sha256(lockingBytecode);
+        require(tx.inputs[2].lockingBytecode == vaultBytecode);
+        require(tx.inputs[2].tokenCategory == poolCategory);
+        bytes receipt = tx.inputs[2].nftCommitment;
+        require(receipt.length == 72);
+        bytes receiptKey = receipt.slice(0, 32);
+        bytes receiptNext = receipt.slice(32, 64);
+        int claimed = 0;
+        int firstFree = 4;
+        if (receiptKey == key) {
+            claimed = int(receipt.slice(64, 72));
+            require(tx.outputs[3].nftCommitment == key + receiptNext + cumulativeBytes);
+        } else {
+            int lower = int(receiptKey + 0x00);
+            int target = int(key + 0x00);
+            int upper = int(receiptNext + 0x00);
+            require(lower < target);
+            require(target < upper);
+            require(tx.outputs[3].nftCommitment == receiptKey + key + receipt.slice(64, 72));
+            require(tx.outputs[4].lockingBytecode == vaultBytecode);
+            require(tx.outputs[4].tokenCategory == poolCategory);
+            require(tx.outputs[4].nftCommitment == key + receiptNext + cumulativeBytes);
+            firstFree = 5;
+        }
+        require(tx.outputs[3].lockingBytecode == vaultBytecode);
+        require(tx.outputs[3].tokenCategory == poolCategory);
+        require(tx.outputs[3].value == tx.inputs[2].value);
+
+        // Payment: exactly cumulative - claimed reward tokens to the leaf's locking bytecode.
+        int payment = int(cumulativeBytes) - claimed;
+        require(payment > 0);
+        require(tx.inputs[1].lockingBytecode == vaultBytecode);
+        require(tx.inputs[1].tokenCategory == rewardCategory);
+        require(tx.outputs[1].lockingBytecode == vaultBytecode);
+        require(tx.outputs[1].tokenCategory == rewardCategory);
+        require(tx.outputs[1].tokenAmount == tx.inputs[1].tokenAmount - payment);
+        require(tx.outputs[1].value == tx.inputs[1].value);
+        require(tx.outputs[2].lockingBytecode == lockingBytecode);
+        require(tx.outputs[2].tokenCategory == rewardCategory);
+
+        // Claimant inputs may not spend other pool or vault UTXOs; claimant outputs carry no tokens.
+        int i = 3;
+        while (i < tx.inputs.length) {
+            require(tx.inputs[i].lockingBytecode != vaultBytecode);
+            require(tx.inputs[i].lockingBytecode != poolBytecode);
+            i = i + 1;
+        }
+        int o = firstFree;
+        while (o < tx.outputs.length) {
+            require(tx.outputs[o].tokenCategory == 0x);
+            o = o + 1;
+        }
+        require(tx.outputs[2].tokenAmount == payment);
+    }
+}

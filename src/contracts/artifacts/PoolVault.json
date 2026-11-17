@@ -1,0 +1,37 @@
+{
+  "contractName": "PoolVault",
+  "constructorInputs": [
+    {
+      "name": "poolCategory",
+      "type": "bytes32"
+    }
+  ],
+  "abi": [
+    {
+      "name": "spend",
+      "inputs": []
+    }
+  ],
+  "bytecode": "OP_0 OP_UTXOTOKENCATEGORY OP_SWAP OP_2 OP_CAT OP_EQUAL",
+  "source": "pragma cashscript ^0.14.0;\n\n// Holds the claim pool's reward tokens and claim receipts.\n// A vault output can only be spent next to the pool's minting state NFT at input 0. That NFT never leaves\n// the ClaimPool contract, so the ClaimPool script at input 0 decides every vault spend.\ncontract PoolVault(bytes32 poolCategory) {\n    function spend() {\n        require(tx.inputs[0].tokenCategory == poolCategory + 0x02);\n    }\n}\n",
+  "fingerprint": "fddb453269ae613db2989d7cc23a48dda54230334e7435bcec2afd85d1c6712a",
+  "debug": {
+    "bytecode": "00ce7c527e87",
+    "sourceMap": "8:26:8:27;:16::42:1;:46::58:0;:61::65;:46:::1;:8::67",
+    "logs": [],
+    "requires": [
+      {
+        "ip": 7,
+        "line": 8
+      }
+    ]
+  },
+  "compiler": {
+    "name": "cashc",
+    "version": "0.14.0",
+    "options": {
+      "enforceFunctionParameterTypes": true,
+      "enforceLocktimeGuard": true
+    }
+  }
+}
