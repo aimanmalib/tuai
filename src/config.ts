@@ -26,7 +26,10 @@ export interface TuaiConfig {
     minIntervalSeconds: number;
     timeoutSeconds: number;
     cacheDir: string;
+    /** Link method given to leaves built from the API (0: address in the Folding@home name). */
+    linkMethod: 0 | 1;
   };
+  rewards: { decimals: number };
   budget: { mainnetMaxSats: number; ledgerPath: string };
   banner: { event: string; bounty: string; prizeAddress: string };
 }
@@ -73,6 +76,10 @@ export function validateConfig(c: TuaiConfig): string[] {
   if (!api || !/^https:\/\//.test(api.baseUrl)) problems.push('sponsorApi.baseUrl must be https');
   if (api && (!isPositiveInt(api.minIntervalSeconds) || api.minIntervalSeconds < 60)) {
     problems.push('sponsorApi.minIntervalSeconds must be at least 60');
+  }
+  if (api && api.linkMethod !== 0 && api.linkMethod !== 1) problems.push('sponsorApi.linkMethod must be 0 or 1');
+  if (!Number.isInteger(c.rewards?.decimals) || c.rewards.decimals < 0 || c.rewards.decimals > 18) {
+    problems.push('rewards.decimals must be 0..18');
   }
   if (api && !isPositiveInt(api.timeoutSeconds)) problems.push('sponsorApi.timeoutSeconds must be > 0');
   if (!isPositiveInt(c.budget?.mainnetMaxSats)) problems.push('budget.mainnetMaxSats must be > 0');

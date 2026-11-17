@@ -12,13 +12,17 @@
     },
     "chipnet": {
       "addressPrefix": "bchtest",
-      "electrum": { "hostname": "chipnet.bch.ninja" },
+      "electrum": {
+        "hostname": "chipnet.bch.ninja"
+      },
       "activationDelayBlocks": 3,
       "rewardCategory": ""
     },
     "mainnet": {
       "addressPrefix": "bitcoincash",
-      "electrum": { "hostname": "bch.imaginary.cash" },
+      "electrum": {
+        "hostname": "bch.imaginary.cash"
+      },
       "activationDelayBlocks": 6,
       "rewardCategory": ""
     }
@@ -45,7 +49,8 @@
     "includeFoldingUserTypes": 8,
     "minIntervalSeconds": 60,
     "timeoutSeconds": 180,
-    "cacheDir": "state/api"
+    "cacheDir": "state/api",
+    "linkMethod": 0
   },
   "budget": {
     "mainnetMaxSats": 200000,
@@ -55,5 +60,8 @@
     "event": "BCH BLAZE 2026",
     "bounty": "Trust-minimized, pull-based reward claims for FoldingCash",
     "prizeAddress": "bitcoincash:zplrydnf2z4pj4z9rv7uhmwsuxyrm8hj7uken87e7q"
+  },
+  "rewards": {
+    "decimals": 8
   }
 }

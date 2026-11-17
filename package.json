@@ -15,7 +15,8 @@
     "contracts": "tsx scripts/compile-contracts.ts",
     "gate": "bash scripts/gerbang-ujian.sh",
     "vectors": "tsx scripts/vectors.ts",
-    "claim-sizes": "tsx scripts/claim-sizes.ts"
+    "claim-sizes": "tsx scripts/claim-sizes.ts",
+    "tuai": "tsx bin/tuai.ts"
   },
   "dependencies": {
     "@bitauth/libauth": "3.0.0",

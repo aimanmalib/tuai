@@ -1,9 +1,13 @@
 {
   "cli": {
-    "usage": "Penggunaan: tuai <arahan> [pilihan]",
+    "usage": "Guna: tuai <arahan> [pilihan] [--network chipnet|mainnet|mock] [--json]",
     "unknownCommand": "Arahan tidak dikenali: {command}",
     "unknownNetwork": "Rangkaian tidak dikenali: {network}. Pilih salah satu: {networks}",
-    "configInvalid": "Konfigurasi tidak sah di {path}: {reason}"
+    "configInvalid": "Konfigurasi tidak sah di {path}: {reason}",
+    "networks": "Rangkaian: chipnet (lalai), mainnet, mock (dalam proses sahaja, tiada apa disimpan antara larian)",
+    "done": "{command} di {network}:",
+    "error": "Ralat: {message}",
+    "notYet": "Belum lagi: {message}"
   },
   "budget": {
     "exceeded": "Bajet mainnet melebihi had: {spent} + {next} sat melepasi had {limit} sat",

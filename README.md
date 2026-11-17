@@ -43,6 +43,27 @@ npm run claim-sizes            # regenerate reports/claim-sizes.json and docs/DE
 bash scripts/gerbang-ujian.sh  # full offline gate: lint, typecheck, contract compile check, tests
 ```
 
+## Command line
+
+`npx tsx bin/tuai.ts <command> [--network chipnet|mainnet|mock] [--json]` (see
+[ADR 0004](docs/decisions/0004-epoch-files-and-cli.md)). Keys are read from `state/keys/` and never printed.
+
+```sh
+tuai epoch build --source api --start 2026-10-01T00:00:00Z --end 2026-11-01T00:00:00Z --amount 1000
+tuai epoch build --source fixture --file allocations.json [--previous deployments/chipnet/epoch-1.json]
+tuai epoch verify deployments/fixtures/sponsor-2026-10/epoch-1.json   # rebuild a root from its inputs
+tuai watch --epoch <file> [--fah daily_user_summary.txt]               # recompute, check links, compare with chain
+tuai token genesis --amount <units>     # test reward token held by the payer key
+tuai deploy                             # pool, vault, receipt list head and root gate in one transaction
+tuai propose --epoch <file> [--operators 1,3]   # two of three operators
+tuai activate                           # anyone, once the pending root is old enough (exit 3 before that)
+tuai claim <address> --epoch <file> [--payer <key>]   # pays the leaf's own address
+tuai status                             # payer balance, active and pending roots, blocks left
+tuai budget                             # mainnet spending against the configured limit
+```
+
+Measured results (sponsor API data, chipnet transactions) are in [`docs/MEASURED.md`](docs/MEASURED.md).
+
 ## Configuration
 
 Every value that can change (networks, Electrum servers, timelock lengths, tree depth, operator keys, fee and dust

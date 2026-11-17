@@ -1,9 +1,13 @@
 {
   "cli": {
-    "usage": "Usage: tuai <command> [options]",
+    "usage": "Usage: tuai <command> [options] [--network chipnet|mainnet|mock] [--json]",
     "unknownCommand": "Unknown command: {command}",
     "unknownNetwork": "Unknown network: {network}. Use one of: {networks}",
-    "configInvalid": "Invalid config at {path}: {reason}"
+    "configInvalid": "Invalid config at {path}: {reason}",
+    "networks": "Networks: chipnet (default), mainnet, mock (in-process only, nothing is kept between runs)",
+    "done": "{command} on {network}:",
+    "error": "Error: {message}",
+    "notYet": "Not yet: {message}"
   },
   "budget": {
     "exceeded": "Mainnet budget exceeded: {spent} + {next} sats is above the limit of {limit} sats",
