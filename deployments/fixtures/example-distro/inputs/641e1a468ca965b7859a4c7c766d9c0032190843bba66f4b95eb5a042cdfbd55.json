@@ -1,0 +1,30 @@
+{
+ "distro": [
+  {
+   "amount": 600,
+   "cashTokensAddress": "bitcoincash:zrpx44ulw6punau8qqlytcf676rpfp2u7sxkrdjdpy",
+   "pointsGained": 1500000,
+   "workUnitsGained": 10
+  },
+  {
+   "amount": 300,
+   "cashTokensAddress": "bitcoincash:zqtksuqjdec2u3zh4ynspnfc9ylc4flzgslxsgs982",
+   "pointsGained": 750000,
+   "workUnitsGained": 5
+  },
+  {
+   "amount": 100,
+   "cashTokensAddress": "bitcoincash:zzu7j5mgrrx50nygmqjm5t9ek0f49nzayc7gyntrx2",
+   "pointsGained": 250000,
+   "workUnitsGained": 2
+  }
+ ],
+ "distroCount": 3,
+ "endDateTime": "2026-11-01T00:00:00Z",
+ "startDateTime": "2026-10-01T00:00:00Z",
+ "totalDistro": 1000,
+ "totalPoints": 2500000,
+ "totalWorkUnits": 17,
+ "firstErrorCode": 0,
+ "success": true
+}

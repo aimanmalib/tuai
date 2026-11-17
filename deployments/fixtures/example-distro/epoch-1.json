@@ -1,0 +1,78 @@
+{
+ "format": "tuai-epoch/1",
+ "network": "mainnet",
+ "epoch": 1,
+ "root": "b2f6d5fac92b0b321b23db40fcb7636d5108d5066a6dbfaef23b8963f6e0ae03",
+ "inputsHash": "cd8ffd5e63b31e83f93f6f94a873dfc4f721e516b5222db6ed7a9b4fb92490ec",
+ "depth": 2,
+ "manifest": {
+  "format": "tuai-manifest/1",
+  "epoch": 1,
+  "maxDepth": 24,
+  "defaultMethod": 0,
+  "decimals": 8,
+  "previous": null,
+  "inputs": [
+   {
+    "file": "inputs/641e1a468ca965b7859a4c7c766d9c0032190843bba66f4b95eb5a042cdfbd55.json",
+    "sha256": "641e1a468ca965b7859a4c7c766d9c0032190843bba66f4b95eb5a042cdfbd55",
+    "kind": "distro"
+   }
+  ]
+ },
+ "recipients": [
+  {
+   "lockingBytecode": "76a914176870126e70ae4457a92700cd38293f8aa7e24488ac",
+   "method": 0,
+   "cumulative": "30000000000",
+   "highWater": "0"
+  },
+  {
+   "lockingBytecode": "76a914b9e9536818cd47cc88d825ba2cb9b3d352cc5d2688ac",
+   "method": 0,
+   "cumulative": "10000000000",
+   "highWater": "0"
+  },
+  {
+   "lockingBytecode": "76a914c26ad79f7683c9f787003e45e13af68614855cf488ac",
+   "method": 0,
+   "cumulative": "60000000000",
+   "highWater": "0"
+  }
+ ],
+ "leaves": [
+  {
+   "index": 0,
+   "address": "bitcoincash:zqtksuqjdec2u3zh4ynspnfc9ylc4flzgslxsgs982",
+   "method": 0,
+   "cumulative": "30000000000",
+   "lockingBytecode": "76a914176870126e70ae4457a92700cd38293f8aa7e24488ac",
+   "proof": [
+    "0b8f163e653955e510bbb528b39994f7e35d01e45cfd2ba78d86a9418c3fff36",
+    "60b48b937809b8ad1984b50e94103415a0441e18e8e697d00b290ff931bb304e"
+   ]
+  },
+  {
+   "index": 1,
+   "address": "bitcoincash:zzu7j5mgrrx50nygmqjm5t9ek0f49nzayc7gyntrx2",
+   "method": 0,
+   "cumulative": "10000000000",
+   "lockingBytecode": "76a914b9e9536818cd47cc88d825ba2cb9b3d352cc5d2688ac",
+   "proof": [
+    "71670b4858bb01d007d8dcfd2d7252dc327341e87fd429eb3007893c518525e5",
+    "60b48b937809b8ad1984b50e94103415a0441e18e8e697d00b290ff931bb304e"
+   ]
+  },
+  {
+   "index": 2,
+   "address": "bitcoincash:zrpx44ulw6punau8qqlytcf676rpfp2u7sxkrdjdpy",
+   "method": 0,
+   "cumulative": "60000000000",
+   "lockingBytecode": "76a914c26ad79f7683c9f787003e45e13af68614855cf488ac",
+   "proof": [
+    "0000000000000000000000000000000000000000000000000000000000000000",
+    "54e2bb88278c8cdb7bf8c7df444ec52d38dd52ff31a9bcc381215e4f42577871"
+   ]
+  }
+ ]
+}

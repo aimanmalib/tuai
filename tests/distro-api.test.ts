@@ -5,8 +5,8 @@ import { join } from 'node:path';
 import { RateLimitedError, distroUrl, fetchDistro, type ApiOptions } from '../src/api/distro.ts';
 import { distroToAllocations, toAllocations, type DistroResponse } from '../src/epoch/inputs.ts';
 
-// A real response from the sponsor API (October 2026, folding user type 8), kept small and unchanged.
-const REAL = readFileSync(new URL('./fixtures/getdistro-2026-10-type8.json', import.meta.url));
+// A response in the sponsor API's shape with synthetic recipients (written by scripts/example-distro.ts).
+const REAL = readFileSync(new URL('../examples/distro-example.json', import.meta.url));
 const QUERY = { startDate: '2026-10-01T00:00:00Z', endDate: '2026-11-01T00:00:00Z', amount: 1000, includeFoldingUserTypes: 8 };
 
 let dir: string | undefined;
@@ -73,6 +73,12 @@ describe('sponsor distribution API', () => {
     expect(allocations).toHaveLength(response.distroCount ?? -1);
     expect(allocations[0]?.amount).toBe(BigInt(Math.round((response.distro?.[0]?.amount ?? 0) * 1e8)));
     expect(allocations[0]?.lockingBytecode).toMatch(/^76a914[0-9a-f]{40}88ac$/);
+    // The live API returns addresses without the network prefix; both forms give the same locking bytecode.
+    const prefixed = response.distro?.[0]?.cashTokensAddress ?? '';
+    const bare = prefixed.slice(prefixed.indexOf(':') + 1);
+    expect(bare).not.toContain(':');
+    const [fromBare] = toAllocations({ distro: [{ amount: 1, cashTokensAddress: bare }] }, 0);
+    expect(fromBare?.lockingBytecode).toBe(allocations[0]?.lockingBytecode);
     expect(() => toAllocations({ distro: [{ amount: 1, cashTokensAddress: null }] }, 0)).toThrow(/no CashTokens address/);
     expect(() => toAllocations({ success: false, distro: [] }, 0)).toThrow(/reports failure/);
   });

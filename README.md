@@ -51,7 +51,7 @@ bash scripts/gerbang-ujian.sh  # full offline gate: lint, typecheck, contract co
 ```sh
 tuai epoch build --source api --start 2026-10-01T00:00:00Z --end 2026-11-01T00:00:00Z --amount 1000
 tuai epoch build --source fixture --file allocations.json [--previous deployments/chipnet/epoch-1.json]
-tuai epoch verify deployments/fixtures/sponsor-2026-10/epoch-1.json   # rebuild a root from its inputs
+tuai epoch verify deployments/fixtures/example-distro/epoch-1.json   # rebuild a root from its inputs
 tuai watch --epoch <file> [--fah daily_user_summary.txt]               # recompute, check links, compare with chain
 tuai token genesis --amount <units>     # test reward token held by the payer key
 tuai deploy                             # pool, vault, receipt list head and root gate in one transaction
