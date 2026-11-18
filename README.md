@@ -60,7 +60,14 @@ tuai activate                           # anyone, once the pending root is old e
 tuai claim <address> --epoch <file> [--payer <key>]   # pays the leaf's own address
 tuai status                             # payer balance, active and pending roots, blocks left
 tuai budget                             # mainnet spending against the configured limit
+tuai fund demo-5 [--sats N]             # BCH from the payer to another project key (never an outside address)
+tuai demo allocations --round 1|2 --out <file>   # demonstration tree (ADR 0006)
+tuai demo double-claim <address> --epoch <file>  # records the refusal of a second claim
 ```
+
+The chipnet demonstration (300 leaves, two epochs, claims, refused early activations and a refused double claim) is
+recorded with full txids in [`docs/MEASURED.md`](docs/MEASURED.md#chipnet); regenerate its table with
+`npx tsx scripts/chain-report.ts chipnet`.
 
 Measured results (sponsor API data, chipnet transactions) are in [`docs/MEASURED.md`](docs/MEASURED.md).
 
