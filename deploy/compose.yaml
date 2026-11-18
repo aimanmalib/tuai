@@ -1,0 +1,20 @@
+# tuai: one static container (claim page + epoch files) behind the host's reverse proxy. No published port, no volume,
+# no keys. Run through deploy/deploy.sh, which sources deploy/hos.env (host values, not tracked).
+name: tuai
+services:
+  tuai:
+    image: tuai:${TUAI_TAG:-latest}
+    container_name: tuai
+    restart: unless-stopped
+    environment:
+      TZ: UTC
+    read_only: true
+    tmpfs: [/tmp]
+    cpus: 0.25
+    mem_limit: 64m
+    networks: [proxy]
+
+networks:
+  proxy:
+    name: ${TUAI_NETWORK:?set TUAI_NETWORK in deploy/hos.env}
+    external: true
