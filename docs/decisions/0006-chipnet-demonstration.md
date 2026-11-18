@@ -9,11 +9,18 @@ single recipient, and that response names a real participant (it stays in the op
 `docs/MEASURED.md`). A tree that shows proofs at realistic depth needs at least 300 leaves, with claimable leaves at
 both ends and in the middle.
 
-While running the demonstration, chipnet nodes refused an activation that was 12 blocks past a 3-block relative lock
-with `non-BIP68-final`. Chipnet runs one-minute blocks at the time of measurement. A plain P2PKH spend with a
-1-block sequence lock was refused 6 blocks after its coin was mined and accepted 9 blocks after. Block counts do not
-explain either result; reading each "block" of the sequence value as 600 seconds of median time past does (see the
-test `tests/sequence-time.test.ts`, which encodes the measured heights and times).
+While running the demonstration, chipnet nodes refused an activation that was 12 blocks past a 3-block relative
+lock with `non-BIP68-final`. Chipnet runs one-minute blocks at the time of measurement. Measured on 2026-11-18:
+
+- a plain P2PKH spend with a 1-block sequence lock on a coin mined at height 336009 was refused with the tip at
+  336015 and accepted with the tip at 336018;
+- the 3-block activation of a pending root mined at 336009 was refused with the tip at 336021, 336034 and 336037,
+  and accepted with the tip at 336038.
+
+All of these match a node that requires ten blocks per unit of a block-count sequence lock (a lock keeps its
+ten-minute meaning): the first block that may include the activation is 336009 + 30 = 336039. A first reading in
+seconds of median time past predicted acceptance at 336034 and was refuted by the refusal there.
+`tests/sequence-time.test.ts` encodes these heights.
 
 ## Decision
 
@@ -30,16 +37,16 @@ test `tests/sequence-time.test.ts`, which encodes the measured heights and times
    refusal is logged. `tuai demo double-claim` builds a second first claim for an already claimed leaf (it reads the
    receipt list as if the leaf's own receipt were absent), checks it with the local VM and then sends it, recording
    both refusals. `tuai fund demo-N` moves BCH only between project keys, so a second key can pay for a claim.
-4. **Sequence locks per network.** `networks.<name>.sequenceSecondsPerBlock` (600 for chipnet) makes `status` and
-   `activate` wait for the median time past as well as for the block count; without it, the lock counts blocks. The
-   contracts are unchanged: `this.age >= delay` is enforced by the node either way, and the operator tools only
-   decide when an attempt is worth sending.
+4. **Sequence locks per network.** `networks.<name>.sequenceBlockScale` (10 for chipnet) makes `status` and
+   `activate` wait for `activationDelay * scale` blocks; without it the scale is 1. The contracts are unchanged:
+   `this.age >= delay` is enforced by the node either way, and the operator tools only decide when an attempt is
+   worth sending. Every activation attempt logs the pending height and the tip it saw.
 5. `scripts/chain-report.ts` writes `deployments/<network>/transactions.json` from the operator's run log and the
    generated table in `docs/MEASURED.md`, with block heights read from Electrum and each logged size checked against
    the network's.
 
 ## Consequences
 
-- The chipnet activation delay of 3 is roughly 30 minutes of chain time while chipnet keeps one-minute blocks, the
-  same wall-clock meaning it had with ten-minute blocks. A production delay should be set in the same terms.
+- The chipnet activation delay of 3 is 30 one-minute blocks, the same wall-clock meaning it had with ten-minute
+  blocks. A production delay (`production.activationDelayBlocks`) keeps its meaning in ten-minute units.
 - If chipnet or mainnet nodes change how they read sequence values, only the config value changes.

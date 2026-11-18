@@ -17,24 +17,3 @@ export function blocksUntilActivation(confirmedHeight: number | undefined, delay
   return Math.max(0, firstHeight - (tipHeight + 1));
 }
 
-/** Median of the timestamps of a block and the ten before it (BIP113), given oldest-to-newest or any order. */
-export function medianTimePast(timestamps: readonly number[]): number {
-  if (timestamps.length === 0) throw new Error('no block timestamps');
-  const sorted = [...timestamps].sort((a, b) => a - b);
-  return sorted[Math.floor(sorted.length / 2)] as number;
-}
-
-/**
- * Seconds left when the node reads a block-count sequence lock as `secondsPerBlock` units of median time past, as
- * measured on chipnet after one-minute blocks: the lock is met once the tip's median time past reaches the median
- * time past of the block before the pending UTXO's block plus `delay * secondsPerBlock`.
- */
-export function secondsUntilActivation(
-  coinPrevMtp: number | undefined,
-  delay: number,
-  tipMtp: number,
-  secondsPerBlock: number,
-): number | undefined {
-  if (coinPrevMtp === undefined) return undefined;
-  return Math.max(0, coinPrevMtp + delay * secondsPerBlock - tipMtp);
-}

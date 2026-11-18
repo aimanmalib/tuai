@@ -1,34 +1,29 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { loadConfig } from '../src/config.ts';
-import { medianTimePast, secondsUntilActivation } from '../src/gate/maturity.ts';
+import { blocksUntilActivation } from '../src/gate/maturity.ts';
 import { cliFixture, type CliFixture } from './helpers/cli-fixture.ts';
 
-describe('sequence locks read as median time past', () => {
-  it('takes the median of eleven timestamps', () => {
-    expect(medianTimePast([5, 1, 9, 3, 7, 11, 2, 8, 4, 10, 6])).toBe(6);
-    expect(() => medianTimePast([])).toThrow(/no block timestamps/);
-  });
-
+describe('block-count sequence locks scaled by the network', () => {
   it('matches the chipnet refusals and acceptance measured on 2026-11-18', () => {
-    // Pending UTXO mined at 336009; median time past of block 336008 = 23:57:11 UTC (86231 s into the day).
-    const coin = 86_231;
-    // A 1-block lock (600 s) was refused with the tip at 336015 (median 00:06:21 = 86400 + 381) and
-    // accepted with the tip at 336018 (median 00:07:46 = 86400 + 466).
-    expect(secondsUntilActivation(coin, 1, 86_400 + 381, 600)).toBeGreaterThan(0);
-    expect(secondsUntilActivation(coin, 1, 86_400 + 466, 600)).toBe(0);
-    expect(secondsUntilActivation(undefined, 3, 1, 600)).toBeUndefined();
+    // A 1-block lock on a coin mined at 336009 was refused with the tip at 336015 and accepted with the tip at
+    // 336018; with a scale of 10 the first block that may include it is 336019.
+    expect(blocksUntilActivation(336_009, 1 * 10, 336_015)).toBeGreaterThan(0);
+    expect(blocksUntilActivation(336_009, 1 * 10, 336_018)).toBe(0);
+    // The 3-block activation lock on the same height was refused with the tip at 336021 and 336034.
+    expect(blocksUntilActivation(336_009, 3 * 10, 336_021)).toBeGreaterThan(0);
+    expect(blocksUntilActivation(336_009, 3 * 10, 336_034)).toBeGreaterThan(0);
   });
 });
 
 let f: CliFixture;
 afterEach(() => f?.cleanup());
 
-describe('activate on a network with time-read sequence locks', () => {
-  it('waits for the median time past, not only for blocks', async () => {
+describe('activate on a network with a sequence block scale', () => {
+  it('waits for delay times scale blocks', async () => {
     const config = loadConfig();
-    config.networks.mock = { ...config.networks.mock, sequenceSecondsPerBlock: 600 };
-    const chain = { confirmed: undefined as number | undefined, mtp: new Map<number, number>() };
-    f = cliFixture({ config, confirmedHeight: async () => chain.confirmed, medianTime: async (h) => chain.mtp.get(h) ?? 0 });
+    config.networks.mock = { ...config.networks.mock, sequenceBlockScale: 10 };
+    const chain = { confirmed: undefined as number | undefined };
+    f = cliFixture({ config, confirmedHeight: async () => chain.confirmed });
     f.fund('payer-mock');
     const net = ['--network', 'mock'];
     await f.run('token', 'genesis', '--amount', '1000', ...net);
@@ -38,16 +33,13 @@ describe('activate on a network with time-read sequence locks', () => {
     await f.run('propose', '--epoch', e, ...net);
     const tip = await f.provider.getBlockHeight();
     chain.confirmed = tip;
-    chain.mtp.set(tip - 1, 10_000);
-    // Ten blocks later the 3-block delay is met by height, but only 1,000 of the 1,800 seconds have passed.
+    // The contract's delay of 3 is met by height 3 blocks on, but the network needs 30.
     f.provider.setBlockHeight(tip + 10);
-    chain.mtp.set(tip + 10, 11_000);
     const early = await f.run('activate', ...net);
     expect(early.code, early.text).toBe(3);
-    expect(early.text).toMatch(/median time past advances 800 more second/);
-    expect((await f.run('status', ...net)).json?.pool).toMatchObject({ pending: { blocksLeft: 1, secondsLeft: 800 } });
-    f.provider.setBlockHeight(tip + 11);
-    chain.mtp.set(tip + 11, 11_800);
+    expect(early.text).toMatch(/in 19 more block/);
+    expect((await f.run('status', ...net)).json?.pool).toMatchObject({ pending: { blocksLeft: 19 } });
+    f.provider.setBlockHeight(tip + 29);
     const ok = await f.run('activate', ...net);
     expect(ok.code, ok.text).toBe(0);
   });

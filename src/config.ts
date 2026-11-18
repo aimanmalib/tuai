@@ -13,10 +13,10 @@ export interface NetworkConfig {
   /** Block explorer page for a transaction; the txid is appended. */
   explorerTxUrl?: string;
   /**
-   * Set when the network's nodes read a block-count sequence lock as this many seconds of median time past per
-   * block (measured on chipnet with one-minute blocks). Absent: the lock counts blocks.
+   * Blocks the network's nodes require per unit of a block-count sequence lock (measured 10 on chipnet with
+   * one-minute blocks, so a lock keeps its ten-minute meaning). Absent: 1.
    */
-  sequenceSecondsPerBlock?: number;
+  sequenceBlockScale?: number;
 }
 
 export interface TuaiConfig {
@@ -95,8 +95,8 @@ export function validateConfig(c: TuaiConfig): string[] {
     if (!isPositiveInt(n.activationDelayBlocks) || n.activationDelayBlocks > 0xffff) {
       problems.push(`networks.${name}.activationDelayBlocks must be 1..65535 blocks`);
     }
-    if (n.sequenceSecondsPerBlock !== undefined && !isPositiveInt(n.sequenceSecondsPerBlock)) {
-      problems.push(`networks.${name}.sequenceSecondsPerBlock must be > 0`);
+    if (n.sequenceBlockScale !== undefined && !isPositiveInt(n.sequenceBlockScale)) {
+      problems.push(`networks.${name}.sequenceBlockScale must be > 0`);
     }
     if (n.explorerTxUrl !== undefined && !/^https:\/\/.+\/$/.test(n.explorerTxUrl)) {
       problems.push(`networks.${name}.explorerTxUrl must be an https URL ending in /`);
