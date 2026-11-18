@@ -1,0 +1,155 @@
+# Specification
+
+This is the format and transaction reference for Tuai. It describes what the code in `src/` builds and what the
+contracts in `contracts/` accept, so another implementation can produce compatible trees, epoch files and
+transactions. Reasons for each choice are in [`docs/decisions/`](decisions/).
+
+All integers in hashed or committed data are little-endian. `||` is concatenation. `sha256` is single SHA-256.
+
+## 1. Leaf
+
+```
+leaf     = 0x00 || method(1) || cumulative(8, LE, unsigned) || lockingBytecode(1..201)
+leafHash = sha256(leaf)
+```
+
+- `method` records how the address was linked to a Folding@home identity: `0` = the address appears in the
+  Folding@home user name (checkable from the public daily user summary), `1` = FoldingCash's own address mapping.
+  Other values are refused by the library (`src/leaf.ts`).
+- `cumulative` is everything the recipient has earned since the first epoch, in base token units, at most `2^63 - 1`
+  so the contract reads it as a positive script number.
+- `lockingBytecode` is the output script the payment must go to (P2PKH, P2SH or any standard script up to 201
+  bytes). One leaf per locking bytecode: duplicates are merged before a tree is built.
+
+## 2. Tree
+
+```
+node = sha256(0x01 || left(32) || right(32))
+```
+
+- Leaves are ordered by locking bytecode (lowercase hex, ascending). Recipients with a cumulative of zero are left
+  out.
+- `depth` is the smallest `d` with `2^d >= leafCount`; one leaf gives depth 0 and its leaf hash is the root.
+- A level with an odd number of hashes is padded with 32 zero bytes on the right (not by repeating the last hash).
+- The prefixes `0x00` and `0x01` keep leaves and nodes in separate domains, so a node cannot be presented as a leaf.
+- A proof is the list of siblings from the leaf level up, plus the leaf index. Bit `i` of the index (lowest first)
+  says whether the hash at level `i` is a right child (`1`: `node(sibling, hash)`) or a left child
+  (`0`: `node(hash, sibling)`). After the last sibling the remaining index must be 0, so an index cannot be aliased.
+- `tree.maxDepth` in `config/tuai.json` (24) bounds the depth; the contract enforces the same value.
+- Test vectors (1 to 300 leaves, with preimages, roots and proofs): [`examples/vectors.json`](../examples/vectors.json).
+
+## 3. Epoch file and inputs hash
+
+An epoch file (`format: tuai-epoch/1`, written by `tuai epoch build`) holds the root, the inputs hash, the manifest,
+every recipient balance and every leaf with its address and proof. A claimant needs only this file and the chain.
+
+The manifest (`format: tuai-manifest/1`) lists the epoch number, maximum depth, default link method, token decimals,
+the previous epoch (file, number, root) and every input file with its SHA-256 and kind (`distro` for a sponsor
+`GetDistro` response, `allocations` for a plain allocation list) and, for API inputs, the query that produced it.
+Input files are stored next to the epoch file as `inputs/<sha256>.json`.
+
+```
+inputsHash = sha256(canonicalJson(manifest))   // keys sorted at every level, no whitespace
+```
+
+Cumulative amounts: each input adds allocations to the previous epoch's balances. Sponsor amounts are whole tokens
+converted to base units as `round(amount * 10^8)`. Both input kinds the CLI reads are already per-period amounts and
+are added as they are. For a source that reports running credit totals instead, `advanceEpoch` in
+`src/epoch/cumulative.ts` counts new work only above each recipient's high-water mark, so a dip in credit is never
+paid twice; the CLI does not use it yet. `tuai epoch verify <file>` rebuilds the root
+and the inputs hash from the stored inputs and the previous file and fails on any difference.
+
+## 4. On-chain state
+
+Three contracts share one **pool token category** (the txid of the deploy transaction's first input):
+
+| UTXO | Contract | Token | Commitment |
+|---|---|---|---|
+| State NFT | `ClaimPool` | pool category, **minting** | `root(32) \|\| epoch(4, LE) \|\| inputsHash(32)` (68 bytes) |
+| Pending-root NFT | `RootGate` | pool category, **mutable** | same layout as the state NFT |
+| Receipt | `PoolVault` | pool category, **immutable** | `key(32) \|\| next(32) \|\| claimed(8, LE)` (72 bytes) |
+| Reward tokens | `PoolVault` | reward category, fungible | none |
+
+- `key = sha256(lockingBytecode)` of the leaf. Receipts form a singly linked list sorted by key read as a
+  little-endian unsigned integer. The head is `key = 0x00..00, next = 0xff..ff, claimed = 0`.
+- Contract parameters: `ClaimPool(poolCategory, rewardCategory, vaultBytecode, maxDepth)`,
+  `PoolVault(poolCategory)`, `RootGate(operatorA, operatorB, operatorC, delay, poolCategory)`.
+- `PoolVault.spend` only requires input 0 to hold the pool category's minting NFT. That NFT never leaves `ClaimPool`,
+  so the `ClaimPool` script at input 0 decides every vault spend.
+- Each kept UTXO (state, pending root, reward tokens, receipts) keeps its exact satoshi value through every
+  transaction.
+
+## 5. Transactions
+
+Input and output indexes are fixed; the contracts check them by position.
+
+### 5.1 Deploy (`tuai deploy`, `src/tx/deploy.ts`)
+
+| # | Input | Output |
+|---|---|---|
+| 0 | payer BCH, output index 0 of its transaction (its txid becomes the pool category) | `ClaimPool`: state NFT, minting, root 0, epoch 0 |
+| 1.. | payer reward token UTXOs (one category) | `PoolVault`: receipt list head |
+| | | `PoolVault`: all reward tokens |
+| | | `RootGate`: pending-root NFT, mutable, same commitment as the state |
+| | | payer change |
+
+A zero root has no known preimage, so nothing is claimable before the first activation.
+
+### 5.2 Propose (`tuai propose`, `src/tx/propose.ts`, `RootGate.propose(sig, sig)`)
+
+| # | Input | Output |
+|---|---|---|
+| 0 | `RootGate`: pending-root NFT | `RootGate`: pending-root NFT with the new commitment, same value, mutable |
+| 1.. | funding without tokens | change |
+
+Requires 2 of the 3 operator signatures (`OP_CHECKMULTISIG`, ECDSA, in gate key order), a 68-byte commitment, and an
+epoch not below the pending one. Proposing again creates a new UTXO, so the activation delay restarts.
+
+### 5.3 Activate (`tuai activate`, `src/tx/activate.ts`, `ClaimPool.activate()` + `RootGate.activate()`)
+
+| # | Input | Output |
+|---|---|---|
+| 0 | `ClaimPool`: state NFT | `ClaimPool`: state NFT with the pending commitment, same category, value, amount 0 |
+| 1 | `RootGate`: pending-root NFT, sequence = `delay` blocks | `RootGate`: pending-root NFT unchanged |
+| 2.. | funding without tokens | change without tokens |
+
+Needs no key, so anyone can send it. `RootGate.activate` requires `this.age >= delay` (BIP68 relative lock on input
+1), a pending epoch above the active one, and no tokens on any input or output from index 2. `ClaimPool.activate`
+requires input 1 to be the pool category's mutable NFT, which binds the activation to the gate.
+
+### 5.4 Claim (`tuai claim`, `src/tx/claim.ts`, `ClaimPool.claim(method, cumulative, lockingBytecode, index, proof)`)
+
+First claim (no receipt for `key` yet):
+
+| # | Input | Output |
+|---|---|---|
+| 0 | `ClaimPool`: state NFT | `ClaimPool`: state NFT unchanged |
+| 1 | `PoolVault`: reward tokens | `PoolVault`: reward tokens minus `payment`, same value |
+| 2 | `PoolVault`: predecessor receipt `P` with `P.key < key < P.next` | `PoolVault`: `P.key \|\| key \|\| P.claimed`, same value |
+| 3.. | claimant funding (not pool, not vault) | payment: `payment` reward tokens to `lockingBytecode` |
+| | | `PoolVault`: new receipt `key \|\| P.next \|\| cumulative` |
+| | | claimant change, no tokens |
+
+Additional claim (receipt for `key` exists): input 2 is that receipt, output 3 is
+`key || next || cumulative`, and there is no fourth receipt output.
+
+`payment = cumulative - claimed`, which must be above zero; there is no minimum. The script recomputes the leaf hash,
+walks the proof to the active root, checks the receipt rule above, and checks that the payment goes to the leaf's
+own locking bytecode. Whoever submits the claim pays the fee, the payment output's dust and, on a first claim, the
+new receipt's dust; the submitter cannot change where the tokens go. Any reward-token UTXO at the vault can be input 1
+(the builder takes the largest one that covers the payment and leaves at least one unit), so tokens sent to the vault
+address after deploy are claimable too (`tests/vault-topup.test.ts`).
+
+## 6. Sizes and limits
+
+Measured sizes by proof depth, operation cost and the deepest proof the VM accepts are generated into
+[`docs/DEPTH.md`](DEPTH.md); live chipnet sizes are in [`docs/MEASURED.md`](MEASURED.md#chipnet). Each tree level adds
+one 32-byte sibling to a claim.
+
+## 7. Network notes
+
+- Relative locks: chipnet nodes required ten one-minute blocks per unit of a block-count sequence lock at the time of
+  the demonstration (ADR 0006). `networks.<name>.sequenceBlockScale` tells the tools how long to wait; the contracts
+  do not change.
+- The contracts need the 2026 VM (commitments above 40 bytes, proof loops, 33-byte number comparisons). The mock
+  network and chipnet run it.
