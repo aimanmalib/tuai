@@ -118,6 +118,15 @@ Other scripts: `npm run vectors` (test vectors), `npm run contracts` (compile `c
 `npm run claim-sizes` (sizes and `docs/DEPTH.md`), `npm run cost` (`docs/COST.md`), `bash scripts/gerbang-ujian.sh`
 (lint, typecheck, contract compile check, tests).
 
+### Claim page
+
+`npm run web:dev` serves the claim page from `web/`; `npm run web:build` writes it to `dist/` together with the
+committed epoch files under `/epochs/<network>/`. Enter an address (q or z, with or without the prefix): the page
+finds the leaf, recomputes the root in the browser, compares it with the root the pool holds on chain (read over an
+Electrum WebSocket), shows the claimed and claimable amounts from the vault receipt, and gives the claim command. A
+root that differs from the published file is shown as a named warning. English and Malay. `npm run e2e` runs the
+browser tests on WebKit (iPhone 13) and Chromium. See [ADR 0007](docs/decisions/0007-claim-page.md).
+
 ### Command line
 
 `npx tsx bin/tuai.ts <command> [--network chipnet|mainnet|mock] [--json]` (see
@@ -165,7 +174,7 @@ in [`lang/en.json`](lang/en.json) and [`lang/ms.json`](lang/ms.json).
   participant's address is in the demonstration.
 - Chipnet nodes read a block-count sequence lock as ten one-minute blocks per unit at the time of the demonstration,
   so the demo delay of 3 took 30 blocks (ADR 0006).
-- The demonstration runs on chipnet only; there is no claim web page yet.
+- The demonstration runs on chipnet only. The claim page shows the CLI command; it does not sign claims with a wallet.
 
 ## AI disclosure
 
