@@ -29,6 +29,24 @@ and in the table of [`COST.md`](COST.md). BCH price at the same time: 208.16 USD
 An earlier run on the same day read every candidate but failed on exit (`Manual connection management is disabled` when
 closing the Electrum connection); the script now opens one managed connection and the rerun above completed.
 
+## Watcher
+
+Run on 2026-11-18 by `npm run watch-report`; aggregates in [`reports/watch-chipnet.json`](../reports/watch-chipnet.json).
+
+- **Roots on chain.** For epochs 1 and 2 of the chipnet deployment the watcher read the pool state NFT from the
+  recorded propose and activate transactions (Electrum `chipnet.bch.ninja`) and recomputed root and inputs hash from
+  the committed epoch files and inputs. All four pairs match (03:41 UTC); `tuai watch --network chipnet --deployment
+  deployments/chipnet` gives the same result.
+- **Folding@home daily summary.** `https://apps.foldingathome.org/daily_user_summary.txt.bz2` downloaded once at
+  2026-11-18 03:40:15 UTC: 28,753,037 bytes, SHA-256 `135703b69c1d9f01c1afa705f86231f38ad495adb1d470d962724385eb3f3c64`
+  (server Last-Modified 2026-11-18 03:32:57 UTC). The file is public and changes daily, so it is kept by the operator
+  and identified here by hash rather than committed.
+- **Replay of real push distributions.** The 22 push distributions in `reports/push-distributions.json` were read
+  from Electrum `bch.imaginary.cash` and rebuilt as one off-chain epoch: 45 payouts to 6 distinct recipients, replay
+  root `d0506d1aa4d08cd6e143dc8ce724fac13d1384fe7dc1e0d7734a7c0e88bb4773`. Treating every leaf as link method 0, all 6
+  addresses appear in a name of the daily summary; none was unlinked. The per-leaf result stays local because it pairs
+  addresses with Folding@home names.
+
 ## Chipnet
 
 Run on 2026-11-18 with the committed CLI from the project's own chipnet keys. Contracts and parameters:

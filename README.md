@@ -57,8 +57,10 @@ Chipnet transactions below are from the demonstration recorded in [`docs/MEASURE
 | No claim threshold; the claimant pays dust and fee | [`src/tx/claim.ts`](src/tx/claim.ts), `payment > 0` in [`ClaimPool.claim`](contracts/ClaimPool.cash) | `tests/claim-pool.test.ts` | fees and dust came from each claim's own funding input (the project payer key or a demo key), not from the pool; leaf 0's top-up was funded by leaf 150's key and still paid leaf 0 |
 | Reference transaction-building code, chipnet demo of several hundred leaves, cost comparison with push | [`src/tx/`](src/tx/), [`bin/tuai.ts`](bin/tuai.ts), [`docs/MEASURED.md`](docs/MEASURED.md), [`docs/COST.md`](docs/COST.md) | `tests/cli-e2e.test.ts`, `tests/cost.test.ts`, `tests/chipnet-record.test.ts` | all 24 attempts with full txids in [`docs/MEASURED.md`](docs/MEASURED.md#chipnet) |
 
-Stretch items built: cumulative-only roots; inputs hash on chain and a watcher that recomputes roots and checks method 0
-links against the Folding@home daily summary; 2-of-3 root authority; proof depth and VM limit analysis
+Stretch items built: cumulative-only roots; inputs hash on chain and a watcher that reads each epoch's root and inputs
+hash from the chipnet transactions, recomputes both from the committed files, and checks method 0 links of the real
+push distributions against the Folding@home daily summary ([`reports/watch-chipnet.json`](reports/watch-chipnet.json),
+see [Watcher](#watcher)); 2-of-3 root authority; proof depth and VM limit analysis
 ([`docs/DEPTH.md`](docs/DEPTH.md)). Not built: the optional operator push path after a long timelock.
 
 ## Open questions answered
@@ -152,6 +154,16 @@ short cache lifetime and `no-transform`, so a CDN does not rewrite them. The fil
 page and the CLI compare the root they compute with the root the pool holds on chain. Deployment is one static
 container ([`deploy/`](deploy/), [`Dockerfile`](Dockerfile)) that holds no keys.
 
+### Watcher
+
+Anyone can check the operators without trusting them. `tuai watch --network chipnet --deployment deployments/chipnet`
+reads the pool state NFT from every recorded propose and activate transaction and compares its root and inputs hash
+with values rebuilt from the committed epoch files and inputs; any difference exits 1 and is named.
+`npm run watch-report` also downloads the public Folding@home daily summary once, rebuilds the sponsor's real push
+distributions as an off-chain epoch and checks each leaf's method 0 link. The tracked
+[`reports/watch-chipnet.json`](reports/watch-chipnet.json) holds only roots, hashes and counts; results per address stay
+local. The last run is in [`docs/MEASURED.md`](docs/MEASURED.md#watcher).
+
 ### Command line
 
 `npx tsx bin/tuai.ts <command> [--network chipnet|mainnet|mock] [--json]` (see
@@ -163,6 +175,7 @@ tuai epoch build --source api --start 2026-10-01T00:00:00Z --end 2026-11-01T00:0
 tuai epoch build --source fixture --file allocations.json [--previous deployments/chipnet/epoch-1.json]
 tuai epoch verify <epoch file>          # rebuild a root from its inputs
 tuai watch --epoch <file> [--fah daily_user_summary.txt]   # recompute, check links, compare with chain
+tuai watch --deployment deployments/chipnet   # every epoch's root and inputs hash on chain vs recomputed
 tuai token genesis --amount <units>     # test reward token held by the payer key
 tuai deploy                             # pool, vault, receipt list head and root gate in one transaction
 tuai propose --epoch <file> [--operators 1,3]   # two of three operators
