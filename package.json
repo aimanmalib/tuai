@@ -10,7 +10,7 @@
   },
   "scripts": {
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.web.json",
     "test": "vitest run",
     "contracts": "tsx scripts/compile-contracts.ts",
     "gate": "bash scripts/gerbang-ujian.sh",
@@ -19,7 +19,10 @@
     "tuai": "tsx bin/tuai.ts",
     "push-measure": "tsx scripts/push-measure.ts",
     "cost": "tsx scripts/cost.ts",
-    "demo:mock": "vitest run tests/cli-e2e.test.ts --reporter=verbose"
+    "demo:mock": "vitest run tests/cli-e2e.test.ts --reporter=verbose",
+    "web:dev": "vite",
+    "web:build": "vite build",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@bitauth/libauth": "3.0.0",

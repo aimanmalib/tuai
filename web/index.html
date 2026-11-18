@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tuai: claim FoldingCash rewards</title>
+    <meta name="description" content="Check and claim FoldingCash rewards with a Merkle proof verified in your browser against the root held on Bitcoin Cash." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23173f39'/%3E%3Cpath d='M16 26V9M16 14c-4-1-6-4-6-7 4 1 6 3 6 7zm0 4c4-1 6-4 6-7-4 1-6 3-6 7z' stroke='%23d9b23a' stroke-width='2' fill='none'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <div class="banner" role="note">
+      <p><span id="banner-entry"></span> <a id="banner-repo" data-i18n="bannerSource"></a></p>
+      <p class="banner-prize"><span data-i18n="bannerPrize"></span>: <code id="banner-prize"></code></p>
+    </div>
+    <header class="top">
+      <div class="brand">
+        <p class="wordmark" lang="ms">Tuai</p>
+        <p class="tagline" data-i18n="tagline"></p>
+      </div>
+      <button type="button" id="lang" class="lang" lang="ms"></button>
+    </header>
+    <main>
+      <h1 class="sr-only" data-i18n="title"></h1>
+      <p class="intro" data-i18n="intro"></p>
+      <form id="lookup" class="lookup" novalidate>
+        <div class="field" id="network-field">
+          <label for="network" data-i18n="networkLabel"></label>
+          <select id="network"></select>
+        </div>
+        <div class="field">
+          <label for="address" data-i18n="addressLabel"></label>
+          <input id="address" name="address" type="text" inputmode="text" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="address-hint" />
+          <p id="address-hint" class="hint" data-i18n="addressHint"></p>
+        </div>
+        <button type="submit" id="check" class="primary" data-i18n="check"></button>
+      </form>
+      <div id="status" role="status" aria-live="polite"></div>
+      <section id="result" hidden></section>
+      <section id="gate" class="gate" hidden></section>
+    </main>
+    <footer class="foot">
+      <a id="link-spec" data-i18n="footer.spec"></a>
+      <a id="link-measured" data-i18n="footer.measured"></a>
+      <a id="link-source" data-i18n="footer.source"></a>
+    </footer>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>

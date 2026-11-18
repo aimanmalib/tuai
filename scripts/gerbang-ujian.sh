@@ -9,7 +9,7 @@ while IFS= read -r v; do unset "$v"; done < <(env | grep -oE '^GIT_[A-Z_]+' || t
 
 export NO_COLOR=1
 echo "== lint";        npx eslint . --max-warnings 0
-echo "== typecheck";   npx tsc --noEmit -p tsconfig.json
+echo "== typecheck";   npx tsc --noEmit -p tsconfig.json && npx tsc --noEmit -p tsconfig.web.json
 echo "== contracts";   npx tsx scripts/compile-contracts.ts --check
 echo "== tests";       npx vitest run --reporter=dot
 if [ -f web/index.html ] || [ -f index.html ]; then

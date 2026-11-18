@@ -1,0 +1,153 @@
+/* Paddy field palette: deep water green ink, pale field ground, grain gold for amounts, husk red for warnings. */
+:root {
+  --ink: #173f39;
+  --ink-soft: #3e5f58;
+  --ground: #edf2ea;
+  --panel: #fbfdf8;
+  --line: #c7d5c5;
+  --stalk: #2f6e4c;
+  --grain: #8a6a0c;
+  --grain-bg: #f6edc9;
+  --husk: #9d2f1c;
+  --husk-bg: #fbe7e1;
+  --focus: #1d5fa8;
+  --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --measure: 44rem;
+  --radius-field: 6px;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font: 1rem/1.55 var(--sans);
+}
+a { color: var(--ink); text-underline-offset: 0.2em; }
+a:hover { color: var(--stalk); }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+code, pre { font-family: var(--mono); font-size: 0.85em; }
+
+.banner {
+  background: var(--ink);
+  color: var(--ground);
+  padding: 0.6rem 1rem;
+  font-size: 0.875rem;
+}
+.banner p { margin: 0 auto; max-width: var(--measure); }
+.banner a { color: var(--ground); }
+.banner a:focus-visible { outline-color: #f2d27a; }
+.banner code { overflow-wrap: anywhere; }
+.banner-prize { opacity: 0.9; }
+
+.top, main, .foot { max-width: var(--measure); margin: 0 auto; padding: 0 1rem; }
+.top {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem;
+  padding-top: 2.25rem; padding-bottom: 0.5rem;
+}
+.wordmark {
+  margin: 0;
+  font: 600 3rem/1 var(--serif);
+  letter-spacing: -0.01em;
+}
+.tagline { margin: 0.35rem 0 0; font: italic 1.125rem/1.3 var(--serif); color: var(--ink-soft); }
+.lang {
+  font: inherit; font-size: 0.875rem; color: var(--ink);
+  background: transparent; border: 1px solid var(--line); border-radius: 999px;
+  padding: 0.35rem 0.85rem; cursor: pointer; min-height: 2.25rem; white-space: nowrap;
+}
+.lang:hover { border-color: var(--ink); }
+
+.intro { max-width: 38rem; color: var(--ink-soft); margin: 1rem 0 1.5rem; }
+
+.lookup {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.5rem 0.75rem; align-items: start;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 1rem;
+}
+.lookup .field { grid-column: 1 / -1; }
+.lookup .field:last-of-type { grid-column: 1; }
+.lookup .primary { grid-column: 2; margin-top: 1.75rem; }
+label { display: block; font-weight: 600; margin-bottom: 0.3rem; }
+input, select {
+  width: 100%; min-width: 0; font: inherit; font-size: 1rem; color: var(--ink);
+  background: #fff; border: 1px solid #8fa79b; border-radius: var(--radius-field); padding: 0.6rem 0.7rem;
+}
+input { font-family: var(--mono); font-size: 0.95rem; }
+input[aria-invalid='true'] { border-color: var(--husk); }
+.hint { margin: 0.35rem 0 0; font-size: 0.875rem; color: var(--ink-soft); }
+button.primary, button.secondary {
+  font: inherit; font-weight: 600; border-radius: var(--radius-field); cursor: pointer; min-height: 2.75rem;
+  padding: 0.6rem 1.1rem;
+}
+button.primary { background: var(--ink); color: var(--panel); border: 1px solid var(--ink); }
+button.primary:hover { background: var(--stalk); border-color: var(--stalk); }
+button.secondary { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+
+.status { margin: 1rem 0; min-height: 1.5rem; color: var(--ink-soft); }
+.status.error { color: var(--husk); background: var(--husk-bg); padding: 0.75rem 1rem; border-radius: var(--radius-field); }
+.status:empty { display: none; }
+
+#result { margin-top: 2rem; }
+h2 { font: 600 1.6rem/1.2 var(--serif); margin: 0 0 1rem; }
+h3 { font: 600 1.25rem/1.25 var(--serif); margin: 2rem 0 0.75rem; }
+
+.amounts { margin: 0; display: grid; gap: 0.25rem; }
+.amount { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 1rem; padding: 0.4rem 0; border-bottom: 1px solid var(--line); }
+.amount dt { color: var(--ink-soft); }
+.amount dd { margin: 0; font-variant-numeric: tabular-nums; }
+.amount .num { font-weight: 600; overflow-wrap: anywhere; }
+.amount .unit { color: var(--ink-soft); font-size: 0.875rem; }
+.amount.lead { background: var(--grain-bg); border: 0; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.25rem; }
+.amount.lead dt { color: var(--ink); font-weight: 600; }
+.amount.lead .num { font: 600 1.9rem/1.1 var(--serif); color: var(--grain); }
+.note { color: var(--ink-soft); font-size: 0.95rem; }
+
+/* The proof ladder: one rung per hash, climbing from the leaf to the root. */
+.ladder { list-style: none; margin: 0; padding: 0 0 0 1.25rem; border-left: 2px solid var(--stalk); display: flex; flex-direction: column-reverse; gap: 0.35rem; }
+.rung { position: relative; padding: 0.2rem 0; }
+.rung::before {
+  content: ''; position: absolute; left: calc(-1.25rem - 6px); top: 0.75rem;
+  width: 10px; height: 10px; border-radius: 50%; background: var(--panel); border: 2px solid var(--stalk);
+}
+.rung.leaf::before { background: var(--grain); border-color: var(--grain); }
+.rung-label { display: block; font-size: 0.8rem; color: var(--ink-soft); }
+.hash { display: block; overflow-wrap: anywhere; word-break: break-all; color: var(--ink); }
+.roots { margin: 1rem 0 0; display: grid; gap: 0.5rem; }
+.root { border-left: 4px solid var(--line); padding: 0.4rem 0 0.4rem 0.75rem; }
+.root dt { font-size: 0.85rem; color: var(--ink-soft); }
+.root dd { margin: 0; }
+.root.ok { border-left-color: var(--stalk); }
+.root.bad { border-left-color: var(--husk); }
+.ok-note { color: var(--stalk); font-weight: 600; }
+.warn {
+  color: var(--husk); background: var(--husk-bg); border-left: 4px solid var(--husk);
+  padding: 0.75rem 1rem; border-radius: 0 var(--radius-field) var(--radius-field) 0; overflow-wrap: anywhere;
+}
+
+.claim pre {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-field);
+  padding: 0.75rem; margin: 0 0 0.75rem; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-all;
+}
+.copy-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.copy-feedback { color: var(--stalk); }
+
+.gate { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--line); }
+.gate .pending { font-weight: 600; }
+
+.foot { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; padding-top: 2rem; padding-bottom: 3rem; margin-top: 2rem; font-size: 0.9rem; }
+
+@media (max-width: 30rem) {
+  .wordmark { font-size: 2.4rem; }
+  .lookup { grid-template-columns: minmax(0, 1fr); }
+  .lookup .field:last-of-type, .lookup .primary { grid-column: 1; }
+  .lookup .primary { margin-top: 0.25rem; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
