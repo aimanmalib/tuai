@@ -2,12 +2,14 @@
 import config from '../../config/tuai.json' with { type: 'json' };
 import { applyStatic, getLocale, setLocale, t, type Locale } from './i18n.ts';
 import { readChain } from './electrum.ts';
-import { chainViewFrom, claimCommand, lookup, parseAddress, pendingBlocksLeft, type ChainView, type EpochFileView, type PoolRecord } from './model.ts';
+import { chainViewFrom, claimCommand, lookup, openLeaves, parseAddress, pendingBlocksLeft, type ChainView, type EpochFileView, type PoolRecord } from './model.ts';
 import { renderClaim, renderGate, renderResult } from './render.ts';
 import { getJson } from './fetch-json.ts';
 import { epochHistory } from './activity.ts';
 import { renderHistory } from './activity-view.ts';
 import { showActivity } from './activity-page.ts';
+import { relayStatus, type RelayAnswer, type RelayStatus } from './relay.ts';
+import { renderRelay } from './relay-view.ts';
 import type { CashAddressPrefix } from '../../src/leaf.ts';
 
 type NetworkKey = 'chipnet' | 'mainnet';
@@ -62,8 +64,30 @@ function setLinks(): void {
 }
 
 let lastQuery: string | undefined;
+const relayCfg = config.relay;
+const relayOn = (n: NetworkKey) => (relayCfg.networks as string[]).includes(n);
+const OFF: RelayStatus = { network: '', enabled: false, reason: 'off' };
 
-async function check(query: string): Promise<void> {
+/** Pool record, epoch list and chain view of a network, or the message to show instead. */
+async function loadPool(network: NetworkKey): Promise<{ record: PoolRecord; index: { epochs: number[] }; chain: ChainView } | string> {
+  const net = networkConfig(network);
+  const base = `${web.epochsPath}/${network}`;
+  let record: PoolRecord;
+  let index: { epochs: number[] };
+  try {
+    [record, index] = await Promise.all([getJson<PoolRecord>(`${base}/pool.json`), getJson<{ epochs: number[] }>(`${base}/index.json`)]);
+  } catch (e) {
+    return t('error.files', { reason: (e as Error).message });
+  }
+  try {
+    const reads = await readChain(net.electrum.wssUrl, web.electrumTimeoutSeconds * 1000, record.contracts);
+    return { record, index, chain: chainViewFrom(record, reads.tip, reads.pool, reads.gate, reads.vault) };
+  } catch (e) {
+    return t('error.chain', { server: new URL(net.electrum.wssUrl).hostname, reason: (e as Error).message });
+  }
+}
+
+async function check(query: string, notice?: RelayAnswer): Promise<void> {
   lastQuery = query;
   const network = select.value as NetworkKey;
   const net = networkConfig(network);
@@ -81,22 +105,13 @@ async function check(query: string): Promise<void> {
   input.removeAttribute('aria-invalid');
   showStatus(t('checking'));
   const base = `${web.epochsPath}/${network}`;
-  let record: PoolRecord;
-  let index: { epochs: number[] };
-  try {
-    [record, index] = await Promise.all([getJson<PoolRecord>(`${base}/pool.json`), getJson<{ epochs: number[] }>(`${base}/index.json`)]);
-  } catch (e) {
-    showStatus(t('error.files', { reason: (e as Error).message }), 'error');
+  const relay = relayOn(network) ? relayStatus(relayCfg.statusPath, web.electrumTimeoutSeconds * 1000) : Promise.resolve(OFF);
+  const loaded = await loadPool(network);
+  if (typeof loaded === 'string') {
+    showStatus(loaded, 'error');
     return;
   }
-  let chain: ChainView;
-  try {
-    const reads = await readChain(net.electrum.wssUrl, web.electrumTimeoutSeconds * 1000, record.contracts);
-    chain = chainViewFrom(record, reads.tip, reads.pool, reads.gate, reads.vault);
-  } catch (e) {
-    showStatus(t('error.chain', { server: new URL(net.electrum.wssUrl).hostname, reason: (e as Error).message }), 'error');
-    return;
-  }
+  const { record, index, chain } = loaded;
   const scale = net.sequenceBlockScale ?? 1;
   renderGate(gate, chain, pendingBlocksLeft(chain, record, scale), record.activationDelay * scale, config.production.activationDelayBlocks);
   // Show the file for the epoch the pool holds; without one, the newest file, so the mismatch is visible.
@@ -120,8 +135,48 @@ async function check(query: string): Promise<void> {
     // The per-epoch history is extra detail; the result above already stands on its own.
   }
   const address = found.leaf.address ?? query.trim();
+  if (relayOn(network) && found.fileMatchesChain === 'match') {
+    renderRelay(result, {
+      status: await relay,
+      address,
+      claimable: found.claimable,
+      claimed: found.claimed,
+      claimPath: relayCfg.claimPath,
+      timeoutMs: 120_000,
+      explorerTxUrl: net.explorerTxUrl,
+      notice,
+      onSent: (answer) => void check(query, answer),
+    });
+  }
   if (found.claimable > 0n) renderClaim(result, claimCommand(address, network, file.epoch, web.deploymentsDir));
 }
+
+/** Fills in a leaf of the active epoch that still has tokens to claim, then checks it. */
+async function pickDemo(): Promise<void> {
+  const network = select.value as NetworkKey;
+  showStatus(t('checking'));
+  const loaded = await loadPool(network);
+  if (typeof loaded === 'string') {
+    showStatus(loaded, 'error');
+    return;
+  }
+  const { index, chain } = loaded;
+  if (!index.epochs.includes(chain.active.epoch)) {
+    showStatus(t('error.epochMissing', { epoch: chain.active.epoch }), 'error');
+    return;
+  }
+  const file = await getJson<EpochFileView>(`${web.epochsPath}/${network}/epoch-${chain.active.epoch}.json`);
+  const open = openLeaves(file, chain).filter((l) => l.address);
+  const leaf = open[Math.floor(Math.random() * open.length)];
+  if (!leaf?.address) {
+    showStatus(t('relay.demoNone'));
+    return;
+  }
+  input.value = leaf.address;
+  await check(leaf.address);
+}
+
+byId('demo-pick').addEventListener('click', () => void pickDemo());
 
 form.addEventListener('submit', (event) => {
   event.preventDefault();

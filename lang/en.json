@@ -141,6 +141,50 @@
       "epoch": "Epoch {epoch}",
       "topUp": "top-up {amount}",
       "absent": "no leaf"
+    },
+    "relay": {
+      "heading": "Claim from this page",
+      "text": "On chipnet, a demo relayer pays the fee and dust from its own test coins. The contract sends the tokens only to the address in the leaf, so the relayer cannot move them anywhere else.",
+      "button": "Claim now, fee paid by the demo relayer (chipnet)",
+      "working": "Building and sending the claim. This can take up to a minute.",
+      "done": "Claim sent. Transaction:",
+      "explorer": "Open in explorer",
+      "again": "Try to claim again",
+      "againText": "This address has claimed everything it earned so far. Try to claim the same amount a second time: the contract refuses it, and the answers are shown here.",
+      "againWorking": "Sending a second claim for the same amount.",
+      "refused": "Refused, as the rules require.",
+      "refusedLocal": "Local check: {message}",
+      "refusedNode": "Node: {message}",
+      "off": "The demo relayer is not available ({reason}). Use the command below instead.",
+      "reason": {
+        "off": "switched off",
+        "lowBalance": "its test coins are used up",
+        "hourFull": "the hourly limit is reached",
+        "unreachable": "no answer"
+      },
+      "code": {
+        "nothingToClaim": "Nothing to claim: this address has already claimed everything it earned.",
+        "notInEpoch": "This address has no leaf in the active epoch.",
+        "epochMissing": "The relayer has no file for the active epoch yet.",
+        "hourFull": "The relayer has reached its hourly limit. Try again later or use the command below.",
+        "lowBalance": "The relayer's test coins are used up. Use the command below.",
+        "off": "The demo relayer is switched off. Use the command below.",
+        "badAddress": "The relayer could not read this address.",
+        "wrongNetwork": "The relayer works on chipnet addresses only.",
+        "badRequest": "The relayer could not read the request.",
+        "tooLarge": "The request was too large.",
+        "guardRefused": "The relayer refused its own plan because an output did not match a claim: {message}",
+        "feeTooHigh": "The relayer refused the claim because the fee was above its limit.",
+        "nodeRefused": "The node refused the claim: {message}",
+        "chainError": "The relayer could not read the chain: {message}",
+        "notClaimedYet": "This address has not claimed yet, so there is nothing to claim again.",
+        "notRefusedLocally": "The second claim was not refused by the local check, so the relayer did not send it.",
+        "acceptedAgain": "The node accepted a second claim: {txid}. Please report this.",
+        "unknown": "The relayer could not complete the request ({code})."
+      },
+      "demo": "Try a demo address",
+      "demoHint": "Fills in a leaf of the active epoch that still has tokens to claim. Most demo leaves have no known key; a claim still pays them, which shows that anyone can claim for an address.",
+      "demoNone": "Every leaf of the active epoch has claimed everything."
     }
   }
 }

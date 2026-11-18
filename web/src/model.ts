@@ -155,6 +155,12 @@ export function lookup(file: EpochFileView, chain: ChainView, lockingBytecode: U
   return { leaf, path, proofMatchesFile, fileMatchesChain, cumulative, claimed, claimable };
 }
 
+/** Leaves that still have tokens to claim: cumulative above what their receipt on chain records. */
+export function openLeaves(file: EpochFileView, chain: ChainView): EpochLeaf[] {
+  const claimed = new Map(chain.receipts.map((r) => [binToHex(r.key), r.claimed]));
+  return file.leaves.filter((l) => BigInt(l.cumulative) > (claimed.get(binToHex(receiptKey(hexToBin(l.lockingBytecode)))) ?? 0n));
+}
+
 /** Blocks before a pending root may be activated; the delay is scaled on networks that scale sequence locks. */
 export function pendingBlocksLeft(chain: ChainView, record: PoolRecord, sequenceBlockScale = 1): number | undefined {
   if (!chain.pending) return undefined;

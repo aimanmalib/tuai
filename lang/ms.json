@@ -141,6 +141,50 @@
       "epoch": "Epoch {epoch}",
       "topUp": "tambahan {amount}",
       "absent": "tiada daun"
+    },
+    "relay": {
+      "heading": "Tuntut dari halaman ini",
+      "text": "Di chipnet, geganti demo membayar yuran dan debu daripada syiling ujiannya sendiri. Kontrak menghantar token hanya ke alamat dalam daun, jadi geganti tidak boleh mengalihkannya ke tempat lain.",
+      "button": "Tuntut sekarang, yuran dibayar geganti demo (chipnet)",
+      "working": "Membina dan menghantar tuntutan. Ini boleh mengambil masa sehingga seminit.",
+      "done": "Tuntutan dihantar. Transaksi:",
+      "explorer": "Buka dalam penjelajah",
+      "again": "Cuba tuntut sekali lagi",
+      "againText": "Alamat ini sudah menuntut semua yang diperolehnya setakat ini. Cuba tuntut jumlah yang sama kali kedua: kontrak menolaknya, dan jawapannya dipaparkan di sini.",
+      "againWorking": "Menghantar tuntutan kedua untuk jumlah yang sama.",
+      "refused": "Ditolak, seperti yang dikehendaki peraturan.",
+      "refusedLocal": "Semakan tempatan: {message}",
+      "refusedNode": "Nod: {message}",
+      "off": "Geganti demo tidak tersedia ({reason}). Gunakan arahan di bawah.",
+      "reason": {
+        "off": "dimatikan",
+        "lowBalance": "syiling ujiannya sudah habis",
+        "hourFull": "had sejam sudah dicapai",
+        "unreachable": "tiada jawapan"
+      },
+      "code": {
+        "nothingToClaim": "Tiada apa untuk dituntut: alamat ini sudah menuntut semua yang diperolehnya.",
+        "notInEpoch": "Alamat ini tiada daun dalam epoch aktif.",
+        "epochMissing": "Geganti belum ada fail untuk epoch aktif.",
+        "hourFull": "Geganti sudah mencapai had sejamnya. Cuba lagi kemudian atau gunakan arahan di bawah.",
+        "lowBalance": "Syiling ujian geganti sudah habis. Gunakan arahan di bawah.",
+        "off": "Geganti demo dimatikan. Gunakan arahan di bawah.",
+        "badAddress": "Geganti tidak dapat membaca alamat ini.",
+        "wrongNetwork": "Geganti hanya untuk alamat chipnet.",
+        "badRequest": "Geganti tidak dapat membaca permintaan.",
+        "tooLarge": "Permintaan terlalu besar.",
+        "guardRefused": "Geganti menolak rancangannya sendiri kerana satu output tidak sepadan dengan tuntutan: {message}",
+        "feeTooHigh": "Geganti menolak tuntutan kerana yuran melebihi hadnya.",
+        "nodeRefused": "Nod menolak tuntutan: {message}",
+        "chainError": "Geganti tidak dapat membaca rantaian: {message}",
+        "notClaimedYet": "Alamat ini belum menuntut, jadi tiada apa untuk dituntut semula.",
+        "notRefusedLocally": "Tuntutan kedua tidak ditolak oleh semakan tempatan, jadi geganti tidak menghantarnya.",
+        "acceptedAgain": "Nod menerima tuntutan kedua: {txid}. Sila laporkan perkara ini.",
+        "unknown": "Geganti tidak dapat menyelesaikan permintaan ({code})."
+      },
+      "demo": "Cuba alamat demo",
+      "demoHint": "Mengisi daun epoch aktif yang masih ada token untuk dituntut. Kebanyakan daun demo tiada kunci yang diketahui; tuntutan tetap membayarnya, menunjukkan sesiapa pun boleh menuntut untuk sesuatu alamat.",
+      "demoNone": "Setiap daun epoch aktif sudah menuntut semuanya."
     }
   }
 }

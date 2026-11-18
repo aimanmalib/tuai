@@ -188,3 +188,13 @@ button.small { min-height: 2.25rem; padding: 0.25rem 0.75rem; font-size: 0.875re
   .lookup .primary { margin-top: 0.25rem; width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+
+/* Relayer section (ADR 0009): outcome boxes use the same palette as the status lines. */
+.relay-out:empty { display: none; }
+.relay-out { margin-top: 0.75rem; padding: 0.75rem 1rem; border-radius: var(--radius-field); background: var(--panel); border: 1px solid var(--line); overflow-wrap: anywhere; }
+.relay-out p { margin: 0.25rem 0; }
+.relay-out.ok { border-color: var(--stalk); }
+.relay-out.refused { background: var(--grain-bg); border-color: var(--grain); }
+.relay-out.error { background: var(--husk-bg); border-color: var(--husk); color: var(--husk); }
+.demo-pick { margin: 0.75rem 0 0; display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; }
+.demo-pick .hint { flex: 1 1 16rem; margin: 0; }
