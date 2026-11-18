@@ -6,6 +6,7 @@ import { hexToBinChecked } from '../../bytes.ts';
 import { demoLayout, syntheticAmount } from '../../demo/layout.ts';
 import { lockingBytecodeToAddress } from '../../leaf.ts';
 import { withoutOwnReceipt } from '../../pool/hide-receipt.ts';
+import { assertRelayNetwork } from '../../relay/config.ts';
 import { assembleClaim } from '../../tx/claim.ts';
 import { flag, requireFlag, type ParsedArgs } from '../args.ts';
 import { broadcast, measure } from '../broadcast.ts';
@@ -42,10 +43,14 @@ export function demoAllocations(ctx: Context, a: ParsedArgs) {
   return { out, round, allocations: allocations.length, demoKeys: keys.length, total: total.toString() };
 }
 
-/** `fund <role> --sats N`: sends plain BCH from the payer to another project key (never to an outside address). */
+/** `fund <role> --sats N`: sends plain BCH from the payer to another project key (never to an outside address); the relayer key on chipnet only. */
 export async function fund(ctx: Context, a: ParsedArgs) {
   const role = a.positional[1];
-  if (!role || !/^(demo|operator)-[0-9]+$/.test(role)) throw new Error('usage: tuai fund <demo-N|operator-N> --sats N');
+  const relayRole = ctx.config.relay.keyRole;
+  if (!role || !(/^(demo|operator)-[0-9]+$/.test(role) || role === relayRole)) {
+    throw new Error(`usage: tuai fund <demo-N|operator-N|${relayRole}> --sats N`);
+  }
+  if (role === relayRole) assertRelayNetwork(ctx.network, ctx.config.relay);
   const to = loadKey(ctx, role);
   const sats = BigInt(flag(a, 'sats') ?? ctx.config.demo.otherPayerFundingSats);
   const payer = loadKey(ctx, flag(a, 'payer') ?? payerRole(ctx.network));

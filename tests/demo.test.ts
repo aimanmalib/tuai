@@ -83,6 +83,15 @@ describe('demo CLI commands on the mock network', () => {
     expect(got).toBe(5000n);
   });
 
+  it('funds the relayer key on chipnet only', async () => {
+    f = demoFixture();
+    f.fund('payer-mock');
+    const r = await f.run('fund', 'relay-chipnet', '--sats', '5000', '--network', 'mock');
+    expect(r.code).toBe(1);
+    expect(r.text).toMatch(/chipnet only/);
+    expect((await f.run('fund', 'relay-other', '--network', 'mock')).code).toBe(1);
+  });
+
   it('records a refused double claim and refuses a leaf with no receipt', async () => {
     f = demoFixture();
     f.fund('payer-mock');
