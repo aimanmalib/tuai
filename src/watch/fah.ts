@@ -9,17 +9,20 @@ import type { EpochFile } from '../epoch/file.ts';
  */
 export function addressesInFahSummary(text: string): Map<string, string[]> {
   const found = new Map<string, string[]>();
-  for (const line of text.split(/\r?\n/)) {
-    const name = line.split('\t')[0]?.trim();
-    if (!name || !line.includes('\t') || name === 'name') continue;
-    const candidates = new Set([name, name.slice(name.lastIndexOf('_') + 1)]);
-    for (const candidate of candidates) {
-      const bytecode = tryAddress(candidate);
-      if (!bytecode) continue;
-      found.set(bytecode, [...(found.get(bytecode) ?? []), name]);
-    }
-  }
+  for (const line of text.split(/\r?\n/)) addFahLine(found, line);
   return found;
+}
+
+/** Adds the address in one summary line, if any, to `found`. Lets callers stream a large summary line by line. */
+export function addFahLine(found: Map<string, string[]>, line: string): void {
+  const name = line.split('\t')[0]?.trim();
+  if (!name || !line.includes('\t') || name === 'name') return;
+  const candidates = new Set([name, name.slice(name.lastIndexOf('_') + 1)]);
+  for (const candidate of candidates) {
+    const bytecode = tryAddress(candidate);
+    if (!bytecode) continue;
+    found.set(bytecode, [...(found.get(bytecode) ?? []), name]);
+  }
 }
 
 function tryAddress(candidate: string): string | undefined {

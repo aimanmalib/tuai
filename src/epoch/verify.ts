@@ -12,6 +12,9 @@ export interface VerifyReport {
   root: string;
   leaves: number;
   problems: string[];
+  /** Root and inputs hash computed from the manifest and inputs; empty when the inputs could not be applied. */
+  recomputedRoot: string;
+  recomputedInputsHash: string;
 }
 
 const PREFIXES = { mainnet: 'bitcoincash', chipnet: 'bchtest', mock: 'bchtest' } as const;
@@ -26,11 +29,21 @@ export function verifyEpoch(path: string, depthLimit = 1000): VerifyReport {
   try {
     file = readEpochFile(path);
   } catch (e) {
-    return { ok: false, epoch: 0, root: '', leaves: 0, problems: [(e as Error).message] };
+    return { ok: false, epoch: 0, root: '', leaves: 0, problems: [(e as Error).message], recomputedRoot: '', recomputedInputsHash: '' };
   }
-  const report = (): VerifyReport => ({ ok: problems.length === 0, epoch: file.epoch, root: file.root, leaves: file.leaves.length, problems });
   const m = file.manifest;
-  if (manifestHash(m) !== file.inputsHash) problems.push('inputs hash does not match the manifest');
+  const recomputedInputsHash = manifestHash(m);
+  let recomputedRoot = '';
+  const report = (): VerifyReport => ({
+    ok: problems.length === 0,
+    epoch: file.epoch,
+    root: file.root,
+    leaves: file.leaves.length,
+    problems,
+    recomputedRoot,
+    recomputedInputsHash,
+  });
+  if (recomputedInputsHash !== file.inputsHash) problems.push('inputs hash does not match the manifest');
   if (m.epoch !== file.epoch) problems.push('manifest epoch differs from the file epoch');
   let start = new Map();
   if (m.previous) {
@@ -53,6 +66,7 @@ export function verifyEpoch(path: string, depthLimit = 1000): VerifyReport {
     problems.push((e as Error).message);
     return report();
   }
+  recomputedRoot = recomputed.root;
   if (recomputed.root !== file.root) problems.push(`root differs: file ${file.root}, recomputed ${recomputed.root}`);
   if (recomputed.leaves.length !== file.leaves.length) problems.push('leaf count differs');
   const expected = new Map(recomputed.leaves.map((l) => [l.lockingBytecode, l]));
