@@ -37,3 +37,13 @@ needs to see what they can claim, and should not have to trust the server that s
 (served files), and `e2e/claim.spec.ts` on WebKit (iPhone 13) and Chromium against a fake Electrum server: result and
 proof, named mismatch warning, pending root and Malay text, errors, no overflow at 320 px, axe WCAG 2.1 AA, no console
 errors.
+
+## Deployment
+
+The built page and the epoch files run as one nginx container (`Dockerfile`, `deploy/`), read-only root file system,
+unprivileged user, no keys and no server code. `deploy/deploy.sh` builds from `git archive HEAD`, keeps the previous
+image in a stopped holder container for `--rollback`, waits for `/healthz` through the public URL, then runs
+`e2e/live.spec.ts` (WebKit iPhone 13 and Chromium): proof endpoint headers and one real lookup checked against the
+chipnet root. A failed browser check rolls back. `/epochs/` is sent with open CORS for `GET`, a short cache lifetime
+and `no-transform`; hashed assets are immutable; HTML is `no-cache`. A proof API was not added: the static files are
+the endpoint, and readers check them against the chain as the page does.

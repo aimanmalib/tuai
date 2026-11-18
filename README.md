@@ -2,6 +2,8 @@
 
 Entry for **BCH BLAZE 2026**, bounty "Trust-minimized, pull-based reward claims for FoldingCash".
 
+Claim page: <https://tuai.sasateguh.com> (chipnet demonstration).
+
 ## What it is
 
 FoldingCash pays `FLDCH` tokens to Folding@home contributors by sending one output per recipient every period. Tuai
@@ -125,7 +127,30 @@ committed epoch files under `/epochs/<network>/`. Enter an address (q or z, with
 finds the leaf, recomputes the root in the browser, compares it with the root the pool holds on chain (read over an
 Electrum WebSocket), shows the claimed and claimable amounts from the vault receipt, and gives the claim command. A
 root that differs from the published file is shown as a named warning. English and Malay. `npm run e2e` runs the
-browser tests on WebKit (iPhone 13) and Chromium. See [ADR 0007](docs/decisions/0007-claim-page.md).
+browser tests on WebKit (iPhone 13) and Chromium. The page runs at <https://tuai.sasateguh.com>; see [ADR 0007](docs/decisions/0007-claim-page.md).
+
+### Proof endpoint
+
+The same static site serves the published epoch files, so any wallet, script or other site can fetch a proof's
+inputs without running the CLI:
+
+```
+https://tuai.sasateguh.com/epochs/<network>/index.json      # {"network": ..., "epochs": [...]}
+https://tuai.sasateguh.com/epochs/<network>/pool.json       # contract addresses, token category, deploy txid
+https://tuai.sasateguh.com/epochs/<network>/epoch-<n>.json  # leaves, root, inputsHash, manifest
+https://tuai.sasateguh.com/epochs/<network>/inputs/<file>   # hashed inputs the epoch was built from
+```
+
+```sh
+curl -s https://tuai.sasateguh.com/epochs/chipnet/index.json
+curl -s https://tuai.sasateguh.com/epochs/chipnet/epoch-2.json | jq -r .root
+npx tsx bin/tuai.ts epoch verify deployments/chipnet/epoch-2.json   # in a clone: the same root, rebuilt from inputs
+```
+
+The files are the ones committed under [`deployments/`](deployments/). They are sent with open CORS for `GET`, a
+short cache lifetime and `no-transform`, so a CDN does not rewrite them. The files are not trusted on their own: the
+page and the CLI compare the root they compute with the root the pool holds on chain. Deployment is one static
+container ([`deploy/`](deploy/), [`Dockerfile`](Dockerfile)) that holds no keys.
 
 ### Command line
 
