@@ -10,7 +10,7 @@ How the pieces FoldingCash runs today map onto Tuai, and what an operator does e
   queries it with `includeFoldingUserTypes=8` and sends one transaction per period with one output per recipient
   (every such transaction found on mainnet is listed in [`COST.md`](COST.md)).
 - **Token supply:** a release contract (`TokenVault_Release` in the sponsor's `smart-contracts` repository) releases
-  FLDCH over time to a `fund` key.
+  `FLDCH` over time to a `fund` key.
 
 ## What changes
 

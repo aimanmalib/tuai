@@ -4,7 +4,7 @@ Entry for **BCH BLAZE 2026**, bounty "Trust-minimized, pull-based reward claims 
 
 ## What it is
 
-FoldingCash pays FLDCH tokens to Folding@home contributors by sending one output per recipient every period. Tuai
+FoldingCash pays `FLDCH` tokens to Folding@home contributors by sending one output per recipient every period. Tuai
 replaces that push with a pull: two of three operators publish one Merkle root of cumulative rewards on Bitcoin Cash,
 the root becomes claimable only after an audit window, and each contributor claims their own share with a proof that a
 CashScript contract checks, paying the tokens only to the address in their leaf.

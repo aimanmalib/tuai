@@ -102,8 +102,8 @@ A zero root has no known preimage, so nothing is claimable before the first acti
 | 0 | `RootGate`: pending-root NFT | `RootGate`: pending-root NFT with the new commitment, same value, mutable |
 | 1.. | funding without tokens | change |
 
-Requires 2 of the 3 operator signatures (`OP_CHECKMULTISIG`, ECDSA, in gate key order), a 68-byte commitment, and an
-epoch not below the pending one. Proposing again creates a new UTXO, so the activation delay restarts.
+Requires 2 of the 3 operator signatures (`OP_CHECKMULTISIG` with `ECDSA` signatures, in gate key order), a 68-byte commitment,
+and an epoch not below the pending one. Proposing again creates a new UTXO, so the activation delay restarts.
 
 ### 5.3 Activate (`tuai activate`, `src/tx/activate.ts`, `ClaimPool.activate()` + `RootGate.activate()`)
 
