@@ -17,7 +17,7 @@ pragma cashscript ^0.14.0;
 //
 // Operator push (docs/decisions/0008-operator-push.md): the same claim with the armed pending-root NFT at input 3
 // and nothing else. RootGate.arm sets the arm flag only once the active root is pushDelay blocks old, and
-// RootGate.witness puts the NFT back as the last output. A push pays at least pushMinimum tokens, adds no inputs
+// RootGate.push puts the NFT back as the last output. A push pays at least pushMinimum tokens, adds no inputs
 // or change, and takes the payment dust, the new receipt's dust and the fee from the vault's BCH (pushSats at most).
 contract ClaimPool(bytes32 poolCategory, bytes32 rewardCategory, bytes vaultBytecode, int maxDepth, int pushMinimum, int pushSats) {
     function activate() {

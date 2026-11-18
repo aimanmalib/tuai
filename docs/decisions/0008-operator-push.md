@@ -31,7 +31,7 @@ Two constraints shape the design:
    `state || 0x01`, `payment >= pushMinimum`, exactly four inputs, the pending-root NFT as the only output after the
    receipts, and `outputs[1].value + pushSats >= inputs[1].value`. Everything else (proof, receipt list, payment
    to the leaf's locking bytecode) is the claim code, so a push and a claim share one receipt and can never pay the
-   same amount twice. `RootGate.witness()` runs at input 3 and puts the NFT back, unchanged, as the last output.
+   same amount twice. `RootGate.push()` runs at input 3 and puts the NFT back, unchanged, as the last output.
 3. **Who pays.** The vault's reward UTXO carries BCH that the operator puts there (at deploy, `vaultSats`, or by
    sending a reward-token UTXO with BCH to the vault address). A push takes at most `pushSats` of it for the payment
    dust, a new receipt's dust and the fee; nobody adds an input. Anyone may submit a push once pushes are armed, but

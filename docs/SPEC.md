@@ -150,7 +150,7 @@ Output 0 is the state NFT unchanged; output 1 is the pending-root NFT with commi
 A later proposal writes a 68-byte commitment, which closes pushes until the next root has stood `pushDelay` blocks.
 An armed NFT cannot be activated: its epoch equals the active epoch.
 
-### 5.6 Push (`src/tx/push.ts` `planPush`, `ClaimPool.claim(...)` + `RootGate.witness()`)
+### 5.6 Push (`src/tx/push.ts` `planPush`, `ClaimPool.claim(...)` + `RootGate.push()`)
 
 A claim (section 5.4) with exactly one more input and output, and nothing else:
 
@@ -162,7 +162,7 @@ A claim (section 5.4) with exactly one more input and output, and nothing else:
 `ClaimPool.claim` treats input 3 holding the mutable pool NFT as a push: it requires the commitment `state || 0x01`,
 `payment >= pushMinimum`, exactly four inputs, the pending-root NFT as the only output after the receipts, and
 `outputs[1].value + pushSats >= inputs[1].value`. The vault's BCH therefore pays the payment dust, a new receipt's
-dust and the fee. `RootGate.witness` runs at input 3 and requires the last output to be the same NFT at the gate.
+dust and the fee. `RootGate.push` runs at input 3 and requires the last output to be the same NFT at the gate.
 The payment still goes to the leaf's locking bytecode and the same receipt rule applies, so a push and a claim
 never pay the same amount twice.
 

@@ -81,8 +81,8 @@ export function planPush(o: PushOptions): PushPlan {
   const pending = o.pending.utxo;
   const pendingToken = pending.token;
   if (!pendingToken?.nft) throw new Error('pending-root UTXO has no NFT');
-  const witness = unlockerFor(o.contracts.gate, 'witness')();
-  const inputs = [...core.inputs, { utxo: pending, unlocker: witness }];
+  const gatePush = unlockerFor(o.contracts.gate, 'push')();
+  const inputs = [...core.inputs, { utxo: pending, unlocker: gatePush }];
   const outputsWith = (vaultSats: bigint): Output[] => {
     const outputs = core.outputs.map((out) => ({ ...out }));
     const reward = outputs[1] as Output;

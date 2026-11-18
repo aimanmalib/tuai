@@ -279,7 +279,7 @@ describe('push', () => {
     const riding = await pushPlan(f, e, 1);
     // A claim layout (funding at input 3) with the armed NFT moved to input 4.
     riding.inputs.splice(3, 0, { utxo: fund(f, mallory), unlocker: mallory.signer.unlockP2PKH() });
-    riding.inputs[4] = { utxo: pending.utxo, unlocker: unlockerFor(f.contracts.gate, 'witness')() };
+    riding.inputs[4] = { utxo: pending.utxo, unlocker: unlockerFor(f.contracts.gate, 'push')() };
     await expect(sendPush(f, riding)).rejects.toThrow(/ClaimPool|RootGate/);
   });
 });

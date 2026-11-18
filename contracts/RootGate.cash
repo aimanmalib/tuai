@@ -16,7 +16,7 @@ pragma cashscript ^0.14.0;
 //   Same layout as activate. Output 1 is the pending NFT with commitment state + 0x01 (armed); the state is unchanged.
 //   A new proposal writes a 68-byte commitment again, which closes the push window until the next arm.
 //
-// witness: lets an operator push (ClaimPool.claim at input 0) spend the armed NFT at input 3. The NFT goes back,
+// push: lets an operator push (ClaimPool.claim at input 0) spend the armed NFT at input 3. The NFT goes back,
 //   unchanged, as the last output. See docs/decisions/0008-operator-push.md.
 contract RootGate(pubkey operatorA, pubkey operatorB, pubkey operatorC, int delay, int pushDelay, bytes32 poolCategory) {
     function propose(sig first, sig second) {
@@ -99,7 +99,7 @@ contract RootGate(pubkey operatorA, pubkey operatorB, pubkey operatorC, int dela
         require(tx.outputs[1].value == tx.inputs[1].value);
     }
 
-    function witness() {
+    function push() {
         require(this.activeInputIndex == 3);
         require(tx.inputs[0].tokenCategory == poolCategory + 0x02);
         int last = tx.outputs.length - 1;
