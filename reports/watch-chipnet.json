@@ -1,0 +1,36 @@
+{
+  "description": "Watcher run. Epochs: the root and inputs hash in the pool state NFT of each recorded propose and activate transaction, read from chain, next to the values recomputed from the committed epoch files and inputs. Replay: the real push distributions in push-distributions.json rebuilt as one off-chain epoch; fah counts its leaves whose address appears in a name of the public Folding@home daily user summary (link method 0).",
+  "generatedBy": "scripts/watch-report.ts",
+  "network": "chipnet",
+  "generatedAt": "2026-11-18T03:41:34.253Z",
+  "epochs": [
+    {
+      "epoch": 1,
+      "rootOnChain": "ecca41cd89f8bb3b6e93dc14181b936ea7ae3339a71baead6bf10f8e3ae6144d",
+      "rootRecomputed": "ecca41cd89f8bb3b6e93dc14181b936ea7ae3339a71baead6bf10f8e3ae6144d",
+      "inputsHashOnChain": "7742d46af606590f3dbb0e27319cb6acb6e82b0398a955c82c24520e7364db5f",
+      "inputsHashRecomputed": "7742d46af606590f3dbb0e27319cb6acb6e82b0398a955c82c24520e7364db5f"
+    },
+    {
+      "epoch": 2,
+      "rootOnChain": "dcaf3739570f3f046345b83ae8dafc078255cb72da025dc09fb627d1128dc730",
+      "rootRecomputed": "dcaf3739570f3f046345b83ae8dafc078255cb72da025dc09fb627d1128dc730",
+      "inputsHashOnChain": "d77425c57d6ae587e81885c40ac6653a2a42e997daabc94de3fcf688e7c9d2c1",
+      "inputsHashRecomputed": "d77425c57d6ae587e81885c40ac6653a2a42e997daabc94de3fcf688e7c9d2c1"
+    }
+  ],
+  "fah": {
+    "sha256": "135703b69c1d9f01c1afa705f86231f38ad495adb1d470d962724385eb3f3c64",
+    "bytes": 28753037,
+    "fetchedAt": "2026-11-18T03:40:15.656Z",
+    "method0Checked": 6,
+    "method0Matched": 6,
+    "method0Mismatched": 0
+  },
+  "replay": {
+    "distributions": 22,
+    "leaves": 6,
+    "root": "d0506d1aa4d08cd6e143dc8ce724fac13d1384fe7dc1e0d7734a7c0e88bb4773"
+  },
+  "findings": []
+}

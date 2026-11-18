@@ -18,6 +18,7 @@
     "claim-sizes": "tsx scripts/claim-sizes.ts",
     "tuai": "tsx bin/tuai.ts",
     "push-measure": "tsx scripts/push-measure.ts",
+    "watch-report": "tsx scripts/watch-report.ts",
     "cost": "tsx scripts/cost.ts",
     "demo:mock": "vitest run tests/cli-e2e.test.ts --reporter=verbose",
     "web:dev": "vite",
