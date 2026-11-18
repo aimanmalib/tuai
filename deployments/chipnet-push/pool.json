@@ -1,0 +1,23 @@
+{
+ "network": "chipnet",
+ "poolCategory": "99bf150551834802dda9fb0f2e712a3773f541728905846606f02bcecfe935f5",
+ "rewardCategory": "5745ddb93df78406fdbf0b16d7d74964a76839bd2f746efae3a35ed731dfad49",
+ "maxDepth": 24,
+ "operatorKeys": [
+  "03f770611119f7fd2118b819507065ef05fd086119556b09405a00984bcd130997",
+  "03283e22752a9b3f3d05d7bd605c4d6b7726b96a7f4c9c655da8c729a6dfd8cc1f",
+  "02f380dfe43249939ad34f88de03f5b159e2f370660a1a86760b26dbff1f815141"
+ ],
+ "activationDelay": 3,
+ "push": {
+  "delay": 3,
+  "minimum": "10000000000",
+  "sats": 6000
+ },
+ "deployTxid": "152f133cbf09c7838ad6e1309e225ccb551b86bd282b7fdbc1be0e65de57b117",
+ "contracts": {
+  "pool": "bchtest:r0gdpv07fpcyxkphmp75yr0hj22nwl6cjtrxud4jcc3a9yhn0aku5j4lyvev6",
+  "vault": "bchtest:rvs92em5z4spde48pcsa6c7hdpjrj0zff0ye4dcgwcx3f5payyevv8f3t3yf3",
+  "gate": "bchtest:rdn9c0spsm6nvy5s6ht5te4rwquvykucvqllgjf6yhlmudm954cq692jafk4c"
+ }
+}

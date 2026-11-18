@@ -177,7 +177,9 @@ local. The last run is in [`docs/MEASURED.md`](docs/MEASURED.md#watcher).
 
 `npx tsx bin/tuai.ts <command> [--network chipnet|mainnet|mock] [--json]` (see
 [ADR 0004](docs/decisions/0004-epoch-files-and-cli.md)). Keys are read from `state/keys/` and never printed. Exit
-codes: 0 done, 1 failed or a difference found, 2 usage, 3 not yet possible (timelock, API interval).
+codes: 0 done, 1 failed or a difference found, 2 usage, 3 not yet possible (timelock, API interval). `--run <name>`
+keeps a second pool on the same network in its own record (`state/runs/<network>-<name>.json`,
+`deployments/<network>-<name>/`).
 
 ```sh
 tuai epoch build --source api --start 2026-10-01T00:00:00Z --end 2026-11-01T00:00:00Z --amount 1000
@@ -186,10 +188,12 @@ tuai epoch verify <epoch file>          # rebuild a root from its inputs
 tuai watch --epoch <file> [--fah daily_user_summary.txt]   # recompute, check links, compare with chain
 tuai watch --deployment deployments/chipnet   # every epoch's root and inputs hash on chain vs recomputed
 tuai token genesis --amount <units>     # test reward token held by the payer key
-tuai deploy                             # pool, vault, receipt list head and root gate in one transaction
+tuai deploy [--vault-sats N]            # pool, vault, receipt list head and root gate in one transaction
 tuai propose --epoch <file> [--operators 1,3]   # two of three operators
 tuai activate                           # anyone, once the pending root is old enough
 tuai claim <address> --epoch <file> [--payer <key>]   # pays the leaf's own address
+tuai arm                                # anyone, once the active root stood pushDelay blocks
+tuai push <address> --epoch <file>      # pays a balance of at least pushMinimum; the vault's BCH pays the fee
 tuai status                             # payer balance, active and pending roots, blocks left
 tuai budget                             # mainnet spending against the configured limit
 tuai fund demo-5 [--sats N]             # BCH between project keys only

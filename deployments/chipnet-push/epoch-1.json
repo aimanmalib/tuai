@@ -1,0 +1,117 @@
+{
+ "format": "tuai-epoch/1",
+ "network": "chipnet",
+ "epoch": 1,
+ "root": "c1400dceebb6059cb92aa4e4e2cf718ab9d398d1fa975bf345aaee24799f0ed3",
+ "inputsHash": "df9d46dba7b6f51ebd386df39fcd772b1fac0fa5c7de59192a75b31b4a2474c2",
+ "depth": 3,
+ "manifest": {
+  "format": "tuai-manifest/1",
+  "epoch": 1,
+  "maxDepth": 24,
+  "defaultMethod": 0,
+  "decimals": 8,
+  "previous": null,
+  "inputs": [
+   {
+    "file": "inputs/4089e398054abdf071f12322cc97c0c479e6cd9e5547439c0a4cb077c47de090.json",
+    "sha256": "4089e398054abdf071f12322cc97c0c479e6cd9e5547439c0a4cb077c47de090",
+    "kind": "allocations"
+   }
+  ]
+ },
+ "recipients": [
+  {
+   "lockingBytecode": "76a91440805e9ee0a68a6dc4d059892442d9a9d913f1b588ac",
+   "method": 0,
+   "cumulative": "3000000000",
+   "highWater": "0"
+  },
+  {
+   "lockingBytecode": "76a9144a10d29f9da4a094b78303dcb4b4429a6d66273488ac",
+   "method": 0,
+   "cumulative": "5000000000",
+   "highWater": "0"
+  },
+  {
+   "lockingBytecode": "76a91480ebe0250876fd1dc8c66099c9e16756516ba0d388ac",
+   "method": 0,
+   "cumulative": "12000000000",
+   "highWater": "0"
+  },
+  {
+   "lockingBytecode": "76a9149cdb3d42e72a3a8efc35431b3c6ab9bf8c781f8188ac",
+   "method": 0,
+   "cumulative": "15000000000",
+   "highWater": "0"
+  },
+  {
+   "lockingBytecode": "76a914faa95052063d5b9de92cbd1140ee55a3b0d29dca88ac",
+   "method": 0,
+   "cumulative": "20000000000",
+   "highWater": "0"
+  }
+ ],
+ "leaves": [
+  {
+   "index": 0,
+   "address": "bchtest:zpqgqh57uzng5mwy6pvcjfzzmx5ajyl3k5fvfu0y75",
+   "method": 0,
+   "cumulative": "3000000000",
+   "lockingBytecode": "76a91440805e9ee0a68a6dc4d059892442d9a9d913f1b588ac",
+   "proof": [
+    "35ecba13a58248d111ce8b65822f5425e36293d38611d2aa6d6c0c118bf11957",
+    "6767b8c4727905fa544e52e4856a1e342da343c81f5b792d113af7940c96cd30",
+    "48d22e579c51f08879120a4ab0e72b4fbd50ead3eb19aaf58f649cb4e6693aef"
+   ]
+  },
+  {
+   "index": 1,
+   "address": "bchtest:zp9pp55lnkj2p99hsvpaed95g2dx6e38xs5x0x0h7m",
+   "method": 0,
+   "cumulative": "5000000000",
+   "lockingBytecode": "76a9144a10d29f9da4a094b78303dcb4b4429a6d66273488ac",
+   "proof": [
+    "563dae52735f74464380d4efb3a5b2e5d32e647db7271bdb4925ed529af1a184",
+    "6767b8c4727905fa544e52e4856a1e342da343c81f5b792d113af7940c96cd30",
+    "48d22e579c51f08879120a4ab0e72b4fbd50ead3eb19aaf58f649cb4e6693aef"
+   ]
+  },
+  {
+   "index": 2,
+   "address": "bchtest:zzqwhcp9ppm068wgcesfnj0pvat9z6aq6vag7amfmt",
+   "method": 0,
+   "cumulative": "12000000000",
+   "lockingBytecode": "76a91480ebe0250876fd1dc8c66099c9e16756516ba0d388ac",
+   "proof": [
+    "d4ef9b80f3b59539b6160ee20bfad59a9502bfb6e1e6465dafa6fb1a1084b30b",
+    "607be7dbc34948b32985fae497da5cff09aeb9662820665133fb3d2e75ec5baf",
+    "48d22e579c51f08879120a4ab0e72b4fbd50ead3eb19aaf58f649cb4e6693aef"
+   ]
+  },
+  {
+   "index": 3,
+   "address": "bchtest:zzwdk02zuu4r4rhux4p3k0r2hxlcc7qlsy6ek3zpjf",
+   "method": 0,
+   "cumulative": "15000000000",
+   "lockingBytecode": "76a9149cdb3d42e72a3a8efc35431b3c6ab9bf8c781f8188ac",
+   "proof": [
+    "108d9f4eff7f5f90a17d9188cc751ad3ca281d2842cf0f699756b50fa96b3cb3",
+    "607be7dbc34948b32985fae497da5cff09aeb9662820665133fb3d2e75ec5baf",
+    "48d22e579c51f08879120a4ab0e72b4fbd50ead3eb19aaf58f649cb4e6693aef"
+   ]
+  },
+  {
+   "index": 4,
+   "address": "bchtest:zra2j5zjqc74h80f9j73zs8w2k3mp55aeg7ez5wvkg",
+   "method": 0,
+   "cumulative": "20000000000",
+   "lockingBytecode": "76a914faa95052063d5b9de92cbd1140ee55a3b0d29dca88ac",
+   "proof": [
+    "0000000000000000000000000000000000000000000000000000000000000000",
+    "0000000000000000000000000000000000000000000000000000000000000000",
+    "05af79876ff8f8adfbaaadc4c7dd547329960408446e7ab4906071b281c1afc5"
+   ]
+  }
+ ]
+}
