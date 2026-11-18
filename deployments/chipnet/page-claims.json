@@ -1,0 +1,21 @@
+{
+ "network": "chipnet",
+ "claims": [
+  {
+   "utc": "2026-11-18T21:45:50.000Z",
+   "address": "bchtest:zz8fm0yp5j5as68vel8rvskv7xtz8xca8g90zrn4mm",
+   "txid": "2b6a7acc0963b14c0a227014eca58bf0c9b931dd9c26f90d6ce808111d582a9f",
+   "bytes": 1901,
+   "feeSats": 1901,
+   "height": 337326,
+   "paid": "30400000000"
+  }
+ ],
+ "refusals": [
+  {
+   "utc": "2026-11-18T21:46:05.000Z",
+   "address": "bchtest:zz8fm0yp5j5as68vel8rvskv7xtz8xca8g90zrn4mm",
+   "message": "Local check: ClaimPool.cash:75 Require statement failed at input 0 in contract ClaimPool.cash at line 75. Node: the transaction was rejected by network rules."
+  }
+ ]
+}
