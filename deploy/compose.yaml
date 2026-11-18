@@ -1,5 +1,7 @@
-# tuai: one static container (claim page + epoch files) behind the host's reverse proxy. No published port, no volume,
-# no keys. Run through deploy/deploy.sh, which sources deploy/hos.env (host values, not tracked).
+# tuai: one static container (claim page + epoch files) behind the host's reverse proxy, and, with the `relay` profile,
+# the chipnet demo relayer that nginx forwards /api/relay/ to. No published ports. The page container holds no keys;
+# the relayer holds only its own chipnet key, mounted read-only (docs/decisions/0009-chipnet-relayer.md).
+# Run through deploy/deploy.sh, which sources deploy/hos.env (host values, not tracked).
 name: tuai
 services:
   tuai:
@@ -12,6 +14,26 @@ services:
     tmpfs: [/tmp]
     cpus: 0.25
     mem_limit: 64m
+    networks: [proxy]
+
+  tuai-relay:
+    image: tuai-relay:${TUAI_TAG:-latest}
+    container_name: tuai-relay
+    profiles: [relay]
+    restart: unless-stopped
+    environment:
+      TZ: UTC
+      TUAI_RELAY_KEY_FILE: /run/tuai/relay-key.json
+      TUAI_RELAY_OFF: ${TUAI_RELAY_OFF:-0}
+    volumes:
+      - type: bind
+        source: ${TUAI_RELAY_KEY_FILE:-/nonexistent}
+        target: /run/tuai/relay-key.json
+        read_only: true
+    read_only: true
+    tmpfs: [/tmp]
+    cpus: 0.25
+    mem_limit: 128m
     networks: [proxy]
 
 networks:

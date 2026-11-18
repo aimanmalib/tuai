@@ -5,7 +5,10 @@
 #   deploy/deploy.sh --status     container, tags, rollback image and the public health code
 # Verification: /healthz through the public URL (retried), then the read-only browser checks (e2e/live.spec.ts,
 # Chromium desktop and WebKit iPhone 13) against the public URL. A failed browser check rolls back.
-# Host values live in deploy/hos.env (not tracked; see deploy/hos.env.example). The container holds no keys.
+# Host values live in deploy/hos.env (not tracked; see deploy/hos.env.example). The page container holds no keys.
+# Relayer (docs/decisions/0009-chipnet-relayer.md): with TUAI_RELAY_KEY_FILE set and TUAI_RELAY_OFF not 1, a second
+# container `tuai-relay` runs with that chipnet key mounted read-only; otherwise it is stopped and the page falls back
+# to the CLI command. Switch off: TUAI_RELAY_OFF=1 in deploy/hos.env, then deploy/deploy.sh.
 set -euo pipefail
 # The script calls itself again to roll back, after moving into deploy/: keep a path that still works from there.
 SELF="$(realpath "$0")"
@@ -17,7 +20,9 @@ cd "$(dirname "$SELF")"
 BUILD_CMD=${BUILD_CMD:-docker build}
 MIN_FREE_GB=${MIN_FREE_GB:-8}
 BROWSER_CMD=${BROWSER_CMD:-}
-export TUAI_NETWORK
+TUAI_RELAY_KEY_FILE=${TUAI_RELAY_KEY_FILE:-}
+TUAI_RELAY_OFF=${TUAI_RELAY_OFF:-0}
+export TUAI_NETWORK TUAI_RELAY_KEY_FILE TUAI_RELAY_OFF
 DC="docker compose -f compose.yaml"
 URL="https://$TUAI_DOMAIN"
 HOLDER=tuai-undur
@@ -37,6 +42,17 @@ hold_previous() {  # $1 = image ID the replaced container ran: keep it by ID in 
   echo "rollback image held: tuai:$prev (${id:7:12})"
 }
 
+relay_wanted() { [ -n "$TUAI_RELAY_KEY_FILE" ] && [ -r "$TUAI_RELAY_KEY_FILE" ] && [ "$TUAI_RELAY_OFF" != 1 ]; }
+
+relay_up() {  # $1 = tag: run the relayer image of that tag, or stop the relayer when it is off or has no such image
+  if relay_wanted && docker image inspect "tuai-relay:$1" >/dev/null 2>&1; then
+    TUAI_TAG=$1 $DC --profile relay up -d --force-recreate tuai-relay
+  else
+    $DC --profile relay rm -sfv tuai-relay >/dev/null 2>&1 || true
+    echo "relayer: off (page shows the CLI command)"
+  fi
+}
+
 browser_check() {  # read-only checks, two engines, against the public URL
   (cd .. && E2E_BASE_URL="$URL" $BROWSER_CMD npx playwright test --reporter=line)
 }
@@ -44,7 +60,7 @@ browser_check() {  # read-only checks, two engines, against the public URL
 mode=${1:-deploy}
 case "$mode" in
   --status)
-    $DC ps
+    $DC --profile relay ps
     echo "current $(cat CURRENT_TAG 2>/dev/null || echo -) · previous $(cat PREVIOUS_TAG 2>/dev/null || echo -)"
     docker inspect -f 'rollback holder: {{index .Config.Labels "sasateguh.tag"}}' "$HOLDER" 2>/dev/null || echo "rollback holder: none"
     echo "public /healthz $(health_code)"; exit 0 ;;
@@ -65,12 +81,14 @@ case "$mode" in
     ctx=$(mktemp -d); trap 'rm -rf "$ctx"' EXIT
     git -C .. archive HEAD | tar -x -C "$ctx"   # clean tree: untracked and ignored files never reach the image
     $BUILD_CMD -t "tuai:$TAG" "$ctx"
+    if relay_wanted; then $BUILD_CMD -t "tuai-relay:$TAG" -f "$ctx/deploy/relay.Dockerfile" "$ctx"; fi
     [ -r CURRENT_TAG ] && cp CURRENT_TAG PREVIOUS_TAG ;;
   *) echo "usage: deploy.sh [--rollback|--status]"; exit 2 ;;
 esac
 
 old_id=$(docker inspect -f '{{.Image}}' tuai 2>/dev/null || true)
 TUAI_TAG=$TAG $DC up -d --force-recreate tuai
+relay_up "$TAG"
 echo "$TAG" > CURRENT_TAG
 
 route=$(mktemp)
@@ -82,8 +100,10 @@ for _ in $(seq 30); do [ "$(docker inspect -f '{{.State.Health.Status}}' tuai)" 
 no_rollback=0; [ "$mode" = --rollback ] || hold_previous "$old_id" || no_rollback=1
 
 # Keep only the current and previous images of this project; the host disk is shared.
-docker images tuai --format '{{.Tag}}' | grep -vxF -e "$TAG" -e "$(cat PREVIOUS_TAG 2>/dev/null || echo -)" \
-  | sed 's/^/tuai:/' | xargs -r docker rmi >/dev/null 2>&1 || true
+for repo in tuai tuai-relay; do
+  docker images "$repo" --format '{{.Tag}}' | grep -vxF -e "$TAG" -e "$(cat PREVIOUS_TAG 2>/dev/null || echo -)" \
+    | sed "s/^/$repo:/" | xargs -r docker rmi >/dev/null 2>&1 || true
+done
 
 # A new route or certificate can take a little while: wait and retry before calling it a failure.
 code=000
