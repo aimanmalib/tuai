@@ -3,6 +3,7 @@ import { binToHex } from '@bitauth/libauth';
 import { readEpochFile } from '../../epoch/file.ts';
 import { verifyEpoch } from '../../epoch/verify.ts';
 import { readPending, readPool } from '../../pool/utxos.ts';
+import { watchDeployment } from '../../watch/chain-roots.ts';
 import { addressesInFahSummary, checkLinks } from '../../watch/fah.ts';
 import { flag, requireFlag, type ParsedArgs } from '../args.ts';
 import type { Context } from '../context.ts';
@@ -10,10 +11,18 @@ import { contractsFor } from '../pool.ts';
 import { readRunLog } from '../runs.ts';
 
 /**
+ * `watch --deployment <dir>`: recomputes every epoch file of a recorded deployment and compares its root and inputs
+ * hash with the state NFT its propose and activate transactions carry on chain.
+ *
  * `watch --epoch <file> [--fah <daily_user_summary.txt>]`: recomputes the epoch, checks method 0 leaves against
  * public Folding@home names, and when a pool is deployed compares the file with the active and pending roots.
  */
 export async function watch(ctx: Context, a: ParsedArgs) {
+  const deployment = flag(a, 'deployment');
+  if (deployment) {
+    const r = await watchDeployment(deployment, (txid) => ctx.provider.getRawTransaction(txid));
+    return { ok: r.findings.length === 0, ...r };
+  }
   const path = requireFlag(a, 'epoch');
   const verify = verifyEpoch(path);
   const findings = [...verify.problems];

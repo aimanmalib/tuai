@@ -109,5 +109,14 @@
     "deploymentsDir": "deployments",
     "defaultLocale": "en",
     "localeStorageKey": "tuai.locale"
+  },
+  "watch": {
+    "network": "chipnet",
+    "deploymentDir": "deployments/chipnet",
+    "fahSummaryUrl": "https://apps.foldingathome.org/daily_user_summary.txt.bz2",
+    "downloadTimeoutSeconds": 180,
+    "fahDir": "state/fah",
+    "stateDir": "state/watch",
+    "reportPath": "reports/watch-chipnet.json"
   }
 }

@@ -43,6 +43,21 @@ export interface TuaiConfig {
   cost: CostConfig;
   demo: DemoConfig;
   web: WebConfig;
+  watch: WatchConfig;
+}
+
+/** Watcher report: the deployment it checks on chain, the public Folding@home summary, and where results go. */
+export interface WatchConfig {
+  network: NetworkName;
+  deploymentDir: string;
+  fahSummaryUrl: string;
+  downloadTimeoutSeconds: number;
+  /** Untracked: the downloaded summary and its hash record. */
+  fahDir: string;
+  /** Untracked: raw transactions, the replay epoch and per-leaf link results. */
+  stateDir: string;
+  /** Tracked: aggregates only, no addresses or names. */
+  reportPath: string;
 }
 
 /** Claim page: which deployments it shows and where it reads chain state from. */
