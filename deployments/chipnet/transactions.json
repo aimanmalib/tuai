@@ -1,6 +1,6 @@
 {
  "network": "chipnet",
- "tipHeight": 336075,
+ "tipHeight": 337293,
  "transactions": [
   {
    "kind": "prepare-genesis",
@@ -160,7 +160,7 @@
    "bytes": 1901,
    "feeSats": 1901,
    "utc": "2026-11-18T00:38:02.477Z",
-   "height": 336042,
+   "height": 336043,
    "note": "leaf 298"
   },
   {
@@ -169,7 +169,7 @@
    "bytes": 1901,
    "feeSats": 1901,
    "utc": "2026-11-18T00:38:16.384Z",
-   "height": 336042,
+   "height": 336043,
    "note": "leaf 299"
   },
   {
@@ -188,7 +188,7 @@
    "bytes": 862,
    "feeSats": 866,
    "utc": "2026-11-18T00:39:38.468Z",
-   "height": 336042,
+   "height": 336043,
    "note": "operators 2,3"
   },
   {
@@ -197,7 +197,7 @@
    "bytes": 1473,
    "feeSats": 1473,
    "utc": "2026-11-18T01:08:22.248Z",
-   "height": 336075,
+   "height": 336076,
    "note": "pending mined at 336043, tip 336072"
   },
   {
@@ -206,7 +206,7 @@
    "bytes": 1748,
    "feeSats": 1748,
    "utc": "2026-11-18T01:08:40.888Z",
-   "height": 336075,
+   "height": 336076,
    "note": "leaf 0"
   },
   {
@@ -215,8 +215,16 @@
    "bytes": 1750,
    "feeSats": 1750,
    "utc": "2026-11-18T01:09:03.151Z",
-   "height": 336075,
+   "height": 336076,
    "note": "leaf 299"
+  },
+  {
+   "kind": "fund-relay-chipnet",
+   "txid": "58ca9a8181e68dfdfec161853e745b850c4ea56d26052264337599c7ab36552e",
+   "bytes": 219,
+   "feeSats": 219,
+   "utc": "2026-11-18T21:12:16.768Z",
+   "height": 337267
   }
  ]
 }

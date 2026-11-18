@@ -20,7 +20,7 @@
       "activationDelayBlocks": 3,
       "pushDelayBlocks": 3,
       "rewardCategory": "",
-      "explorerTxUrl": "https://chipnet.imaginary.cash/tx/",
+      "explorerTxUrl": "https://cbch.loping.net/tx/",
       "sequenceBlockScale": 10
     },
     "mainnet": {

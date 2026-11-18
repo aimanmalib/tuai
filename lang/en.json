@@ -111,6 +111,7 @@
         "propose": "Propose a root (two of three operators)",
         "activate": "Activate the root after the audit window",
         "fund-demo": "Fund a demo key that pays claim fees",
+        "fund-relay-chipnet": "Fund the demo relayer that pays claim fees from the page",
         "claim-first": "First claim",
         "double-claim": "Claim the same amount again",
         "claim-additional": "Claim the top-up",

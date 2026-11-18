@@ -1,7 +1,7 @@
 {
  "network": "chipnet",
  "deployment": "chipnet-push",
- "tipHeight": 336474,
+ "tipHeight": 337294,
  "transactions": [
   {
    "kind": "prepare-genesis",

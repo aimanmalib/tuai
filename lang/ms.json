@@ -111,6 +111,7 @@
         "propose": "Cadangkan akar (dua daripada tiga operator)",
         "activate": "Aktifkan akar selepas tempoh audit",
         "fund-demo": "Isi kunci demo yang membayar yuran tuntutan",
+        "fund-relay-chipnet": "Isi relayer demo yang membayar yuran tuntutan dari laman",
         "claim-first": "Tuntutan pertama",
         "double-claim": "Tuntut amaun yang sama sekali lagi",
         "claim-additional": "Tuntut tambahan",
