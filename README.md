@@ -34,6 +34,10 @@ flowchart LR
   timelock. Anyone can activate it after the delay.
 - **Claim pool:** pays `cumulative - alreadyClaimed` to the locking bytecode in the leaf, so whoever submits a claim
   cannot redirect the payment. Receipts stay inside the contract as a sorted linked list.
+- **Operator push:** once a root has been active for `pushDelay` blocks with no newer proposal, anyone may arm
+  pushes; then a push pays a balance of at least `pushMinimum` to the leaf's locking bytecode, using the same
+  receipts as claims, with dust and fee taken from BCH the operator left in the vault (ADR
+  [0008](docs/decisions/0008-operator-push.md)).
 - **Inputs hash:** each root is committed on chain together with the hash of its input manifest, so anyone can
   recompute it from the published files.
 - **Contracts:** [`ClaimPool.cash`](contracts/ClaimPool.cash) checks claims,
@@ -61,7 +65,10 @@ Stretch items built: cumulative-only roots; inputs hash on chain and a watcher t
 hash from the chipnet transactions, recomputes both from the committed files, and checks method 0 links of the real
 push distributions against the Folding@home daily summary ([`reports/watch-chipnet.json`](reports/watch-chipnet.json),
 see [Watcher](#watcher)); 2-of-3 root authority; proof depth and VM limit analysis
-([`docs/DEPTH.md`](docs/DEPTH.md)). Not built: the optional operator push path after a long timelock.
+([`docs/DEPTH.md`](docs/DEPTH.md)); the operator push path behind a delay (`RootGate.arm`) and a minimum
+([`ClaimPool.claim`](contracts/ClaimPool.cash), [`src/tx/push.ts`](src/tx/push.ts), `tests/operator-push.test.ts`, ADR
+[0008](docs/decisions/0008-operator-push.md)), tested on the mock network. The recorded chipnet pool runs the
+version 1 contracts, deployed before the push path.
 
 ## Open questions answered
 
@@ -87,20 +94,22 @@ see [Watcher](#watcher)); 2-of-3 root authority; proof depth and VM limit analys
 ## Trust boundaries
 
 - **Contracts enforce:** the payment amount and destination, one receipt per locking bytecode, 2 of 3 signatures for
-  a new root, the delay before it pays, and that pool tokens leave only through claims. Nothing in the contracts
+  a new root, the delay before it pays, and that pool tokens leave only through claims and pushes (which pay the same
+  leaf and update the same receipt). Nothing in the contracts
   lets anyone withdraw the pool, so unclaimed rewards stay claimable.
 - **Operators decide:** the content of each root. Two operators can publish a wrong root; the inputs hash and the
   delay make it visible before it pays, but do not block it.
 - **FoldingCash decides:** eligibility and amounts (the distribution API) and method 1 address links. The Folding@home
   daily files are taken as published.
-- **Recipients and relayers:** anyone may submit a claim or an activation; neither can change where tokens go.
+- **Recipients and relayers:** anyone may submit a claim, an activation, an arm or a push; none can change where
+  tokens go. A push may spend up to `pushSats` of the vault's BCH; the operator decides how much BCH to leave there.
 
 ## Cost
 
 From [`docs/COST.md`](docs/COST.md) (generated from measured sizes and live mainnet distributions; price and time of
 measurement are in that file):
 
-- **Operators:** 2,335 sat per epoch (propose 862 bytes, activate 1,473 bytes), whatever the number of recipients.
+- **Operators:** 2,709 sat per epoch (propose 1,025 bytes, activate 1,684 bytes), whatever the number of recipients.
   Push at 1,000 recipients: 1,077,187 sat per epoch in fees and dust.
 - **Recipients:** a first claim at depth 9 was 1,899 bytes on chipnet, paid by the claimant together with 1,000 sat
   of receipt dust; a later top-up claim was 1,748 bytes. From 100 recipients up, a recipient who claims once every 3
@@ -195,7 +204,7 @@ contract's fund key sends each period's tokens to the pool vault, and the per-ep
 
 ## Configuration
 
-Every value that can change (networks, Electrum servers, timelock lengths, tree depth, operator keys, fee and dust
+Every value that can change (networks, Electrum servers, timelock lengths, push delay, minimum and BCH limit, tree depth, operator keys, fee and dust
 values, sponsor API settings, mainnet spending limit) lives in [`config/tuai.json`](config/tuai.json). CLI text lives
 in [`lang/en.json`](lang/en.json) and [`lang/ms.json`](lang/ms.json).
 
@@ -212,6 +221,8 @@ in [`lang/en.json`](lang/en.json) and [`lang/ms.json`](lang/ms.json).
   participant's address is in the demonstration.
 - Chipnet nodes read a block-count sequence lock as ten one-minute blocks per unit at the time of the demonstration,
   so the demo delay of 3 took 30 blocks (ADR 0006).
+- The chipnet demonstration ran the version 1 contracts (kept in `src/contracts/artifacts/v1/`), so the push path is
+  tested on the mock network only. Pushes open only between `pushDelay` blocks after activation and the next proposal.
 - The demonstration runs on chipnet only. The claim page shows the CLI command; it does not sign claims with a wallet.
 
 ## AI disclosure

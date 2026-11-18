@@ -66,14 +66,16 @@ Three contracts share one **pool token category** (the txid of the deploy transa
 | UTXO | Contract | Token | Commitment |
 |---|---|---|---|
 | State NFT | `ClaimPool` | pool category, **minting** | `root(32) \|\| epoch(4, LE) \|\| inputsHash(32)` (68 bytes) |
-| Pending-root NFT | `RootGate` | pool category, **mutable** | same layout as the state NFT |
+| Pending-root NFT | `RootGate` | pool category, **mutable** | same layout as the state NFT; armed for pushes: `state \|\| 0x01` (69 bytes, section 5.5) |
 | Receipt | `PoolVault` | pool category, **immutable** | `key(32) \|\| next(32) \|\| claimed(8, LE)` (72 bytes) |
 | Reward tokens | `PoolVault` | reward category, fungible | none |
 
 - `key = sha256(lockingBytecode)` of the leaf. Receipts form a singly linked list sorted by key read as a
   little-endian unsigned integer. The head is `key = 0x00..00, next = 0xff..ff, claimed = 0`.
-- Contract parameters: `ClaimPool(poolCategory, rewardCategory, vaultBytecode, maxDepth)`,
-  `PoolVault(poolCategory)`, `RootGate(operatorA, operatorB, operatorC, delay, poolCategory)`.
+- Contract parameters: `ClaimPool(poolCategory, rewardCategory, vaultBytecode, maxDepth, pushMinimum, pushSats)`,
+  `PoolVault(poolCategory)`, `RootGate(operatorA, operatorB, operatorC, delay, pushDelay, poolCategory)`.
+- Version 1 contracts (no push path; `src/contracts/artifacts/v1/`) drop `pushMinimum`, `pushSats` and `pushDelay`.
+  The recorded chipnet pool uses them: its `deployments/chipnet/pool.json` has no `push` field.
 - `PoolVault.spend` only requires input 0 to hold the pool category's minting NFT. That NFT never leaves `ClaimPool`,
   so the `ClaimPool` script at input 0 decides every vault spend.
 - Each kept UTXO (state, pending root, reward tokens, receipts) keeps its exact satoshi value through every
@@ -139,6 +141,30 @@ own locking bytecode. Whoever submits the claim pays the fee, the payment output
 new receipt's dust; the submitter cannot change where the tokens go. Any reward-token UTXO at the vault can be input 1
 (the builder takes the largest one that covers the payment and leaves at least one unit), so tokens sent to the vault
 address after deploy are claimable too (`tests/vault-topup.test.ts`).
+
+### 5.5 Arm pushes (`src/tx/push.ts` `planArm`, `ClaimPool.activate()` + `RootGate.arm()`)
+
+Same layout as an activation. Input 1 (the pending-root NFT) has sequence = `pushDelay` blocks and must equal the
+active state, so it was last recreated by the activation of that state (or by a proposal of the same commitment).
+Output 0 is the state NFT unchanged; output 1 is the pending-root NFT with commitment `state || 0x01`. Needs no key.
+A later proposal writes a 68-byte commitment, which closes pushes until the next root has stood `pushDelay` blocks.
+An armed NFT cannot be activated: its epoch equals the active epoch.
+
+### 5.6 Push (`src/tx/push.ts` `planPush`, `ClaimPool.claim(...)` + `RootGate.witness()`)
+
+A claim (section 5.4) with exactly one more input and output, and nothing else:
+
+| # | Input | Output |
+|---|---|---|
+| 0..2 | as in a claim | as in a claim, except output 1 may hold up to `pushSats` fewer satoshis |
+| 3 | `RootGate`: pending-root NFT armed for the active state | first push: new receipt, then the pending-root NFT unchanged; additional push: the pending-root NFT unchanged |
+
+`ClaimPool.claim` treats input 3 holding the mutable pool NFT as a push: it requires the commitment `state || 0x01`,
+`payment >= pushMinimum`, exactly four inputs, the pending-root NFT as the only output after the receipts, and
+`outputs[1].value + pushSats >= inputs[1].value`. The vault's BCH therefore pays the payment dust, a new receipt's
+dust and the fee. `RootGate.witness` runs at input 3 and requires the last output to be the same NFT at the gate.
+The payment still goes to the leaf's locking bytecode and the same receipt rule applies, so a push and a claim
+never pay the same amount twice.
 
 ## 6. Sizes and limits
 
