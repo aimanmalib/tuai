@@ -16,7 +16,9 @@
         "hostname": "chipnet.bch.ninja"
       },
       "activationDelayBlocks": 3,
-      "rewardCategory": ""
+      "rewardCategory": "",
+      "explorerTxUrl": "https://chipnet.imaginary.cash/tx/",
+      "sequenceSecondsPerBlock": 600
     },
     "mainnet": {
       "addressPrefix": "bitcoincash",
@@ -78,5 +80,21 @@
     "indexerGraphqlUrl": "https://gql.chaingraph.pat.mn/v1/graphql",
     "priceUrl": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin-cash&vs_currencies=usd",
     "reportPath": "reports/push-distributions.json"
+  },
+  "demo": {
+    "label": "chipnet-1",
+    "leafCount": 300,
+    "keyIndices": [
+      0,
+      1,
+      150,
+      298,
+      299
+    ],
+    "keyAmountWhole": 1000,
+    "syntheticMaxWhole": 500,
+    "topUpWhole": 250,
+    "tokenSupplyWhole": 1000000,
+    "otherPayerFundingSats": 20000
   }
 }

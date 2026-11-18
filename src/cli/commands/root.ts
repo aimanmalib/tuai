@@ -40,11 +40,13 @@ export async function propose(ctx: Context, a: ParsedArgs) {
 }
 
 export class NotYetError extends Error {
-  constructor(readonly blocksLeft: number | undefined) {
+  constructor(readonly blocksLeft: number | undefined, readonly secondsLeft?: number) {
     super(
       blocksLeft === undefined
         ? 'the pending root is not confirmed yet; activation is possible once it has aged the activation delay'
-        : `the pending root can be activated in ${blocksLeft} more block(s)`,
+        : secondsLeft
+          ? `the pending root can be activated once the median time past advances ${secondsLeft} more second(s)`
+          : `the pending root can be activated in ${blocksLeft} more block(s)`,
     );
   }
 }
@@ -54,7 +56,7 @@ export async function activate(ctx: Context, a: ParsedArgs) {
   const contracts = contractsFor(ctx);
   const s = await poolStatus(ctx, contracts);
   const tracked = s.tracked;
-  if (tracked && s.blocksLeft !== 0 && !has(a, 'force')) throw new NotYetError(s.blocksLeft);
+  if (tracked && s.blocksLeft !== 0 && !has(a, 'force')) throw new NotYetError(s.blocksLeft, s.secondsLeft);
   const payer = loadKey(ctx, flag(a, 'payer') ?? payerRole(ctx.network));
   const funding = selectFunding(await plainUtxos(ctx, payer), OPERATOR_FUNDING_SATS);
   const builder = buildActivate({
@@ -65,11 +67,15 @@ export async function activate(ctx: Context, a: ParsedArgs) {
     feeRate: ctx.config.fees.satsPerByte,
   });
   const early = s.blocksLeft !== 0 && tracked;
+  // Heights seen when sending, so refused and accepted attempts can be compared with the node's sequence locks.
+  const seen = tracked ? `pending mined at ${s.confirmed ?? 'unconfirmed'}, tip ${s.height}` : '';
+  const forced = early ? `forced ${s.secondsLeft ? `${s.secondsLeft} s` : `${s.blocksLeft ?? 'unconfirmed'} block(s)`} early` : '';
+  const note = [forced, seen].filter(Boolean).join('; ');
   const tx = await broadcast(ctx, builder, {
     kind: `activate-epoch-${s.pending.pending.epoch}`,
     ownInputs: funding,
     ownLockingBytecode: payer.lockingBytecode,
-    ...(early ? { note: `forced ${s.blocksLeft ?? 'unconfirmed'} block(s) early` } : {}),
+    ...(note ? { note } : {}),
   });
   return { activated: stateJson(s.pending.pending), tx };
 }

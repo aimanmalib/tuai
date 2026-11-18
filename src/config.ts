@@ -10,6 +10,13 @@ export interface NetworkConfig {
   activationDelayBlocks: number;
   electrum?: { hostname: string };
   rewardCategory?: string;
+  /** Block explorer page for a transaction; the txid is appended. */
+  explorerTxUrl?: string;
+  /**
+   * Set when the network's nodes read a block-count sequence lock as this many seconds of median time past per
+   * block (measured on chipnet with one-minute blocks). Absent: the lock counts blocks.
+   */
+  sequenceSecondsPerBlock?: number;
 }
 
 export interface TuaiConfig {
@@ -33,6 +40,23 @@ export interface TuaiConfig {
   budget: { mainnetMaxSats: number; ledgerPath: string };
   banner: { event: string; bounty: string; prizeAddress: string };
   cost: CostConfig;
+  demo: DemoConfig;
+}
+
+/** The public demonstration tree (chipnet): demo key positions, amounts in whole tokens, and its funding. */
+export interface DemoConfig {
+  /** Mixed into synthetic leaf hashes; change it to lay out a fresh demonstration. */
+  label: string;
+  leafCount: number;
+  /** Leaf index of each project demo key (demo-1 .. demo-N). */
+  keyIndices: number[];
+  keyAmountWhole: number;
+  syntheticMaxWhole: number;
+  /** Added to every demo key in the second epoch, for top-up claims. */
+  topUpWhole: number;
+  tokenSupplyWhole: number;
+  /** BCH sent to a second project key so it can pay for someone else's claim. */
+  otherPayerFundingSats: number;
 }
 
 /** Inputs of the push-versus-pull cost comparison (docs/COST.md). */
@@ -71,6 +95,12 @@ export function validateConfig(c: TuaiConfig): string[] {
     if (!isPositiveInt(n.activationDelayBlocks) || n.activationDelayBlocks > 0xffff) {
       problems.push(`networks.${name}.activationDelayBlocks must be 1..65535 blocks`);
     }
+    if (n.sequenceSecondsPerBlock !== undefined && !isPositiveInt(n.sequenceSecondsPerBlock)) {
+      problems.push(`networks.${name}.sequenceSecondsPerBlock must be > 0`);
+    }
+    if (n.explorerTxUrl !== undefined && !/^https:\/\/.+\/$/.test(n.explorerTxUrl)) {
+      problems.push(`networks.${name}.explorerTxUrl must be an https URL ending in /`);
+    }
     if (n.rewardCategory && !/^[0-9a-f]{64}$/.test(n.rewardCategory)) {
       problems.push(`networks.${name}.rewardCategory must be 32 bytes of hex`);
     }
@@ -102,6 +132,7 @@ export function validateConfig(c: TuaiConfig): string[] {
   if (!isPositiveInt(c.budget?.mainnetMaxSats)) problems.push('budget.mainnetMaxSats must be > 0');
   if (!c.banner?.prizeAddress?.startsWith('bitcoincash:')) problems.push('banner.prizeAddress must be a mainnet address');
   problems.push(...validateCost(c.cost));
+  problems.push(...validateDemo(c.demo));
   return problems;
 }
 
@@ -117,6 +148,20 @@ function validateCost(k: CostConfig | undefined): string[] {
   if (!/^[0-9a-f]{64}$/.test(k.sponsorCategory ?? '')) problems.push('cost.sponsorCategory must be 32 bytes of hex');
   if (!/^https:\/\//.test(k.indexerGraphqlUrl ?? '') || !/^https:\/\//.test(k.priceUrl ?? '')) {
     problems.push('cost URLs must be https');
+  }
+  return problems;
+}
+
+function validateDemo(d: DemoConfig | undefined): string[] {
+  if (!d) return ['demo is missing'];
+  const problems: string[] = [];
+  if (!d.label) problems.push('demo.label must be set');
+  if (!isPositiveInt(d.leafCount)) problems.push('demo.leafCount must be > 0');
+  if (!Array.isArray(d.keyIndices) || d.keyIndices.some((i) => !Number.isInteger(i) || i < 0 || i >= d.leafCount)) {
+    problems.push('demo.keyIndices must be leaf indices below demo.leafCount');
+  }
+  for (const k of ['keyAmountWhole', 'syntheticMaxWhole', 'topUpWhole', 'tokenSupplyWhole', 'otherPayerFundingSats'] as const) {
+    if (!isPositiveInt(d[k])) problems.push(`demo.${k} must be > 0`);
   }
   return problems;
 }

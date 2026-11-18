@@ -5,6 +5,7 @@ import { parseArgs, flag, has, type ParsedArgs } from './args.ts';
 import { makeContext, parseNetwork, type Context, type ContextOverrides } from './context.ts';
 import { claim } from './commands/claim.ts';
 import { deploy, tokenGenesis } from './commands/deploy.ts';
+import { demoAllocations, demoDoubleClaim, fund } from './commands/demo.ts';
 import { epochBuild, epochVerify } from './commands/epoch.ts';
 import { NotYetError, activate, propose } from './commands/root.ts';
 import { budget, status } from './commands/status.ts';
@@ -23,6 +24,9 @@ const COMMANDS: Record<string, Handler> = {
   claim,
   status,
   budget,
+  fund,
+  'demo allocations': demoAllocations,
+  'demo double-claim': demoDoubleClaim,
 };
 
 /** Exit codes: 0 done, 1 failed or a check found a difference, 2 usage error, 3 not yet possible (retry later). */

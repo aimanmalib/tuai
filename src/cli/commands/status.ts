@@ -23,7 +23,7 @@ export async function status(ctx: Context, a: ParsedArgs) {
       category: contracts.params.poolCategory,
       rewardCategory: contracts.params.rewardCategory,
       active: stateJson(s.pool.decodedState),
-      pending: { ...stateJson(s.pending.pending), confirmedHeight: s.confirmed ?? null, blocksLeft: s.blocksLeft ?? null },
+      pending: { ...stateJson(s.pending.pending), confirmedHeight: s.confirmed ?? null, blocksLeft: s.blocksLeft ?? null, ...(s.secondsLeft === undefined ? {} : { secondsLeft: s.secondsLeft }) },
       height: s.height,
       activationDelay: contracts.params.activationDelay,
       balance: poolBalance(s.pool.rewards).toString(),

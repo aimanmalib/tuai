@@ -4,6 +4,7 @@ import { ElectrumNetworkProvider, MockNetworkProvider, SignatureTemplate, type N
 import { binToHex, encodeCashAddress, hash160, hexToBin, secp256k1 } from '@bitauth/libauth';
 import { NETWORKS, REPO_ROOT, loadConfig, type NetworkName, type TuaiConfig } from '../config.ts';
 import type { CashAddressPrefix } from '../leaf.ts';
+import { medianTimePast } from '../gate/maturity.ts';
 
 export interface ProjectKey {
   role: string;
@@ -29,6 +30,8 @@ export interface Context {
    * not track confirmations; the timelock is then left to the contracts alone.
    */
   confirmedHeight?: (txid: string) => Promise<number | undefined>;
+  /** Median time past at a height (absent on the mock network). */
+  medianTime?: (height: number) => Promise<number>;
   out: (line: string) => void;
 }
 
@@ -40,6 +43,7 @@ export interface ContextOverrides {
   now?: () => Date;
   fetch?: typeof fetch;
   confirmedHeight?: (txid: string) => Promise<number | undefined>;
+  medianTime?: (height: number) => Promise<number>;
   out?: (line: string) => void;
 }
 
@@ -57,11 +61,24 @@ function electrumHeight(provider: ElectrumNetworkProvider): (txid: string) => Pr
   };
 }
 
+function electrumMedianTime(provider: ElectrumNetworkProvider): (height: number) => Promise<number> {
+  return async (height) => {
+    const stamps: number[] = [];
+    for (let h = Math.max(0, height - 10); h <= height; h += 1) {
+      const header = (await provider.performRequest('blockchain.block.header', h)) as string;
+      // Bytes 68..71 of the 80-byte header: the block's timestamp, little-endian.
+      stamps.push(new DataView(hexToBin(header).buffer).getUint32(68, true));
+    }
+    return medianTimePast(stamps);
+  };
+}
+
 export function makeContext(network: NetworkName, o: ContextOverrides = {}): Context {
   const config = o.config ?? loadConfig();
   const repoRoot = o.repoRoot ?? REPO_ROOT;
   let provider = o.provider;
   let confirmedHeight = o.confirmedHeight;
+  let medianTime = o.medianTime;
   if (!provider) {
     if (network === 'mock') {
       provider = new MockNetworkProvider({ vmTarget: 'BCH_2026_05' });
@@ -69,6 +86,7 @@ export function makeContext(network: NetworkName, o: ContextOverrides = {}): Con
       const electrum = new ElectrumNetworkProvider(network, { hostname: config.networks[network].electrum?.hostname ?? '' });
       provider = electrum;
       confirmedHeight = o.confirmedHeight ?? electrumHeight(electrum);
+      medianTime = o.medianTime ?? electrumMedianTime(electrum);
     }
   }
   return {
@@ -81,6 +99,7 @@ export function makeContext(network: NetworkName, o: ContextOverrides = {}): Con
     now: o.now ?? (() => new Date()),
     ...(o.fetch ? { fetch: o.fetch } : {}),
     ...(confirmedHeight ? { confirmedHeight } : {}),
+    ...(medianTime ? { medianTime } : {}),
     out: o.out ?? ((line) => process.stdout.write(`${line}\n`)),
   };
 }
