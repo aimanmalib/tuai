@@ -15,15 +15,44 @@ const indexes = buildTxIndex(process.cwd(), 'deployments', { chipnet: explorer }
 const recorded = readdirSync('deployments')
   .filter((run) => existsSync(join('deployments', run, 'transactions.json')))
   .map((run) => ({ run, ...(JSON.parse(readFileSync(join('deployments', run, 'transactions.json'), 'utf8')) as { network: string; transactions: unknown[] }) }));
+// Claims made from the page, recorded beside a run after an on-chain check.
+const pageRecords = recorded
+  .filter((r) => existsSync(join('deployments', r.run, 'page-claims.json')))
+  .map((r) => ({
+    run: r.run,
+    ...(JSON.parse(readFileSync(join('deployments', r.run, 'page-claims.json'), 'utf8')) as {
+      network: string;
+      claims: { txid: string; height: number | null }[];
+      refusals: { message: string }[];
+    }),
+  }));
+const pageCount = (run: string) => {
+  const p = pageRecords.find((r) => r.run === run);
+  return p === undefined ? 0 : p.claims.length + p.refusals.length;
+};
 
 describe('activity index', () => {
   it('lists every recorded transaction of every run, grouped by network', () => {
     const indexed = indexes.flatMap((i) => i.runs.map((r) => ({ network: i.network, run: r.run, count: r.transactions.length })));
     expect(indexed.map((r) => r.run).sort()).toEqual(recorded.map((r) => r.run).sort());
-    for (const r of recorded) expect(indexed.find((i) => i.run === r.run)).toMatchObject({ network: r.network, count: r.transactions.length });
+    for (const r of recorded)
+      expect(indexed.find((i) => i.run === r.run)).toMatchObject({ network: r.network, count: r.transactions.length + pageCount(r.run) });
     const total = indexes.reduce((n, i) => n + i.runs.reduce((m, r) => m + r.transactions.length, 0), 0);
-    expect(total).toBe(recorded.reduce((n, r) => n + r.transactions.length, 0));
+    expect(total).toBe(recorded.reduce((n, r) => n + r.transactions.length + pageCount(r.run), 0));
     expect(txIndexFiles(indexes).map((f) => f.path)).toEqual(indexes.map((i) => `${i.network}/transactions.json`));
+  });
+
+  it('lists every claim made from the page with its txid, and every refused attempt without a link', () => {
+    expect(pageRecords.length).toBeGreaterThan(0);
+    for (const p of pageRecords) {
+      const txs = indexes.find((i) => i.network === p.network)!.runs.find((r) => r.run === p.run)!.transactions;
+      for (const c of p.claims) {
+        expect(txs.find((t) => t.txid === c.txid), c.txid).toMatchObject({ step: 'claim-page', height: c.height, url: `${explorer}${c.txid}` });
+      }
+      const refused = txs.filter((t) => t.step === 'claim-page-refused');
+      expect(refused.map((t) => t.error)).toEqual(p.refusals.map((r) => r.message.trim()));
+      for (const t of refused) expect(t).toMatchObject({ txid: null, url: null });
+    }
   });
 
   it('links mined transactions to the explorer and gives refused ones no link', () => {

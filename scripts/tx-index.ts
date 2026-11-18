@@ -4,9 +4,51 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { PublicTx } from '../src/demo/report.ts';
 import type { ServedFile } from './web-epochs.ts';
+import type { PageClaimsRecord } from '../src/demo/page-claims.ts';
 import { parseKind, type ActivityIndex, type ActivityRun, type ActivityTx, type EpochTotal } from '../src/demo/activity-index.ts';
 
 export { parseKind };
+
+/**
+ * Claims made from the public page and refused attempts, as an operator recorded them after checking each on chain
+ * (deployments/<run>/page-claims.json). Claims become `claim-page` entries, refusals `claim-page-refused` with no link.
+ */
+function pageClaimTxs(dir: string, run: string, network: string, explorer: string | undefined): ActivityTx[] {
+  const file = join(dir, 'page-claims.json');
+  if (!existsSync(file)) return [];
+  const record = JSON.parse(readFileSync(file, 'utf8')) as PageClaimsRecord;
+  if (record.network !== network) throw new Error(`${run}: page-claims.json is ${record.network}, pool.json is ${network}`);
+  const claims = record.claims.map(
+    (c): ActivityTx => ({
+      step: 'claim-page',
+      epoch: null,
+      kind: 'claim-page',
+      txid: c.txid,
+      bytes: c.bytes,
+      feeSats: c.feeSats,
+      height: c.height,
+      utc: c.utc,
+      note: c.address,
+      url: explorer ? `${explorer}${c.txid}` : null,
+    }),
+  );
+  const refusals = record.refusals.map(
+    (r): ActivityTx => ({
+      step: 'claim-page-refused',
+      epoch: null,
+      kind: 'claim-page-refused',
+      txid: null,
+      bytes: 0,
+      feeSats: 0,
+      height: null,
+      utc: r.utc,
+      note: r.address,
+      error: r.message.trim(),
+      url: null,
+    }),
+  );
+  return [...claims, ...refusals].sort((a, b) => a.utc.localeCompare(b.utc));
+}
 
 function epochTotals(dir: string): EpochTotal[] {
   return readdirSync(dir)
@@ -21,7 +63,8 @@ function epochTotals(dir: string): EpochTotal[] {
     });
 }
 
-/** One index per network found under the deployments folder; runs in folder-name order, transactions in recorded order. */
+/** One index per network found under the deployments folder; runs in folder-name order, transactions in recorded order,
+ * followed by the claims made from the page. */
 export function buildTxIndex(repoRoot: string, deploymentsDir: string, explorerTxUrl: Readonly<Record<string, string | undefined>>): ActivityIndex[] {
   const base = join(repoRoot, deploymentsDir);
   const byNetwork = new Map<string, ActivityRun[]>();
@@ -49,6 +92,7 @@ export function buildTxIndex(repoRoot: string, deploymentsDir: string, explorerT
         url: mined && explorer ? `${explorer}${tx.txid}` : null,
       };
     });
+    transactions.push(...pageClaimTxs(dir, run, record.network, explorer));
     const runs = byNetwork.get(record.network) ?? [];
     runs.push({ run, pool: pool.contracts.pool, epochs: epochTotals(dir), transactions });
     byNetwork.set(record.network, runs);
