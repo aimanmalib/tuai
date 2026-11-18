@@ -45,3 +45,35 @@ test('a demo address is found and its proof matches the chipnet root', async ({ 
   }
   expect(errors).toEqual([]);
 });
+
+test('the activity page lists every transaction in the served record, and sampled explorer links resolve', async ({ page }) => {
+  test.setTimeout(120_000);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  const res = await page.request.get('/epochs/chipnet/transactions.json');
+  expect(res.status()).toBe(200);
+  const index = (await res.json()) as { runs: { transactions: { txid: string | null; error?: string }[] }[] };
+  const all = index.runs.flatMap((r) => r.transactions);
+  const refused = all.filter((t) => t.error !== undefined).length;
+  await page.goto('/#/activity');
+  await expect(page.locator('.run .txs > li')).toHaveCount(all.length, { timeout: 30_000 });
+  await expect(page.locator('.run .tx.refused')).toHaveCount(refused);
+  await expect(page.locator('.run .tx.refused a')).toHaveCount(0);
+  const links = page.locator('.run .tx:not(.refused) a');
+  await expect(links).toHaveCount(all.length - refused);
+  // First, middle and last mined transaction: the explorer the page links to must know each one.
+  const n = all.length - refused;
+  for (const i of [...new Set([0, Math.floor(n / 2), n - 1])]) {
+    const href = await links.nth(i).getAttribute('href');
+    expect(href).toMatch(/^https:\/\/.+\/[0-9a-f]{64}$/);
+    const explorer = await page.request.get(href!, { timeout: 60_000 });
+    expect(explorer.status(), href!).toBe(200);
+  }
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  const o = await page.evaluate(() => ({ s: document.documentElement.scrollWidth, c: document.documentElement.clientWidth }));
+  expect(o.s).toBeLessThanOrEqual(o.c);
+  if (process.env.SCREENSHOT_DIR) {
+    await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-r2-live-activity-${test.info().project.name}.png`, fullPage: true });
+  }
+  expect(errors).toEqual([]);
+});
