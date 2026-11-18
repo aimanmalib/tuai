@@ -4,15 +4,14 @@ import { TransactionBuilder } from 'cashscript';
 import { binToHex } from '@bitauth/libauth';
 import { hexToBinChecked } from '../../bytes.ts';
 import { demoLayout, syntheticAmount } from '../../demo/layout.ts';
-import { findLeaf, leafFromJson, readEpochFile } from '../../epoch/file.ts';
-import { addressToLockingBytecode, lockingBytecodeToAddress } from '../../leaf.ts';
+import { lockingBytecodeToAddress } from '../../leaf.ts';
 import { receiptKey } from '../../pool/encoding.ts';
-import { readPool, type PoolUtxos } from '../../pool/utxos.ts';
-import { assembleClaim, planClaim } from '../../tx/claim.ts';
+import type { PoolUtxos } from '../../pool/utxos.ts';
+import { assembleClaim } from '../../tx/claim.ts';
 import { flag, requireFlag, type ParsedArgs } from '../args.ts';
 import { broadcast, measure } from '../broadcast.ts';
+import { prepareClaim } from './claim.ts';
 import { loadKey, payerRole, type Context } from '../context.ts';
-import { contractsFor } from '../pool.ts';
 import { updateRunLog } from '../runs.ts';
 import { plainUtxos, selectFunding } from '../wallet.ts';
 
@@ -82,24 +81,7 @@ export function withoutOwnReceipt(pool: PoolUtxos, lockingBytecode: Uint8Array):
 export async function demoDoubleClaim(ctx: Context, a: ParsedArgs) {
   const address = a.positional[2];
   if (!address) throw new Error('usage: tuai demo double-claim <address> --epoch <file>');
-  const file = readEpochFile(requireFlag(a, 'epoch'));
-  const lockingBytecode = addressToLockingBytecode(address, ctx.prefix);
-  const entry = findLeaf(file, binToHex(lockingBytecode));
-  if (!entry) throw new Error(`${address} has no leaf in epoch ${file.epoch}`);
-  const contracts = contractsFor(ctx);
-  const pool = withoutOwnReceipt(await readPool(contracts), lockingBytecode);
-  const payer = loadKey(ctx, flag(a, 'payer') ?? payerRole(ctx.network));
-  const funding = selectFunding(await plainUtxos(ctx, payer), 10_000n);
-  const plan = planClaim({
-    contracts,
-    pool,
-    leaf: leafFromJson(entry),
-    proof: { index: entry.index, siblings: entry.proof.map((s) => hexToBinChecked(s, 32)) },
-    funding: { utxos: funding, signer: payer.signer, changeAddress: payer.address },
-    paymentSats: BigInt(ctx.config.fees.tokenOutputDustSats),
-    receiptSats: BigInt(ctx.config.fees.receiptDustSats),
-    feeRate: ctx.config.fees.satsPerByte,
-  });
+  const { entry, epoch, plan, funding, payer } = await prepareClaim(ctx, a, address, withoutOwnReceipt);
   const builder = assembleClaim(plan, ctx.provider);
   let local: string | null = null;
   try {
@@ -120,7 +102,7 @@ export async function demoDoubleClaim(ctx: Context, a: ParsedArgs) {
   const refused = local !== null && (ctx.network === 'mock' || network !== null);
   updateRunLog(ctx, (log) =>
     log.txs.push({
-      kind: `double-claim-epoch-${file.epoch}`,
+      kind: `double-claim-epoch-${epoch}`,
       txid,
       bytes: m.bytes,
       feeSats: m.feeSats,
