@@ -1,0 +1,231 @@
+{
+  "contractName": "ClaimPool",
+  "constructorInputs": [
+    {
+      "name": "poolCategory",
+      "type": "bytes32"
+    },
+    {
+      "name": "rewardCategory",
+      "type": "bytes32"
+    },
+    {
+      "name": "vaultBytecode",
+      "type": "bytes"
+    },
+    {
+      "name": "maxDepth",
+      "type": "int"
+    }
+  ],
+  "abi": [
+    {
+      "name": "activate",
+      "inputs": []
+    },
+    {
+      "name": "claim",
+      "inputs": [
+        {
+          "name": "method",
+          "type": "bytes1"
+        },
+        {
+          "name": "cumulativeBytes",
+          "type": "bytes8"
+        },
+        {
+          "name": "lockingBytecode",
+          "type": "bytes"
+        },
+        {
+          "name": "index",
+          "type": "int"
+        },
+        {
+          "name": "proof",
+          "type": "bytes"
+        }
+      ]
+    }
+  ],
+  "bytecode": "OP_4 OP_PICK OP_0 OP_NUMEQUAL OP_IF OP_INPUTINDEX OP_0 OP_NUMEQUALVERIFY OP_1 OP_UTXOTOKENCATEGORY OP_SWAP OP_1 OP_CAT OP_EQUALVERIFY OP_2DROP OP_2DROP OP_1 OP_ELSE OP_4 OP_ROLL OP_1 OP_NUMEQUALVERIFY OP_4 OP_ROLL OP_SIZE OP_1 OP_EQUALVERIFY OP_5 OP_ROLL OP_SIZE OP_8 OP_EQUALVERIFY OP_INPUTINDEX OP_0 OP_NUMEQUALVERIFY OP_0 OP_UTXOTOKENCATEGORY OP_3 OP_PICK OP_2 OP_CAT OP_EQUALVERIFY OP_0 OP_UTXOBYTECODE OP_0 OP_UTXOTOKENCOMMITMENT OP_0 OP_OUTPUTBYTECODE OP_2 OP_PICK OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCATEGORY OP_0 OP_UTXOTOKENCATEGORY OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCOMMITMENT OP_OVER OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENAMOUNT OP_0 OP_NUMEQUALVERIFY OP_0 OP_OUTPUTVALUE OP_0 OP_UTXOVALUE OP_NUMEQUALVERIFY OP_10 OP_PICK OP_SIZE OP_NIP 20 OP_DIV OP_11 OP_PICK OP_SIZE OP_NIP OP_OVER 20 OP_MUL OP_NUMEQUALVERIFY OP_8 OP_ROLL OP_LESSTHANOREQUAL OP_VERIFY OP_8 OP_PICK OP_0 OP_GREATERTHANOREQUAL OP_VERIFY 00 OP_4 OP_ROLL OP_CAT OP_3 OP_PICK OP_CAT OP_7 OP_PICK OP_CAT OP_SHA256 OP_8 OP_ROLL OP_0 OP_BEGIN OP_DUP OP_11 OP_PICK OP_SIZE OP_NIP OP_LESSTHAN OP_DUP OP_TOALTSTACK OP_IF OP_10 OP_PICK OP_OVER 20 OP_ADD OP_SPLIT OP_DROP OP_OVER OP_SPLIT OP_NIP OP_2 OP_PICK OP_2 OP_MOD OP_1 OP_NUMEQUAL OP_IF OP_1 OP_OVER OP_CAT OP_4 OP_PICK OP_CAT OP_SHA256 OP_4 OP_ROLL OP_DROP OP_SWAP OP_2SWAP OP_ROT OP_ELSE OP_1 OP_4 OP_PICK OP_CAT OP_OVER OP_CAT OP_SHA256 OP_4 OP_ROLL OP_DROP OP_SWAP OP_2SWAP OP_ROT OP_ENDIF OP_2 OP_PICK OP_2 OP_DIV OP_2SWAP OP_NIP OP_ROT OP_OVER 20 OP_ADD OP_NIP OP_NIP OP_ENDIF OP_FROMALTSTACK OP_NOT OP_UNTIL OP_SWAP OP_0 OP_NUMEQUALVERIFY OP_SWAP OP_ROT 20 OP_SPLIT OP_DROP OP_EQUALVERIFY OP_6 OP_PICK OP_SHA256 OP_2 OP_UTXOBYTECODE OP_7 OP_PICK OP_EQUALVERIFY OP_2 OP_UTXOTOKENCATEGORY OP_5 OP_PICK OP_EQUALVERIFY OP_2 OP_UTXOTOKENCOMMITMENT OP_SIZE 48 OP_NUMEQUALVERIFY OP_DUP 20 OP_SPLIT OP_DROP OP_OVER 40 OP_SPLIT OP_DROP 20 OP_SPLIT OP_NIP OP_0 OP_4 OP_3 OP_PICK OP_6 OP_PICK OP_EQUAL OP_IF OP_4 OP_PICK 48 OP_SPLIT OP_DROP 40 OP_SPLIT OP_NIP OP_BIN2NUM OP_ROT OP_DROP OP_SWAP OP_3 OP_OUTPUTTOKENCOMMITMENT OP_6 OP_PICK OP_4 OP_PICK OP_CAT OP_10 OP_PICK OP_CAT OP_EQUALVERIFY OP_ELSE OP_3 OP_PICK 00 OP_CAT OP_BIN2NUM OP_6 OP_PICK 00 OP_CAT OP_BIN2NUM OP_4 OP_PICK 00 OP_CAT OP_BIN2NUM OP_2 OP_PICK OP_2 OP_PICK OP_LESSTHAN OP_VERIFY OP_2DUP OP_LESSTHAN OP_VERIFY OP_3 OP_OUTPUTTOKENCOMMITMENT OP_7 OP_PICK OP_10 OP_PICK OP_CAT OP_9 OP_PICK 48 OP_SPLIT OP_DROP 40 OP_SPLIT OP_NIP OP_CAT OP_EQUALVERIFY OP_4 OP_OUTPUTBYTECODE OP_15 OP_PICK OP_EQUALVERIFY OP_4 OP_OUTPUTTOKENCATEGORY OP_13 OP_PICK OP_EQUALVERIFY OP_4 OP_OUTPUTTOKENCOMMITMENT OP_9 OP_PICK OP_7 OP_PICK OP_CAT OP_13 OP_PICK OP_CAT OP_EQUALVERIFY OP_5 OP_4 OP_ROLL OP_DROP OP_SWAP OP_2SWAP OP_ROT OP_2DROP OP_DROP OP_ENDIF OP_3 OP_OUTPUTBYTECODE OP_12 OP_PICK OP_EQUALVERIFY OP_3 OP_OUTPUTTOKENCATEGORY OP_10 OP_ROLL OP_EQUALVERIFY OP_3 OP_OUTPUTVALUE OP_2 OP_UTXOVALUE OP_NUMEQUALVERIFY OP_8 OP_ROLL OP_BIN2NUM OP_ROT OP_SUB OP_DUP OP_0 OP_GREATERTHAN OP_VERIFY OP_1 OP_UTXOBYTECODE OP_10 OP_PICK OP_EQUALVERIFY OP_1 OP_UTXOTOKENCATEGORY OP_9 OP_PICK OP_EQUALVERIFY OP_1 OP_OUTPUTBYTECODE OP_10 OP_PICK OP_EQUALVERIFY OP_1 OP_OUTPUTTOKENCATEGORY OP_9 OP_PICK OP_EQUALVERIFY OP_1 OP_OUTPUTTOKENAMOUNT OP_1 OP_UTXOTOKENAMOUNT OP_2 OP_PICK OP_SUB OP_NUMEQUALVERIFY OP_1 OP_OUTPUTVALUE OP_1 OP_UTXOVALUE OP_NUMEQUALVERIFY OP_2 OP_OUTPUTBYTECODE OP_11 OP_ROLL OP_EQUALVERIFY OP_2 OP_OUTPUTTOKENCATEGORY OP_9 OP_ROLL OP_EQUALVERIFY OP_3 OP_BEGIN OP_DUP OP_TXINPUTCOUNT OP_LESSTHAN OP_DUP OP_TOALTSTACK OP_IF OP_DUP OP_UTXOBYTECODE OP_10 OP_PICK OP_EQUAL OP_NOT OP_VERIFY OP_DUP OP_UTXOBYTECODE OP_9 OP_PICK OP_EQUAL OP_NOT OP_VERIFY OP_1ADD OP_ENDIF OP_FROMALTSTACK OP_NOT OP_UNTIL OP_ROT OP_BEGIN OP_DUP OP_TXOUTPUTCOUNT OP_LESSTHAN OP_DUP OP_TOALTSTACK OP_IF OP_DUP OP_OUTPUTTOKENCATEGORY OP_0 OP_EQUALVERIFY OP_1ADD OP_ENDIF OP_FROMALTSTACK OP_NOT OP_UNTIL OP_2 OP_OUTPUTTOKENAMOUNT OP_3 OP_ROLL OP_NUMEQUALVERIFY OP_2DROP OP_2DROP OP_2DROP OP_2DROP OP_2DROP OP_1 OP_ENDIF",
+  "source": "pragma cashscript ^0.14.0;\n\n// Claim pool state and claim rules. See docs/decisions/0002-claim-pool.md for the transaction layout.\n//\n// Input 0: this contract, state NFT (pool category, minting), commitment root(32) epoch(4) inputsHash(32).\n// Input 1: PoolVault, reward tokens.         Output 0: state NFT, unchanged.\n// Input 2: PoolVault, receipt NFT.           Output 1: PoolVault, reward tokens minus the payment.\n// Inputs 3..: claimant funding (no pool      Output 2: payment to the leaf's locking bytecode.\n//   or vault UTXOs).                         Output 3 (and 4 on a first claim): receipts.\n//                                            Outputs after that: claimant change, no tokens.\n//\n// Receipt commitment: key(32) next(32) claimed(8 LE), key = sha256(leaf locking bytecode).\n// Receipts form a list sorted by key read as a little-endian unsigned integer. A first claim spends the\n// predecessor (key < k < next) as proof that k has no receipt yet and inserts k after it.\n// activate: input 1 must be the pending-root NFT (the pool category's only mutable NFT, which never leaves RootGate);\n// RootGate.activate checks the timelock and every output.\ncontract ClaimPool(bytes32 poolCategory, bytes32 rewardCategory, bytes vaultBytecode, int maxDepth) {\n    function activate() {\n        require(this.activeInputIndex == 0);\n        require(tx.inputs[1].tokenCategory == poolCategory + 0x01);\n    }\n\n    function claim(bytes1 method, bytes8 cumulativeBytes, bytes lockingBytecode, int index, bytes proof) {\n        require(this.activeInputIndex == 0);\n        require(tx.inputs[0].tokenCategory == poolCategory + 0x02);\n\n        // State NFT is recreated unchanged.\n        bytes poolBytecode = tx.inputs[0].lockingBytecode;\n        bytes state = tx.inputs[0].nftCommitment;\n        require(tx.outputs[0].lockingBytecode == poolBytecode);\n        require(tx.outputs[0].tokenCategory == tx.inputs[0].tokenCategory);\n        require(tx.outputs[0].nftCommitment == state);\n        require(tx.outputs[0].tokenAmount == 0);\n        require(tx.outputs[0].value == tx.inputs[0].value);\n\n        // Merkle proof: leaf = sha256(0x00 method cumulative lockingBytecode), node = sha256(0x01 left right).\n        int depth = proof.length / 32;\n        require(proof.length == depth * 32);\n        require(depth <= maxDepth);\n        require(index >= 0);\n        bytes hash = sha256(0x00 + method + cumulativeBytes + lockingBytecode);\n        int position = index;\n        int offset = 0;\n        while (offset < proof.length) {\n            bytes sibling = proof.slice(offset, offset + 32);\n            if (position % 2 == 1) {\n                hash = sha256(0x01 + sibling + hash);\n            } else {\n                hash = sha256(0x01 + hash + sibling);\n            }\n            position = position / 2;\n            offset = offset + 32;\n        }\n        require(position == 0);\n        require(hash == state.slice(0, 32));\n\n        // Receipt: update our own, or insert after the predecessor.\n        bytes32 key = sha256(lockingBytecode);\n        require(tx.inputs[2].lockingBytecode == vaultBytecode);\n        require(tx.inputs[2].tokenCategory == poolCategory);\n        bytes receipt = tx.inputs[2].nftCommitment;\n        require(receipt.length == 72);\n        bytes receiptKey = receipt.slice(0, 32);\n        bytes receiptNext = receipt.slice(32, 64);\n        int claimed = 0;\n        int firstFree = 4;\n        if (receiptKey == key) {\n            claimed = int(receipt.slice(64, 72));\n            require(tx.outputs[3].nftCommitment == key + receiptNext + cumulativeBytes);\n        } else {\n            int lower = int(receiptKey + 0x00);\n            int target = int(key + 0x00);\n            int upper = int(receiptNext + 0x00);\n            require(lower < target);\n            require(target < upper);\n            require(tx.outputs[3].nftCommitment == receiptKey + key + receipt.slice(64, 72));\n            require(tx.outputs[4].lockingBytecode == vaultBytecode);\n            require(tx.outputs[4].tokenCategory == poolCategory);\n            require(tx.outputs[4].nftCommitment == key + receiptNext + cumulativeBytes);\n            firstFree = 5;\n        }\n        require(tx.outputs[3].lockingBytecode == vaultBytecode);\n        require(tx.outputs[3].tokenCategory == poolCategory);\n        require(tx.outputs[3].value == tx.inputs[2].value);\n\n        // Payment: exactly cumulative - claimed reward tokens to the leaf's locking bytecode.\n        int payment = int(cumulativeBytes) - claimed;\n        require(payment > 0);\n        require(tx.inputs[1].lockingBytecode == vaultBytecode);\n        require(tx.inputs[1].tokenCategory == rewardCategory);\n        require(tx.outputs[1].lockingBytecode == vaultBytecode);\n        require(tx.outputs[1].tokenCategory == rewardCategory);\n        require(tx.outputs[1].tokenAmount == tx.inputs[1].tokenAmount - payment);\n        require(tx.outputs[1].value == tx.inputs[1].value);\n        require(tx.outputs[2].lockingBytecode == lockingBytecode);\n        require(tx.outputs[2].tokenCategory == rewardCategory);\n\n        // Claimant inputs may not spend other pool or vault UTXOs; claimant outputs carry no tokens.\n        int i = 3;\n        while (i < tx.inputs.length) {\n            require(tx.inputs[i].lockingBytecode != vaultBytecode);\n            require(tx.inputs[i].lockingBytecode != poolBytecode);\n            i = i + 1;\n        }\n        int o = firstFree;\n        while (o < tx.outputs.length) {\n            require(tx.outputs[o].tokenCategory == 0x);\n            o = o + 1;\n        }\n        require(tx.outputs[2].tokenAmount == payment);\n    }\n}\n",
+  "fingerprint": "351c0344f94f6e0b1b16dde3f219f9dc0261fd33f62047f1ea0a3f48b4ed71d9",
+  "debug": {
+    "bytecode": "5479009c63c0009d51ce7c517e886d6d5167547a519d547a825188557a825888c0009d00ce5379527e8800c700cf00cd52798800d100ce8800d2788800d3009d00cc00c69d5a7982770120965b798277780120959d587aa169587900a2690100547a7e53797e57797ea8587a0065765b7982779f766b635a79780120937f75787f7752795297519c6351787e54797ea8547a757c727b675154797e787ea8547a757c727b685279529672777b780120937777686c91667c009d7c7b01207f75885679a852c757798852ce55798852cf8201489d7601207f757801407f7501207f770054537956798763547901487f7501407f77817b757c53d2567954797e5a797e8867537901007e81567901007e81547901007e81527952799f696e9f6953d257795a797e597901487f7501407f777e8854cd5f798854d15d798854d2597957797e5d797e8855547a757c727b6d756853cd5c798853d15a7a8853cc52c69d587a817b947600a06951c75a798851ce59798851cd5a798851d159798851d351d05279949d51cc51c69d52cd5b7a8852d1597a88536576c39f766b6376c75a7987916976c759798791698b686c91667b6576c49f766b6376d100888b686c916652d3537a9d6d6d6d6d6d5168",
+    "sourceMap": "18:4:21:5;;;;;19:16:19:37;:41::42;:8::44:1;20:26:20:27:0;:16::42:1;:46::58:0;:61::65;:46:::1;:8::67;18:24:21:5;;;:4;23::111::0;;;;:19:23:32;;;;;:34::56;;;;;24:16:24:37;:41::42;:8::44:1;25:26:25:27:0;:16::42:1;:46::58:0;;:61::65;:46:::1;:8::67;28:39:28:40:0;:29::57:1;29:32:29:33:0;:22::48:1;30:27:30:28:0;:16::45:1;:49::61:0;;:8::63:1;31:27:31:28:0;:16::43:1;:57::58:0;:47::73:1;:8::75;32:27:32:28:0;:16::43:1;:47::52:0;:8::54:1;33:27:33:28:0;:16::41:1;:45::46:0;:8::48:1;34:27:34:28:0;:16::35:1;:49::50:0;:39::57:1;:8::59;37:20:37:25:0;;:::32:1;;:35::37:0;:20:::1;38:16:38:21:0;;:::28:1;;:32::37:0;:40::42;:32:::1;:8::44;39:25:39:33:0;;:16:::1;:8::35;40:16:40:21:0;;:25::26;:16:::1;:8::28;41:28:41:32:0;:35::41;;:28:::1;:44::59:0;;:28:::1;:62::77:0;;:28:::1;:21::78;42:23:42:28:0;;43:21:43:22;44:8:53:9;:15:44:21;:24::29;;:::36:1;;:15;;;:38:53:9:0;45:28:45:33;;:48::54;:57::59;:48:::1;:28::60;;:40::46:0;:28::60:1;;46:16:46:24:0;;:27::28;:16:::1;:32::33:0;:16:::1;:35:48:13:0;47:30:47:34;:37::44;:30:::1;:47::51:0;;:30:::1;:23::52;:16::53;;;;;;48:19:50:13:0;49:30:49:34;:37::41;;:30:::1;:44::51:0;:30:::1;:23::52;:16::53;;;;;;48:19:50:13;51:23:51:31:0;;:34::35;:23:::1;:12::36;;;52:21:52:27:0;:30::32;:21:::1;44:38:53:9;;;;:8;;54:16:54:24:0;:28::29;:8::31:1;55:16:55:20:0;:24::29;:39::41;:24::42:1;;:8::44;58:29:58::0;;:22::45:1;59:26:59:27:0;:16::44:1;:48::61:0;;:8::63:1;60:26:60:27:0;:16::42:1;:46::58:0;;:8::60:1;61:34:61:35:0;:24::50:1;62:16:62:30;:34::36:0;:8::38:1;63:27:63:34:0;:44::46;:27::47:1;;64:28:64:35:0;:46::48;:28::49:1;;:42::44:0;:28::49:1;;65:22:65:23:0;66:24:66:25;67:12:67:22;;:26::29;;:12:::1;:31:70:9:0;68:26:68:33;;:44::46;:26::47:1;;:40::42:0;:26::47:1;;:22::48;:12::49;;;69:31:69:32:0;:20::47:1;:51::54:0;;:57::68;;:51:::1;:71::86:0;;:51:::1;:12::88;70:15:81:9:0;71:28:71:38;;:41::45;:28:::1;:24::46;72:29:72:32:0;;:35::39;:29:::1;:25::40;73:28:73:39:0;;:42::46;:28:::1;:24::47;74:20:74:25:0;;:28::34;;:20:::1;:12::36;75:20:75:34:0;::::1;:12::36;76:31:76:32:0;:20::47:1;:51::61:0;;:64::67;;:51:::1;:70::77:0;;:88::90;:70::91:1;;:84::86:0;:70::91:1;;:51;:12::93;77:31:77:32:0;:20::49:1;:53::66:0;;:12::68:1;78:31:78:32:0;:20::47:1;:51::63:0;;:12::65:1;79:31:79:32:0;:20::47:1;:51::54:0;;:57::68;;:51:::1;:71::86:0;;:51:::1;:12::88;80:24:80:25:0;:12::26:1;;;;;;70:15:81:9;;;82:27:82:28:0;:16::45:1;:49::62:0;;:8::64:1;83:27:83:28:0;:16::43:1;:47::59:0;;:8::61:1;84:27:84:28:0;:16::35:1;:49::50:0;:39::57:1;:8::59;87:26:87:41:0;;:22::42:1;:45::52:0;:22:::1;88:16:88:23:0;:26::27;:16:::1;:8::29;89:26:89:27:0;:16::44:1;:48::61:0;;:8::63:1;90:26:90:27:0;:16::42:1;:46::60:0;;:8::62:1;91:27:91:28:0;:16::45:1;:49::62:0;;:8::64:1;92:27:92:28:0;:16::43:1;:47::61:0;;:8::63:1;93:27:93:28:0;:16::41:1;:55::56:0;:45::69:1;:72::79:0;;:45:::1;:8::81;94:27:94:28:0;:16::35:1;:49::50:0;:39::57:1;:8::59;95:27:95:28:0;:16::45:1;:49::64:0;;:8::66:1;96:27:96:28:0;:16::43:1;:47::61:0;;:8::63:1;99:16:99:17:0;100:8:104:9;:15:100:16;:19::35;:15:::1;;;:37:104:9:0;101:30:101:31;:20::48:1;:52::65:0;;:20:::1;;:12::67;102:30:102:31:0;:20::48:1;:52::64:0;;:20:::1;;:12::66;103::103:22;100:37:104:9;;:8;;105:16:105:25:0;106:8:109:9;:15:106:16;:19::36;:15:::1;;;:38:109:9:0;107:31:107:32;:20::47:1;:51::53:0;:12::55:1;108::108:22;106:38:109:9;;:8;;110:27:110:28:0;:16::41:1;:45::52:0;;:8::54:1;23:105:111:5;;;;;;17:0:112:1",
+    "logs": [],
+    "requires": [
+      {
+        "ip": 11,
+        "line": 19
+      },
+      {
+        "ip": 17,
+        "line": 20
+      },
+      {
+        "ip": 38,
+        "line": 24
+      },
+      {
+        "ip": 45,
+        "line": 25
+      },
+      {
+        "ip": 54,
+        "line": 30
+      },
+      {
+        "ip": 59,
+        "line": 31
+      },
+      {
+        "ip": 63,
+        "line": 32
+      },
+      {
+        "ip": 67,
+        "line": 33
+      },
+      {
+        "ip": 72,
+        "line": 34
+      },
+      {
+        "ip": 86,
+        "line": 38
+      },
+      {
+        "ip": 90,
+        "line": 39
+      },
+      {
+        "ip": 95,
+        "line": 40
+      },
+      {
+        "ip": 183,
+        "line": 54
+      },
+      {
+        "ip": 189,
+        "line": 55
+      },
+      {
+        "ip": 197,
+        "line": 59
+      },
+      {
+        "ip": 202,
+        "line": 60
+      },
+      {
+        "ip": 207,
+        "line": 62
+      },
+      {
+        "ip": 249,
+        "line": 69
+      },
+      {
+        "ip": 271,
+        "line": 74
+      },
+      {
+        "ip": 274,
+        "line": 75
+      },
+      {
+        "ip": 291,
+        "line": 76
+      },
+      {
+        "ip": 296,
+        "line": 77
+      },
+      {
+        "ip": 301,
+        "line": 78
+      },
+      {
+        "ip": 312,
+        "line": 79
+      },
+      {
+        "ip": 327,
+        "line": 82
+      },
+      {
+        "ip": 332,
+        "line": 83
+      },
+      {
+        "ip": 337,
+        "line": 84
+      },
+      {
+        "ip": 346,
+        "line": 88
+      },
+      {
+        "ip": 351,
+        "line": 89
+      },
+      {
+        "ip": 356,
+        "line": 90
+      },
+      {
+        "ip": 361,
+        "line": 91
+      },
+      {
+        "ip": 366,
+        "line": 92
+      },
+      {
+        "ip": 374,
+        "line": 93
+      },
+      {
+        "ip": 379,
+        "line": 94
+      },
+      {
+        "ip": 384,
+        "line": 95
+      },
+      {
+        "ip": 389,
+        "line": 96
+      },
+      {
+        "ip": 404,
+        "line": 101
+      },
+      {
+        "ip": 411,
+        "line": 102
+      },
+      {
+        "ip": 428,
+        "line": 107
+      },
+      {
+        "ip": 438,
+        "line": 110
+      }
+    ],
+    "sourceTags": "22:26:pv;27:31:pv;172:172:sc;173:176:lc;316:317:sc;409:412:lc;426:429:lc"
+  },
+  "compiler": {
+    "name": "cashc",
+    "version": "0.14.0",
+    "options": {
+      "enforceFunctionParameterTypes": true,
+      "enforceLocktimeGuard": true
+    }
+  }
+}

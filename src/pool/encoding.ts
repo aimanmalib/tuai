@@ -4,6 +4,8 @@ import { concat, hexToBinChecked, sha256, uint64le } from '../bytes.ts';
 export const HASH_BYTES = 32;
 export const STATE_BYTES = 68;
 export const RECEIPT_BYTES = 72;
+/** Byte (hex) RootGate.arm appends to the pending-root commitment to open operator pushes (ADR 0008). */
+export const ARM_FLAG = '01';
 
 /** Pool state NFT commitment: root(32) epoch(4 LE) inputsHash(32). */
 export interface PoolState {

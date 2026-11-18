@@ -21,6 +21,16 @@ export interface ClaimSizeReport {
   contractBytes: Record<string, number>;
   claims: Array<{ depth: number; firstClaimBytes: number; additionalClaimBytes: number; poolInput: PoolInputUsage }>;
   operator: { proposeBytes: number; activateBytes: number };
+  version1ContractBytes: Record<string, number>;
+  push: {
+    depth: number;
+    armBytes: number;
+    firstPushBytes: number;
+    firstPushVaultSats: number;
+    additionalPushBytes: number;
+    additionalPushVaultSats: number;
+  };
+  version1Claim: { depth: number; firstClaimBytes: number; additionalClaimBytes: number };
 }
 
 export interface DepthLimits {
@@ -29,6 +39,12 @@ export interface DepthLimits {
   byOperationCost: number | undefined;
   byHashes: number | undefined;
   maxDepth: number;
+}
+
+function claimAt(report: ClaimSizeReport, depth: number): ClaimSizeReport['claims'][number] {
+  const claim = report.claims.find((c) => c.depth === depth);
+  if (!claim) throw new Error(`no claim measured at depth ${depth}`);
+  return claim;
 }
 
 /** Deepest depth at which `used + k * usedStep` stays within `limit + k * limitStep`; undefined when it never runs out. */
@@ -115,5 +131,19 @@ same setting, and a proof one level deeper is rejected on chain.
 Each epoch costs the operators one propose transaction (${n(report.operator.proposeBytes)} bytes) and one activate
 transaction (${n(report.operator.activateBytes)} bytes, which anyone may send). Neither depends on the number of
 recipients or on the tree depth.
+
+## Operator push path (ADR 0008)
+
+Measured at depth ${n(report.push.depth)}. Arming pushes for a root: ${n(report.push.armBytes)} bytes, once per root,
+by anyone. A push of a first balance: ${n(report.push.firstPushBytes)} bytes, taking ${n(report.push.firstPushVaultSats)} sats
+of vault BCH (payment dust, new receipt dust and fee). A push of an additional balance: ${n(report.push.additionalPushBytes)} bytes,
+${n(report.push.additionalPushVaultSats)} sats.
+
+The push path made every claim larger. At depth ${n(report.version1Claim.depth)}, a first claim on the version 1
+contracts (no push path, as deployed for the recorded chipnet pool) is ${n(report.version1Claim.firstClaimBytes)} bytes and
+an additional claim ${n(report.version1Claim.additionalClaimBytes)} bytes; with the push path they are
+${n(claimAt(report, report.version1Claim.depth).firstClaimBytes)} and ${n(claimAt(report, report.version1Claim.depth).additionalClaimBytes)} bytes
+(+${n(claimAt(report, report.version1Claim.depth).firstClaimBytes - report.version1Claim.firstClaimBytes)}).
+Version 1 contract sizes: ${Object.entries(report.version1ContractBytes).map(([k, v]) => `${k} ${n(v)} bytes`).join(', ')}.
 `;
 }

@@ -245,7 +245,7 @@ async function activatePlanFor(f: PoolFixture, pending: { utxo: SpendableUtxo; p
   return planActivate({
     contracts: f.contracts,
     pool,
-    pending,
+    pending: { ...pending, armed: false },
     funding: { utxos: [fund(f, keeper)], signer: keeper.signer, changeAddress: keeper.address },
     feeRate: FEE_RATE,
   });

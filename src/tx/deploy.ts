@@ -1,7 +1,7 @@
 import { TransactionBuilder, type NetworkProvider, type SignatureTemplate, type SpendableUtxo } from 'cashscript';
 import { binToHex } from '@bitauth/libauth';
 import { EMPTY_STATE, HEAD_RECEIPT, encodeReceipt, encodeState, type PoolState } from '../pool/encoding.ts';
-import { poolContracts, type PoolContracts } from '../pool/contracts.ts';
+import { poolContracts, type PoolContracts, type PushParams } from '../pool/contracts.ts';
 
 export interface DeployOptions {
   provider: NetworkProvider;
@@ -16,10 +16,14 @@ export interface DeployOptions {
   /** Root gate: three operator public keys (hex) and the activation delay in blocks. */
   operatorKeys: readonly string[];
   activationDelay: number;
+  /** Operator push path (ADR 0008); without it the pool uses the version 1 contracts. */
+  push?: PushParams;
   /** Defaults to an empty root (epoch 0): nothing is claimable before the first root is activated. */
   initialState?: PoolState;
   /** Satoshis kept with each pool output (state NFT, head receipt, reward tokens). */
   outputSats: bigint;
+  /** Satoshis kept with the reward tokens instead of `outputSats`; operator pushes take their dust and fee from them. */
+  vaultSats?: bigint;
   feeRate: number;
 }
 
@@ -43,7 +47,14 @@ export function buildDeploy(o: DeployOptions): DeployPlan {
   const rewardAmount = o.rewardUtxos.reduce((sum, u) => sum + (u.token?.amount ?? 0n), 0n);
   const poolCategory = o.genesisUtxo.txid;
   const contracts = poolContracts(
-    { poolCategory, rewardCategory, maxDepth: o.maxDepth, operatorKeys: o.operatorKeys, activationDelay: o.activationDelay },
+    {
+      poolCategory,
+      rewardCategory,
+      maxDepth: o.maxDepth,
+      operatorKeys: o.operatorKeys,
+      activationDelay: o.activationDelay,
+      ...(o.push ? { push: o.push } : {}),
+    },
     o.provider,
   );
   const initial = binToHex(encodeState(o.initialState ?? EMPTY_STATE));
@@ -65,7 +76,7 @@ export function buildDeploy(o: DeployOptions): DeployPlan {
       amount: o.outputSats,
       token: { category: poolCategory, amount: 0n, nft: { capability: 'none', commitment: binToHex(encodeReceipt(HEAD_RECEIPT)) } },
     })
-    .addOutput({ to: contracts.vault.tokenAddress, amount: o.outputSats, token: { category: rewardCategory, amount: rewardAmount } })
+    .addOutput({ to: contracts.vault.tokenAddress, amount: o.vaultSats ?? o.outputSats, token: { category: rewardCategory, amount: rewardAmount } })
     .addOutput({
       to: contracts.gate.tokenAddress,
       amount: o.outputSats,

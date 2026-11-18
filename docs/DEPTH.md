@@ -10,38 +10,52 @@ at 10,000 bytes.
 
 ## Measured
 
-Transaction sizes in bytes, measured on the CashScript mock network (BCH_2026_05 VM). Claims: one P2PKH funding input and one change output, Schnorr signatures, proofs at the deepest index of each depth. Root gate: two ECDSA operator signatures for propose, no operator key for activate; one funding input and one change output each.
+Transaction sizes in bytes, measured on the CashScript mock network (BCH_2026_05 VM). Claims: one P2PKH funding input and one change output, Schnorr signatures, proofs at the deepest index of each depth. Root gate: two ECDSA operator signatures for propose, no operator key for activate; one funding input and one change output each. Push: arm with one funding input and one change output; pushes without keeper inputs (the vault pays). version1Claim: the same claims on the version 1 contracts (no push path) of the recorded chipnet pool.
 
 | Depth | Leaves | First claim (bytes) | Additional claim (bytes) | Input 0 unlocking (bytes) | Input 0 operation cost | Input 0 hash iterations |
 |---|---|---|---|---|---|---|
-| 1 | 2 | 1,631 | 1,480 | 638 | 64,104 of 543,200 (11.8%) | 14 of 339 |
-| 7 | 128 | 1,825 | 1,674 | 832 | 116,268 of 698,400 (16.6%) | 26 of 436 |
-| 9 | 512 | 1,891 | 1,740 | 898 | 135,465 of 751,200 (18.0%) | 30 of 469 |
-| 10 | 1,024 | 1,923 | 1,772 | 930 | 145,399 of 776,800 (18.7%) | 32 of 485 |
-| 14 | 16,384 | 2,051 | 1,900 | 1,058 | 187,375 of 879,200 (21.3%) | 40 of 549 |
-| 16 | 65,536 | 2,116 | 1,965 | 1,123 | 209,714 of 931,200 (22.5%) | 44 of 582 |
-| 24 | 16,777,216 | 2,373 | 2,222 | 1,380 | 308,057 of 1,136,800 (27.1%) | 60 of 710 |
+| 1 | 2 | 1,678 | 1,527 | 685 | 68,894 of 580,800 (11.9%) | 15 of 363 |
+| 7 | 128 | 1,872 | 1,721 | 879 | 121,058 of 736,000 (16.4%) | 27 of 460 |
+| 9 | 512 | 1,938 | 1,787 | 945 | 140,255 of 788,800 (17.8%) | 31 of 493 |
+| 10 | 1,024 | 1,970 | 1,819 | 977 | 150,189 of 814,400 (18.4%) | 33 of 509 |
+| 14 | 16,384 | 2,098 | 1,947 | 1,105 | 192,165 of 916,800 (21.0%) | 41 of 573 |
+| 16 | 65,536 | 2,163 | 2,012 | 1,170 | 214,504 of 968,800 (22.1%) | 45 of 605 |
+| 24 | 16,777,216 | 2,420 | 2,269 | 1,427 | 312,847 of 1,174,400 (26.6%) | 61 of 734 |
 
-Contract sizes: ClaimPool 563 bytes, PoolVault 39 bytes, RootGate 337 bytes.
+Contract sizes: ClaimPool 610 bytes, PoolVault 39 bytes, RootGate 501 bytes.
 
 ## Per extra level (from the two deepest measurements)
 
 - Claim size: +32.125 bytes; input 0 unlocking bytecode: +32.125 bytes.
 - Operation cost: +12,292.875 used, +25,700 budget.
-- Hash iterations: +2 used, +16 budget.
+- Hash iterations: +2 used, +16.125 budget.
 
 ## Deepest proof the VM accepts (linear extrapolation)
 
-- Unlocking bytecode limit: depth 292.
+- Unlocking bytecode limit: depth 290.
 - Operation cost budget: never (the budget grows faster than the use).
 - Hash budget: never (the budget grows faster than the use).
 
-The binding limit is depth 292. The contract enforces its own `maxDepth` parameter
+The binding limit is depth 290. The contract enforces its own `maxDepth` parameter
 (`tree.maxDepth` in `config/tuai.json`), which must stay at or below that value; the library and the tests use the
 same setting, and a proof one level deeper is rejected on chain.
 
 ## Operator cost per epoch
 
-Each epoch costs the operators one propose transaction (862 bytes) and one activate
-transaction (1,473 bytes, which anyone may send). Neither depends on the number of
+Each epoch costs the operators one propose transaction (1,025 bytes) and one activate
+transaction (1,684 bytes, which anyone may send). Neither depends on the number of
 recipients or on the tree depth.
+
+## Operator push path (ADR 0008)
+
+Measured at depth 9. Arming pushes for a root: 1,685 bytes, once per root,
+by anyone. A push of a first balance: 2,459 bytes, taking 4,459 sats
+of vault BCH (payment dust, new receipt dust and fee). A push of an additional balance: 2,308 bytes,
+3,308 sats.
+
+The push path made every claim larger. At depth 9, a first claim on the version 1
+contracts (no push path, as deployed for the recorded chipnet pool) is 1,891 bytes and
+an additional claim 1,740 bytes; with the push path they are
+1,938 and 1,787 bytes
+(+47).
+Version 1 contract sizes: ClaimPool 563 bytes, PoolVault 39 bytes, RootGate 337 bytes.

@@ -18,6 +18,10 @@
       "type": "int"
     },
     {
+      "name": "pushDelay",
+      "type": "int"
+    },
+    {
       "name": "poolCategory",
       "type": "bytes32"
     }
@@ -39,110 +43,206 @@
     {
       "name": "activate",
       "inputs": []
+    },
+    {
+      "name": "arm",
+      "inputs": []
+    },
+    {
+      "name": "witness",
+      "inputs": []
     }
   ],
-  "bytecode": "OP_5 OP_PICK OP_0 OP_NUMEQUAL OP_IF OP_INPUTINDEX OP_0 OP_NUMEQUALVERIFY OP_0 OP_7 OP_ROLL OP_8 OP_ROLL OP_2 OP_2ROT OP_SWAP OP_6 OP_ROLL OP_3 OP_CHECKMULTISIGVERIFY OP_0 OP_UTXOTOKENCOMMITMENT OP_0 OP_OUTPUTTOKENCOMMITMENT OP_0 OP_OUTPUTBYTECODE OP_0 OP_UTXOBYTECODE OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCATEGORY OP_4 OP_ROLL OP_1 OP_CAT OP_EQUALVERIFY OP_0 OP_OUTPUTVALUE OP_0 OP_UTXOVALUE OP_NUMEQUALVERIFY OP_SIZE 44 OP_NUMEQUALVERIFY 24 OP_SPLIT OP_DROP 20 OP_SPLIT OP_NIP OP_BIN2NUM OP_SWAP 24 OP_SPLIT OP_DROP 20 OP_SPLIT OP_NIP OP_BIN2NUM OP_GREATERTHANOREQUAL OP_NIP OP_NIP OP_ELSE OP_5 OP_ROLL OP_1 OP_NUMEQUALVERIFY OP_INPUTINDEX OP_1 OP_NUMEQUALVERIFY OP_3 OP_ROLL OP_CHECKSEQUENCEVERIFY OP_DROP OP_0 OP_UTXOTOKENCATEGORY OP_4 OP_PICK OP_2 OP_CAT OP_EQUALVERIFY OP_1 OP_UTXOTOKENCATEGORY OP_4 OP_ROLL OP_1 OP_CAT OP_EQUALVERIFY OP_1 OP_UTXOTOKENCOMMITMENT OP_DUP 24 OP_SPLIT OP_DROP 20 OP_SPLIT OP_NIP OP_BIN2NUM OP_0 OP_UTXOTOKENCOMMITMENT 24 OP_SPLIT OP_DROP 20 OP_SPLIT OP_NIP OP_BIN2NUM OP_GREATERTHAN OP_VERIFY OP_2 OP_BEGIN OP_DUP OP_TXINPUTCOUNT OP_LESSTHAN OP_DUP OP_TOALTSTACK OP_IF OP_DUP OP_UTXOTOKENCATEGORY OP_0 OP_EQUALVERIFY OP_1ADD OP_ENDIF OP_FROMALTSTACK OP_NOT OP_UNTIL OP_2 OP_BEGIN OP_DUP OP_TXOUTPUTCOUNT OP_LESSTHAN OP_DUP OP_TOALTSTACK OP_IF OP_DUP OP_OUTPUTTOKENCATEGORY OP_0 OP_EQUALVERIFY OP_1ADD OP_ENDIF OP_FROMALTSTACK OP_NOT OP_UNTIL OP_0 OP_OUTPUTBYTECODE OP_0 OP_UTXOBYTECODE OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCATEGORY OP_0 OP_UTXOTOKENCATEGORY OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCOMMITMENT OP_3 OP_PICK OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENAMOUNT OP_0 OP_NUMEQUALVERIFY OP_0 OP_OUTPUTVALUE OP_0 OP_UTXOVALUE OP_NUMEQUALVERIFY OP_1 OP_OUTPUTBYTECODE OP_1 OP_UTXOBYTECODE OP_EQUALVERIFY OP_1 OP_OUTPUTTOKENCATEGORY OP_1 OP_UTXOTOKENCATEGORY OP_EQUALVERIFY OP_1 OP_OUTPUTTOKENCOMMITMENT OP_3 OP_ROLL OP_EQUALVERIFY OP_1 OP_OUTPUTVALUE OP_1 OP_UTXOVALUE OP_NUMEQUALVERIFY OP_2DROP OP_2DROP OP_DROP OP_1 OP_ENDIF",
-  "source": "pragma cashscript ^0.14.0;\n\n// Root gate: holds the pending-root NFT (pool category, mutable). See docs/decisions/0003-root-gate.md.\n//\n// propose: 2 of the 3 operator keys replace the pending commitment root(32) epoch(4) inputsHash(32).\n//   Input 0: this contract, pending NFT.     Output 0: this contract, pending NFT with the new commitment.\n//   The epoch may not go down. Replacing the pending NFT creates a new UTXO, so the activation delay starts again.\n//\n// activate: anyone, once the pending UTXO is `delay` blocks old (relative timelock on this input).\n//   Input 0: ClaimPool, state NFT (activate).  Output 0: ClaimPool, state NFT with the pending commitment.\n//   Input 1: this contract, pending NFT.       Output 1: this contract, pending NFT unchanged.\n//   Inputs 2..: funding without tokens.        Outputs 2..: change without tokens.\n//   The pending epoch must be above the active epoch.\ncontract RootGate(pubkey operatorA, pubkey operatorB, pubkey operatorC, int delay, bytes32 poolCategory) {\n    function propose(sig first, sig second) {\n        require(this.activeInputIndex == 0);\n        require(checkMultiSig([first, second], [operatorA, operatorB, operatorC]));\n\n        bytes pending = tx.inputs[0].nftCommitment;\n        bytes proposed = tx.outputs[0].nftCommitment;\n        require(tx.outputs[0].lockingBytecode == tx.inputs[0].lockingBytecode);\n        require(tx.outputs[0].tokenCategory == poolCategory + 0x01);\n        require(tx.outputs[0].value == tx.inputs[0].value);\n        require(proposed.length == 68);\n        require(int(proposed.slice(32, 36)) >= int(pending.slice(32, 36)));\n    }\n\n    function activate() {\n        require(this.activeInputIndex == 1);\n        require(this.age >= delay);\n        require(tx.inputs[0].tokenCategory == poolCategory + 0x02);\n        require(tx.inputs[1].tokenCategory == poolCategory + 0x01);\n\n        bytes pending = tx.inputs[1].nftCommitment;\n        require(int(pending.slice(32, 36)) > int(tx.inputs[0].nftCommitment.slice(32, 36)));\n\n        // No other pool, vault or token UTXO moves in an activation.\n        int i = 2;\n        while (i < tx.inputs.length) {\n            require(tx.inputs[i].tokenCategory == 0x);\n            i = i + 1;\n        }\n        int o = 2;\n        while (o < tx.outputs.length) {\n            require(tx.outputs[o].tokenCategory == 0x);\n            o = o + 1;\n        }\n\n        // The state NFT takes the pending commitment and stays at the pool.\n        require(tx.outputs[0].lockingBytecode == tx.inputs[0].lockingBytecode);\n        require(tx.outputs[0].tokenCategory == tx.inputs[0].tokenCategory);\n        require(tx.outputs[0].nftCommitment == pending);\n        require(tx.outputs[0].tokenAmount == 0);\n        require(tx.outputs[0].value == tx.inputs[0].value);\n\n        // The pending NFT stays here unchanged.\n        require(tx.outputs[1].lockingBytecode == tx.inputs[1].lockingBytecode);\n        require(tx.outputs[1].tokenCategory == tx.inputs[1].tokenCategory);\n        require(tx.outputs[1].nftCommitment == pending);\n        require(tx.outputs[1].value == tx.inputs[1].value);\n    }\n}\n",
-  "fingerprint": "3f95387cba975b0b6dc28787e756b6fa16b0693d8e78d724aaf7af9f34e1626d",
+  "bytecode": "OP_6 OP_PICK OP_0 OP_NUMEQUAL OP_IF OP_INPUTINDEX OP_0 OP_NUMEQUALVERIFY OP_0 OP_8 OP_ROLL OP_9 OP_ROLL OP_2 OP_2ROT OP_SWAP OP_6 OP_ROLL OP_3 OP_CHECKMULTISIGVERIFY OP_0 OP_UTXOTOKENCOMMITMENT OP_0 OP_OUTPUTTOKENCOMMITMENT OP_0 OP_OUTPUTBYTECODE OP_0 OP_UTXOBYTECODE OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCATEGORY OP_5 OP_ROLL OP_1 OP_CAT OP_EQUALVERIFY OP_0 OP_OUTPUTVALUE OP_0 OP_UTXOVALUE OP_NUMEQUALVERIFY OP_SIZE 44 OP_NUMEQUALVERIFY 24 OP_SPLIT OP_DROP 20 OP_SPLIT OP_NIP OP_BIN2NUM OP_SWAP 24 OP_SPLIT OP_DROP 20 OP_SPLIT OP_NIP OP_BIN2NUM OP_GREATERTHANOREQUAL OP_NIP OP_NIP OP_NIP OP_ELSE OP_6 OP_PICK OP_1 OP_NUMEQUAL OP_IF OP_INPUTINDEX OP_1 OP_NUMEQUALVERIFY OP_3 OP_ROLL OP_CHECKSEQUENCEVERIFY OP_DROP OP_0 OP_UTXOTOKENCATEGORY OP_5 OP_PICK OP_2 OP_CAT OP_EQUALVERIFY OP_1 OP_UTXOTOKENCATEGORY OP_5 OP_ROLL OP_1 OP_CAT OP_EQUALVERIFY OP_1 OP_UTXOTOKENCOMMITMENT OP_DUP 24 OP_SPLIT OP_DROP 20 OP_SPLIT OP_NIP OP_BIN2NUM OP_0 OP_UTXOTOKENCOMMITMENT 24 OP_SPLIT OP_DROP 20 OP_SPLIT OP_NIP OP_BIN2NUM OP_GREATERTHAN OP_VERIFY OP_2 OP_BEGIN OP_DUP OP_TXINPUTCOUNT OP_LESSTHAN OP_DUP OP_TOALTSTACK OP_IF OP_DUP OP_UTXOTOKENCATEGORY OP_0 OP_EQUALVERIFY OP_1ADD OP_ENDIF OP_FROMALTSTACK OP_NOT OP_UNTIL OP_2 OP_BEGIN OP_DUP OP_TXOUTPUTCOUNT OP_LESSTHAN OP_DUP OP_TOALTSTACK OP_IF OP_DUP OP_OUTPUTTOKENCATEGORY OP_0 OP_EQUALVERIFY OP_1ADD OP_ENDIF OP_FROMALTSTACK OP_NOT OP_UNTIL OP_0 OP_OUTPUTBYTECODE OP_0 OP_UTXOBYTECODE OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCATEGORY OP_0 OP_UTXOTOKENCATEGORY OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCOMMITMENT OP_3 OP_PICK OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENAMOUNT OP_0 OP_NUMEQUALVERIFY OP_0 OP_OUTPUTVALUE OP_0 OP_UTXOVALUE OP_NUMEQUALVERIFY OP_1 OP_OUTPUTBYTECODE OP_1 OP_UTXOBYTECODE OP_EQUALVERIFY OP_1 OP_OUTPUTTOKENCATEGORY OP_1 OP_UTXOTOKENCATEGORY OP_EQUALVERIFY OP_1 OP_OUTPUTTOKENCOMMITMENT OP_3 OP_ROLL OP_EQUALVERIFY OP_1 OP_OUTPUTVALUE OP_1 OP_UTXOVALUE OP_NUMEQUALVERIFY OP_2DROP OP_2DROP OP_2DROP OP_DROP OP_1 OP_ELSE OP_6 OP_PICK OP_2 OP_NUMEQUAL OP_IF OP_INPUTINDEX OP_1 OP_NUMEQUALVERIFY OP_4 OP_ROLL OP_CHECKSEQUENCEVERIFY OP_DROP OP_0 OP_UTXOTOKENCATEGORY OP_5 OP_PICK OP_2 OP_CAT OP_EQUALVERIFY OP_1 OP_UTXOTOKENCATEGORY OP_5 OP_ROLL OP_1 OP_CAT OP_EQUALVERIFY OP_0 OP_UTXOTOKENCOMMITMENT OP_1 OP_UTXOTOKENCOMMITMENT OP_OVER OP_EQUALVERIFY OP_2 OP_BEGIN OP_DUP OP_TXINPUTCOUNT OP_LESSTHAN OP_DUP OP_TOALTSTACK OP_IF OP_DUP OP_UTXOTOKENCATEGORY OP_0 OP_EQUALVERIFY OP_1ADD OP_ENDIF OP_FROMALTSTACK OP_NOT OP_UNTIL OP_2 OP_BEGIN OP_DUP OP_TXOUTPUTCOUNT OP_LESSTHAN OP_DUP OP_TOALTSTACK OP_IF OP_DUP OP_OUTPUTTOKENCATEGORY OP_0 OP_EQUALVERIFY OP_1ADD OP_ENDIF OP_FROMALTSTACK OP_NOT OP_UNTIL OP_0 OP_OUTPUTBYTECODE OP_0 OP_UTXOBYTECODE OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCATEGORY OP_0 OP_UTXOTOKENCATEGORY OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCOMMITMENT OP_3 OP_PICK OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENAMOUNT OP_0 OP_NUMEQUALVERIFY OP_0 OP_OUTPUTVALUE OP_0 OP_UTXOVALUE OP_NUMEQUALVERIFY OP_1 OP_OUTPUTBYTECODE OP_1 OP_UTXOBYTECODE OP_EQUALVERIFY OP_1 OP_OUTPUTTOKENCATEGORY OP_1 OP_UTXOTOKENCATEGORY OP_EQUALVERIFY OP_1 OP_OUTPUTTOKENCOMMITMENT OP_3 OP_ROLL OP_1 OP_CAT OP_EQUALVERIFY OP_1 OP_OUTPUTVALUE OP_1 OP_UTXOVALUE OP_NUMEQUALVERIFY OP_2DROP OP_2DROP OP_2DROP OP_DROP OP_1 OP_ELSE OP_6 OP_ROLL OP_3 OP_NUMEQUALVERIFY OP_INPUTINDEX OP_3 OP_NUMEQUALVERIFY OP_0 OP_UTXOTOKENCATEGORY OP_6 OP_ROLL OP_2 OP_CAT OP_EQUALVERIFY OP_TXOUTPUTCOUNT OP_1SUB OP_DUP OP_OUTPUTBYTECODE OP_3 OP_UTXOBYTECODE OP_EQUALVERIFY OP_DUP OP_OUTPUTTOKENCATEGORY OP_3 OP_UTXOTOKENCATEGORY OP_EQUALVERIFY OP_DUP OP_OUTPUTTOKENCOMMITMENT OP_3 OP_UTXOTOKENCOMMITMENT OP_EQUALVERIFY OP_OUTPUTVALUE OP_3 OP_UTXOVALUE OP_NUMEQUALVERIFY OP_2DROP OP_2DROP OP_DROP OP_1 OP_ENDIF OP_ENDIF OP_ENDIF",
+  "source": "pragma cashscript ^0.14.0;\n\n// Root gate: holds the pending-root NFT (pool category, mutable). See docs/decisions/0003-root-gate.md.\n//\n// propose: 2 of the 3 operator keys replace the pending commitment root(32) epoch(4) inputsHash(32).\n//   Input 0: this contract, pending NFT.     Output 0: this contract, pending NFT with the new commitment.\n//   The epoch may not go down. Replacing the pending NFT creates a new UTXO, so the activation delay starts again.\n//\n// activate: anyone, once the pending UTXO is `delay` blocks old (relative timelock on this input).\n//   Input 0: ClaimPool, state NFT (activate).  Output 0: ClaimPool, state NFT with the pending commitment.\n//   Input 1: this contract, pending NFT.       Output 1: this contract, pending NFT unchanged.\n//   Inputs 2..: funding without tokens.        Outputs 2..: change without tokens.\n//   The pending epoch must be above the active epoch.\n//\n// arm: anyone, once the pending UTXO is `pushDelay` blocks old and equals the active state (no newer proposal).\n//   Same layout as activate. Output 1 is the pending NFT with commitment state + 0x01 (armed); the state is unchanged.\n//   A new proposal writes a 68-byte commitment again, which closes the push window until the next arm.\n//\n// witness: lets an operator push (ClaimPool.claim at input 0) spend the armed NFT at input 3. The NFT goes back,\n//   unchanged, as the last output. See docs/decisions/0008-operator-push.md.\ncontract RootGate(pubkey operatorA, pubkey operatorB, pubkey operatorC, int delay, int pushDelay, bytes32 poolCategory) {\n    function propose(sig first, sig second) {\n        require(this.activeInputIndex == 0);\n        require(checkMultiSig([first, second], [operatorA, operatorB, operatorC]));\n\n        bytes pending = tx.inputs[0].nftCommitment;\n        bytes proposed = tx.outputs[0].nftCommitment;\n        require(tx.outputs[0].lockingBytecode == tx.inputs[0].lockingBytecode);\n        require(tx.outputs[0].tokenCategory == poolCategory + 0x01);\n        require(tx.outputs[0].value == tx.inputs[0].value);\n        require(proposed.length == 68);\n        require(int(proposed.slice(32, 36)) >= int(pending.slice(32, 36)));\n    }\n\n    function activate() {\n        require(this.activeInputIndex == 1);\n        require(this.age >= delay);\n        require(tx.inputs[0].tokenCategory == poolCategory + 0x02);\n        require(tx.inputs[1].tokenCategory == poolCategory + 0x01);\n\n        bytes pending = tx.inputs[1].nftCommitment;\n        require(int(pending.slice(32, 36)) > int(tx.inputs[0].nftCommitment.slice(32, 36)));\n\n        // No other pool, vault or token UTXO moves in an activation.\n        int i = 2;\n        while (i < tx.inputs.length) {\n            require(tx.inputs[i].tokenCategory == 0x);\n            i = i + 1;\n        }\n        int o = 2;\n        while (o < tx.outputs.length) {\n            require(tx.outputs[o].tokenCategory == 0x);\n            o = o + 1;\n        }\n\n        // The state NFT takes the pending commitment and stays at the pool.\n        require(tx.outputs[0].lockingBytecode == tx.inputs[0].lockingBytecode);\n        require(tx.outputs[0].tokenCategory == tx.inputs[0].tokenCategory);\n        require(tx.outputs[0].nftCommitment == pending);\n        require(tx.outputs[0].tokenAmount == 0);\n        require(tx.outputs[0].value == tx.inputs[0].value);\n\n        // The pending NFT stays here unchanged.\n        require(tx.outputs[1].lockingBytecode == tx.inputs[1].lockingBytecode);\n        require(tx.outputs[1].tokenCategory == tx.inputs[1].tokenCategory);\n        require(tx.outputs[1].nftCommitment == pending);\n        require(tx.outputs[1].value == tx.inputs[1].value);\n    }\n\n    function arm() {\n        require(this.activeInputIndex == 1);\n        require(this.age >= pushDelay);\n        require(tx.inputs[0].tokenCategory == poolCategory + 0x02);\n        require(tx.inputs[1].tokenCategory == poolCategory + 0x01);\n\n        bytes state = tx.inputs[0].nftCommitment;\n        require(tx.inputs[1].nftCommitment == state);\n\n        int i = 2;\n        while (i < tx.inputs.length) {\n            require(tx.inputs[i].tokenCategory == 0x);\n            i = i + 1;\n        }\n        int o = 2;\n        while (o < tx.outputs.length) {\n            require(tx.outputs[o].tokenCategory == 0x);\n            o = o + 1;\n        }\n\n        require(tx.outputs[0].lockingBytecode == tx.inputs[0].lockingBytecode);\n        require(tx.outputs[0].tokenCategory == tx.inputs[0].tokenCategory);\n        require(tx.outputs[0].nftCommitment == state);\n        require(tx.outputs[0].tokenAmount == 0);\n        require(tx.outputs[0].value == tx.inputs[0].value);\n\n        require(tx.outputs[1].lockingBytecode == tx.inputs[1].lockingBytecode);\n        require(tx.outputs[1].tokenCategory == tx.inputs[1].tokenCategory);\n        require(tx.outputs[1].nftCommitment == state + 0x01);\n        require(tx.outputs[1].value == tx.inputs[1].value);\n    }\n\n    function witness() {\n        require(this.activeInputIndex == 3);\n        require(tx.inputs[0].tokenCategory == poolCategory + 0x02);\n        int last = tx.outputs.length - 1;\n        require(tx.outputs[last].lockingBytecode == tx.inputs[3].lockingBytecode);\n        require(tx.outputs[last].tokenCategory == tx.inputs[3].tokenCategory);\n        require(tx.outputs[last].nftCommitment == tx.inputs[3].nftCommitment);\n        require(tx.outputs[last].value == tx.inputs[3].value);\n    }\n}\n",
+  "fingerprint": "f7f31832e7ac944d383a31bc3bf8b74fafbccc28cb55ca4c56aed1c1d7d573fa",
   "debug": {
-    "bytecode": "5579009c63c0009d00577a587a52717c567a53af00cf00d200cd00c78800d1547a517e8800cc00c69d8201449d01247f7501207f77817c01247f7501207f7781a2777767557a519dc0519d537ab27500ce5479527e8851ce547a517e8851cf7601247f7501207f778100cf01247f7501207f7781a069526576c39f766b6376ce00888b686c9166526576c49f766b6376d100888b686c916600cd00c78800d100ce8800d253798800d3009d00cc00c69d51cd51c78851d151ce8851d2537a8851cc51c69d6d6d755168",
-    "sourceMap": "15:4:26:5;;;;;16:16:16:37;:41::42;:8::44:1;17:16:17:81:0;:31::36;;:38::44;;:30::45:1;:48::68:0;;:70::79;;:47::80:1;:8::83;19:34:19:35:0;:24::50:1;20:36:20:37:0;:25::52:1;21:27:21:28:0;:16::45:1;:59::60:0;:49::77:1;:8::79;22:27:22:28:0;:16::43:1;:47::59:0;;:62::66;:47:::1;:8::68;23:27:23:28:0;:16::35:1;:49::50:0;:39::57:1;:8::59;24:16:24:31;:35::37:0;:8::39:1;25:39:25:41:0;:20::42:1;;:35::37:0;:20::42:1;;:16::43;:51::58:0;:69::71;:51::72:1;;:65::67:0;:51::72:1;;:47::73;:8::75;15:44:26:5;;:4;28::61::0;;;;29:16:29:37;:41::42;:8::44:1;30:28:30:33:0;;:8::35:1;;31:26:31:27:0;:16::42:1;:46::58:0;;:61::65;:46:::1;:8::67;32:26:32:27:0;:16::42:1;:46::58:0;;:61::65;:46:::1;:8::67;34:34:34:35:0;:24::50:1;35:20:35:27:0;:38::40;:20::41:1;;:34::36:0;:20::41:1;;:16::42;:59::60:0;:49::75:1;:86::88:0;:49::89:1;;:82::84:0;:49::89:1;;:45::90;:16;:8::92;38:16:38:17:0;39:8:42:9;:15:39:16;:19::35;:15:::1;;;:37:42:9:0;40:30:40:31;:20::46:1;:50::52:0;:12::54:1;41::41:22;39:37:42:9;;:8;;43:16:43:17:0;44:8:47:9;:15:44:16;:19::36;:15:::1;;;:38:47:9:0;45:31:45:32;:20::47:1;:51::53:0;:12::55:1;46::46:22;44:38:47:9;;:8;;50:27:50:28:0;:16::45:1;:59::60:0;:49::77:1;:8::79;51:27:51:28:0;:16::43:1;:57::58:0;:47::73:1;:8::75;52:27:52:28:0;:16::43:1;:47::54:0;;:8::56:1;53:27:53:28:0;:16::41:1;:45::46:0;:8::48:1;54:27:54:28:0;:16::35:1;:49::50:0;:39::57:1;:8::59;57:27:57:28:0;:16::45:1;:59::60:0;:49::77:1;:8::79;58:27:58:28:0;:16::43:1;:57::58:0;:47::73:1;:8::75;59:27:59:28:0;:16::43:1;:47::54:0;;:8::56:1;60:27:60:28:0;:16::35:1;:49::50:0;:39::57:1;:8::59;28:24:61:5;;;;14:0:62:1",
+    "bytecode": "5679009c63c0009d00587a597a52717c567a53af00cf00d200cd00c78800d1557a517e8800cc00c69d8201449d01247f7501207f77817c01247f7501207f7781a2777777675679519c63c0519d537ab27500ce5579527e8851ce557a517e8851cf7601247f7501207f778100cf01247f7501207f7781a069526576c39f766b6376ce00888b686c9166526576c49f766b6376d100888b686c916600cd00c78800d100ce8800d253798800d3009d00cc00c69d51cd51c78851d151ce8851d2537a8851cc51c69d6d6d6d7551675679529c63c0519d547ab27500ce5579527e8851ce557a517e8800cf51cf7888526576c39f766b6376ce00888b686c9166526576c49f766b6376d100888b686c916600cd00c78800d100ce8800d253798800d3009d00cc00c69d51cd51c78851d151ce8851d2537a517e8851cc51c69d6d6d6d755167567a539dc0539d00ce567a527e88c48c76cd53c78876d153ce8876d253cf88cc53c69d6d6d7551686868",
+    "sourceMap": "22:4:33:5;;;;;23:16:23:37;:41::42;:8::44:1;24:16:24:81:0;:31::36;;:38::44;;:30::45:1;:48::68:0;;:70::79;;:47::80:1;:8::83;26:34:26:35:0;:24::50:1;27:36:27:37:0;:25::52:1;28:27:28:28:0;:16::45:1;:59::60:0;:49::77:1;:8::79;29:27:29:28:0;:16::43:1;:47::59:0;;:62::66;:47:::1;:8::68;30:27:30:28:0;:16::35:1;:49::50:0;:39::57:1;:8::59;31:16:31:31;:35::37:0;:8::39:1;32:39:32:41:0;:20::42:1;;:35::37:0;:20::42:1;;:16::43;:51::58:0;:69::71;:51::72:1;;:65::67:0;:51::72:1;;:47::73;:8::75;22:44:33:5;;;:4;35::68::0;;;;;36:16:36:37;:41::42;:8::44:1;37:28:37:33:0;;:8::35:1;;38:26:38:27:0;:16::42:1;:46::58:0;;:61::65;:46:::1;:8::67;39:26:39:27:0;:16::42:1;:46::58:0;;:61::65;:46:::1;:8::67;41:34:41:35:0;:24::50:1;42:20:42:27:0;:38::40;:20::41:1;;:34::36:0;:20::41:1;;:16::42;:59::60:0;:49::75:1;:86::88:0;:49::89:1;;:82::84:0;:49::89:1;;:45::90;:16;:8::92;45:16:45:17:0;46:8:49:9;:15:46:16;:19::35;:15:::1;;;:37:49:9:0;47:30:47:31;:20::46:1;:50::52:0;:12::54:1;48::48:22;46:37:49:9;;:8;;50:16:50:17:0;51:8:54:9;:15:51:16;:19::36;:15:::1;;;:38:54:9:0;52:31:52:32;:20::47:1;:51::53:0;:12::55:1;53::53:22;51:38:54:9;;:8;;57:27:57:28:0;:16::45:1;:59::60:0;:49::77:1;:8::79;58:27:58:28:0;:16::43:1;:57::58:0;:47::73:1;:8::75;59:27:59:28:0;:16::43:1;:47::54:0;;:8::56:1;60:27:60:28:0;:16::41:1;:45::46:0;:8::48:1;61:27:61:28:0;:16::35:1;:49::50:0;:39::57:1;:8::59;64:27:64:28:0;:16::45:1;:59::60:0;:49::77:1;:8::79;65:27:65:28:0;:16::43:1;:57::58:0;:47::73:1;:8::75;66:27:66:28:0;:16::43:1;:47::54:0;;:8::56:1;67:27:67:28:0;:16::35:1;:49::50:0;:39::57:1;:8::59;35:24:68:5;;;;;:4;70::100::0;;;;;71:16:71:37;:41::42;:8::44:1;72:28:72:37:0;;:8::39:1;;73:26:73:27:0;:16::42:1;:46::58:0;;:61::65;:46:::1;:8::67;74:26:74:27:0;:16::42:1;:46::58:0;;:61::65;:46:::1;:8::67;76:32:76:33:0;:22::48:1;77:26:77:27:0;:16::42:1;:46::51:0;:8::53:1;79:16:79:17:0;80:8:83:9;:15:80:16;:19::35;:15:::1;;;:37:83:9:0;81:30:81:31;:20::46:1;:50::52:0;:12::54:1;82::82:22;80:37:83:9;;:8;;84:16:84:17:0;85:8:88:9;:15:85:16;:19::36;:15:::1;;;:38:88:9:0;86:31:86:32;:20::47:1;:51::53:0;:12::55:1;87::87:22;85:38:88:9;;:8;;90:27:90:28:0;:16::45:1;:59::60:0;:49::77:1;:8::79;91:27:91:28:0;:16::43:1;:57::58:0;:47::73:1;:8::75;92:27:92:28:0;:16::43:1;:47::52:0;;:8::54:1;93:27:93:28:0;:16::41:1;:45::46:0;:8::48:1;94:27:94:28:0;:16::35:1;:49::50:0;:39::57:1;:8::59;96:27:96:28:0;:16::45:1;:59::60:0;:49::77:1;:8::79;97:27:97:28:0;:16::43:1;:57::58:0;:47::73:1;:8::75;98:27:98:28:0;:16::43:1;:47::52:0;;:55::59;:47:::1;:8::61;99:27:99:28:0;:16::35:1;:49::50:0;:39::57:1;:8::59;70:19:100:5;;;;;:4;102::110::0;;;;103:16:103:37;:41::42;:8::44:1;104:26:104:27:0;:16::42:1;:46::58:0;;:61::65;:46:::1;:8::67;105:19:105:36:0;:::40:1;106:27:106:31:0;:16::48:1;:62::63:0;:52::80:1;:8::82;107:27:107:31:0;:16::46:1;:60::61:0;:50::76:1;:8::78;108:27:108:31:0;:16::46:1;:60::61:0;:50::76:1;:8::78;109:16:109:38;:52::53:0;:42::60:1;:8::62;102:23:110:5;;;;21:0:111:1;;",
     "logs": [],
     "requires": [
       {
-        "ip": 12,
-        "line": 16
-      },
-      {
-        "ip": 24,
-        "line": 17
-      },
-      {
-        "ip": 33,
-        "line": 21
-      },
-      {
-        "ip": 40,
-        "line": 22
-      },
-      {
-        "ip": 45,
+        "ip": 13,
         "line": 23
       },
       {
-        "ip": 48,
+        "ip": 25,
         "line": 24
       },
       {
-        "ip": 65,
-        "line": 25
+        "ip": 34,
+        "line": 28
       },
       {
-        "ip": 74,
+        "ip": 41,
         "line": 29
       },
       {
-        "ip": 77,
+        "ip": 46,
         "line": 30
       },
       {
-        "ip": 85,
+        "ip": 49,
         "line": 31
       },
       {
-        "ip": 92,
+        "ip": 66,
         "line": 32
       },
       {
-        "ip": 113,
-        "line": 35
+        "ip": 77,
+        "line": 36
       },
       {
-        "ip": 125,
-        "line": 40
+        "ip": 80,
+        "line": 37
       },
       {
-        "ip": 142,
-        "line": 45
+        "ip": 88,
+        "line": 38
       },
       {
-        "ip": 152,
-        "line": 50
+        "ip": 95,
+        "line": 39
       },
       {
-        "ip": 157,
-        "line": 51
+        "ip": 116,
+        "line": 42
       },
       {
-        "ip": 162,
+        "ip": 128,
+        "line": 47
+      },
+      {
+        "ip": 145,
         "line": 52
       },
       {
-        "ip": 166,
-        "line": 53
-      },
-      {
-        "ip": 171,
-        "line": 54
-      },
-      {
-        "ip": 176,
+        "ip": 155,
         "line": 57
       },
       {
-        "ip": 181,
+        "ip": 160,
         "line": 58
       },
       {
-        "ip": 186,
+        "ip": 165,
         "line": 59
       },
       {
-        "ip": 191,
+        "ip": 169,
         "line": 60
+      },
+      {
+        "ip": 174,
+        "line": 61
+      },
+      {
+        "ip": 179,
+        "line": 64
+      },
+      {
+        "ip": 184,
+        "line": 65
+      },
+      {
+        "ip": 189,
+        "line": 66
+      },
+      {
+        "ip": 194,
+        "line": 67
+      },
+      {
+        "ip": 208,
+        "line": 71
+      },
+      {
+        "ip": 211,
+        "line": 72
+      },
+      {
+        "ip": 219,
+        "line": 73
+      },
+      {
+        "ip": 226,
+        "line": 74
+      },
+      {
+        "ip": 232,
+        "line": 77
+      },
+      {
+        "ip": 244,
+        "line": 81
+      },
+      {
+        "ip": 261,
+        "line": 86
+      },
+      {
+        "ip": 271,
+        "line": 90
+      },
+      {
+        "ip": 276,
+        "line": 91
+      },
+      {
+        "ip": 281,
+        "line": 92
+      },
+      {
+        "ip": 285,
+        "line": 93
+      },
+      {
+        "ip": 290,
+        "line": 94
+      },
+      {
+        "ip": 295,
+        "line": 96
+      },
+      {
+        "ip": 300,
+        "line": 97
+      },
+      {
+        "ip": 307,
+        "line": 98
+      },
+      {
+        "ip": 312,
+        "line": 99
+      },
+      {
+        "ip": 325,
+        "line": 103
+      },
+      {
+        "ip": 332,
+        "line": 104
+      },
+      {
+        "ip": 339,
+        "line": 106
+      },
+      {
+        "ip": 344,
+        "line": 107
+      },
+      {
+        "ip": 349,
+        "line": 108
+      },
+      {
+        "ip": 353,
+        "line": 109
       }
     ],
-    "sourceTags": "60:61:sc;122:125:lc;139:142:lc"
+    "sourceTags": "60:62:sc;124:127:lc;141:144:lc;240:243:lc;257:260:lc"
   },
   "compiler": {
     "name": "cashc",

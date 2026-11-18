@@ -11,7 +11,14 @@ pragma cashscript ^0.14.0;
 //   Input 1: this contract, pending NFT.       Output 1: this contract, pending NFT unchanged.
 //   Inputs 2..: funding without tokens.        Outputs 2..: change without tokens.
 //   The pending epoch must be above the active epoch.
-contract RootGate(pubkey operatorA, pubkey operatorB, pubkey operatorC, int delay, bytes32 poolCategory) {
+//
+// arm: anyone, once the pending UTXO is `pushDelay` blocks old and equals the active state (no newer proposal).
+//   Same layout as activate. Output 1 is the pending NFT with commitment state + 0x01 (armed); the state is unchanged.
+//   A new proposal writes a 68-byte commitment again, which closes the push window until the next arm.
+//
+// witness: lets an operator push (ClaimPool.claim at input 0) spend the armed NFT at input 3. The NFT goes back,
+//   unchanged, as the last output. See docs/decisions/0008-operator-push.md.
+contract RootGate(pubkey operatorA, pubkey operatorB, pubkey operatorC, int delay, int pushDelay, bytes32 poolCategory) {
     function propose(sig first, sig second) {
         require(this.activeInputIndex == 0);
         require(checkMultiSig([first, second], [operatorA, operatorB, operatorC]));
@@ -58,5 +65,47 @@ contract RootGate(pubkey operatorA, pubkey operatorB, pubkey operatorC, int dela
         require(tx.outputs[1].tokenCategory == tx.inputs[1].tokenCategory);
         require(tx.outputs[1].nftCommitment == pending);
         require(tx.outputs[1].value == tx.inputs[1].value);
+    }
+
+    function arm() {
+        require(this.activeInputIndex == 1);
+        require(this.age >= pushDelay);
+        require(tx.inputs[0].tokenCategory == poolCategory + 0x02);
+        require(tx.inputs[1].tokenCategory == poolCategory + 0x01);
+
+        bytes state = tx.inputs[0].nftCommitment;
+        require(tx.inputs[1].nftCommitment == state);
+
+        int i = 2;
+        while (i < tx.inputs.length) {
+            require(tx.inputs[i].tokenCategory == 0x);
+            i = i + 1;
+        }
+        int o = 2;
+        while (o < tx.outputs.length) {
+            require(tx.outputs[o].tokenCategory == 0x);
+            o = o + 1;
+        }
+
+        require(tx.outputs[0].lockingBytecode == tx.inputs[0].lockingBytecode);
+        require(tx.outputs[0].tokenCategory == tx.inputs[0].tokenCategory);
+        require(tx.outputs[0].nftCommitment == state);
+        require(tx.outputs[0].tokenAmount == 0);
+        require(tx.outputs[0].value == tx.inputs[0].value);
+
+        require(tx.outputs[1].lockingBytecode == tx.inputs[1].lockingBytecode);
+        require(tx.outputs[1].tokenCategory == tx.inputs[1].tokenCategory);
+        require(tx.outputs[1].nftCommitment == state + 0x01);
+        require(tx.outputs[1].value == tx.inputs[1].value);
+    }
+
+    function witness() {
+        require(this.activeInputIndex == 3);
+        require(tx.inputs[0].tokenCategory == poolCategory + 0x02);
+        int last = tx.outputs.length - 1;
+        require(tx.outputs[last].lockingBytecode == tx.inputs[3].lockingBytecode);
+        require(tx.outputs[last].tokenCategory == tx.inputs[3].tokenCategory);
+        require(tx.outputs[last].nftCommitment == tx.inputs[3].nftCommitment);
+        require(tx.outputs[last].value == tx.inputs[3].value);
     }
 }

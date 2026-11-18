@@ -2,6 +2,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { TransactionBuilder } from 'cashscript';
 import { buildDeploy } from '../../tx/deploy.ts';
+import { pushParamsFromConfig } from '../../pool/contracts.ts';
 import { flag, requireFlag, type ParsedArgs } from '../args.ts';
 import { broadcast } from '../broadcast.ts';
 import { loadKey, operatorKeys, payerRole, type Context } from '../context.ts';
@@ -39,6 +40,7 @@ export async function deploy(ctx: Context, a: ParsedArgs) {
     maxDepth: ctx.config.tree.maxDepth,
     operatorKeys: operatorKeys(ctx),
     activationDelay: ctx.config.networks[ctx.network].activationDelayBlocks,
+    push: pushParamsFromConfig(ctx.config, ctx.config.networks[ctx.network].pushDelayBlocks),
   };
   const { builder, contracts } = buildDeploy({
     provider: ctx.provider,

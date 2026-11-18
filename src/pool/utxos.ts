@@ -1,6 +1,6 @@
 import type { SpendableUtxo } from 'cashscript';
 import { binToHex } from '@bitauth/libauth';
-import { decodeReceipt, decodeState, type PoolState, type Receipt } from './encoding.ts';
+import { ARM_FLAG, STATE_BYTES, decodeReceipt, decodeState, type PoolState, type Receipt } from './encoding.ts';
 import type { PoolContracts } from './contracts.ts';
 
 export interface ReceiptUtxo {
@@ -47,6 +47,8 @@ export async function readPool(contracts: PoolContracts): Promise<PoolUtxos> {
 export interface PendingUtxo {
   utxo: SpendableUtxo;
   pending: PoolState;
+  /** Armed for operator pushes (ADR 0008): the commitment is the active state followed by 0x01. */
+  armed: boolean;
 }
 
 /** Reads the root gate's pending-root NFT. */
@@ -54,7 +56,9 @@ export async function readPending(contracts: PoolContracts): Promise<PendingUtxo
   const found = (await contracts.gate.getUtxos()).filter((u) => isPendingUtxo(u, contracts.params.poolCategory));
   if (found.length !== 1) throw new Error(`expected one pending-root NFT, found ${found.length}`);
   const utxo = found[0] as SpendableUtxo;
-  return { utxo, pending: decodeState(utxo.token?.nft?.commitment ?? '') };
+  const commitment = utxo.token?.nft?.commitment ?? '';
+  const armed = commitment.length === (STATE_BYTES + 1) * 2 && commitment.endsWith(ARM_FLAG);
+  return { utxo, pending: decodeState(armed ? commitment.slice(0, STATE_BYTES * 2) : commitment), armed };
 }
 
 /** Total reward tokens still held by the pool. */

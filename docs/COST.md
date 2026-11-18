@@ -52,12 +52,12 @@ activate transaction per epoch, whatever the number of recipients.
 
 | Recipients | Push txs | Push bytes | Push fee | Push dust | Push total, sat (USD) | Pull total, sat (USD) | Push per year | Pull per year |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 1 | 262 | 262 | 1,000 | 1,262 ($0.0026) | 2,335 ($0.0049) | 15,144 ($0.0315) | 28,020 ($0.0583) |
-| 100 | 1 | 7,885 | 7,885 | 100,000 | 107,885 ($0.2246) | 2,335 ($0.0049) | 1,294,620 ($2.6949) | 28,020 ($0.0583) |
-| 1,000 | 1 | 77,187 | 77,187 | 1,000,000 | 1,077,187 ($2.2423) | 2,335 ($0.0049) | 12,926,244 ($26.9073) | 28,020 ($0.0583) |
-| 10,000 | 8 | 771,496 | 771,496 | 10,000,000 | 10,771,496 ($22.4219) | 2,335 ($0.0049) | 129,257,952 ($269.0634) | 28,020 ($0.0583) |
+| 1 | 1 | 262 | 262 | 1,000 | 1,262 ($0.0026) | 2,709 ($0.0056) | 15,144 ($0.0315) | 32,508 ($0.0677) |
+| 100 | 1 | 7,885 | 7,885 | 100,000 | 107,885 ($0.2246) | 2,709 ($0.0056) | 1,294,620 ($2.6949) | 32,508 ($0.0677) |
+| 1,000 | 1 | 77,187 | 77,187 | 1,000,000 | 1,077,187 ($2.2423) | 2,709 ($0.0056) | 12,926,244 ($26.9073) | 32,508 ($0.0677) |
+| 10,000 | 8 | 771,496 | 771,496 | 10,000,000 | 10,771,496 ($22.4219) | 2,709 ($0.0056) | 129,257,952 ($269.0634) | 32,508 ($0.0677) |
 
-Push costs the distributor more than pull from 2 recipients per epoch.
+Push costs the distributor more than pull from 3 recipients per epoch.
 
 ## Recipient cost per claim
 
@@ -67,10 +67,10 @@ claimant (it is their own output). The tree depth is the smallest that holds the
 
 | Recipients | Tree depth | First claim bytes | First claim fee + receipt, sat (USD) | Later claim bytes | Later claim fee, sat (USD) | Payment dust, sat | Push cost per recipient per epoch, sat (USD) | Break-even claim interval (epochs) |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 1 | 1,631 | 2,631 ($0.0055) | 1,480 | 1,480 ($0.0031) | 1,000 | 1,262 ($0.0026) | 2 |
-| 100 | 7 | 1,825 | 2,825 ($0.0059) | 1,674 | 1,674 ($0.0035) | 1,000 | 1,079 ($0.0022) | 3 |
-| 1,000 | 10 | 1,923 | 2,923 ($0.0061) | 1,772 | 1,772 ($0.0037) | 1,000 | 1,078 ($0.0022) | 3 |
-| 10,000 | 14 | 2,051 | 3,051 ($0.0064) | 1,900 | 1,900 ($0.0040) | 1,000 | 1,078 ($0.0022) | 3 |
+| 1 | 1 | 1,678 | 2,678 ($0.0056) | 1,527 | 1,527 ($0.0032) | 1,000 | 1,262 ($0.0026) | 3 |
+| 100 | 7 | 1,872 | 2,872 ($0.0060) | 1,721 | 1,721 ($0.0036) | 1,000 | 1,079 ($0.0022) | 3 |
+| 1,000 | 10 | 1,970 | 2,970 ($0.0062) | 1,819 | 1,819 ($0.0038) | 1,000 | 1,078 ($0.0022) | 3 |
+| 10,000 | 14 | 2,098 | 3,098 ($0.0064) | 1,947 | 1,947 ($0.0041) | 1,000 | 1,078 ($0.0022) | 3 |
 
 Break-even claim interval: a recipient who claims once every this many epochs (or less often) costs the network no more
 in fees and dust than the pushes the claim replaces, because one claim collects the whole cumulative amount. Counted on

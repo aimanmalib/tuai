@@ -42,8 +42,21 @@ const receiptToken = (category: string, receipt: Receipt) => ({
   nft: { capability: 'none' as const, commitment: binToHex(encodeReceipt(receipt)) },
 });
 
-/** Plans a claim paying `leaf.cumulative - claimed` reward tokens to the leaf's own locking bytecode. */
-export function planClaim(o: ClaimOptions): ClaimPlan {
+/** What a claim and an operator push share: inputs 0..2 and outputs 0..(3 or 4). */
+export interface ClaimCore {
+  kind: 'first' | 'additional';
+  payment: bigint;
+  receipt: ReceiptUtxo;
+  /** The reward token UTXO the payment comes from (input 1). */
+  reward: SpendableUtxo;
+  inputs: ClaimInput[];
+  outputs: Output[];
+}
+
+export type ClaimCoreOptions = Pick<ClaimOptions, 'contracts' | 'pool' | 'leaf' | 'proof' | 'paymentSats' | 'receiptSats'>;
+
+/** Builds the pool part of a claim paying `leaf.cumulative - claimed` reward tokens to the leaf's own locking bytecode. */
+export function planClaimCore(o: ClaimCoreOptions): ClaimCore {
   assertLeaf(o.leaf);
   const { pool, vault, params } = o.contracts;
   const key = receiptKey(o.leaf.lockingBytecode);
@@ -65,12 +78,10 @@ export function planClaim(o: ClaimOptions): ClaimPlan {
     concat(...o.proof.siblings),
   );
   const spend = unlockerFor(vault, 'spend')();
-  const signer = o.funding.signer.unlockP2PKH();
   const inputs: ClaimInput[] = [
     { utxo: state, unlocker: claim },
     { utxo: reward, unlocker: spend },
     { utxo: match.item.utxo, unlocker: spend },
-    ...o.funding.utxos.map((utxo) => ({ utxo, unlocker: signer })),
   ];
   const prev = match.receipt;
   const kept = match.item.utxo.satoshis;
@@ -91,12 +102,19 @@ export function planClaim(o: ClaimOptions): ClaimPlan {
       },
     );
   }
+  return { kind: match.kind === 'own' ? 'additional' : 'first', payment, receipt: match.item, reward, inputs, outputs };
+}
+
+/** Plans a claim funded by anyone; the payment still goes to the leaf's locking bytecode. */
+export function planClaim(o: ClaimOptions): ClaimPlan {
+  const core = planClaimCore(o);
+  const signer = o.funding.signer.unlockP2PKH();
   return {
-    kind: match.kind === 'own' ? 'additional' : 'first',
-    payment,
-    receipt: match.item,
-    inputs,
-    outputs,
+    kind: core.kind,
+    payment: core.payment,
+    receipt: core.receipt,
+    inputs: [...core.inputs, ...o.funding.utxos.map((utxo) => ({ utxo, unlocker: signer }))],
+    outputs: core.outputs,
     changeAddress: o.funding.changeAddress,
     feeRate: o.feeRate,
   };

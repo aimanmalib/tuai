@@ -8,6 +8,8 @@ export const NETWORKS: readonly NetworkName[] = ['mock', 'chipnet', 'mainnet'];
 export interface NetworkConfig {
   addressPrefix: 'bitcoincash' | 'bchtest' | 'bchreg';
   activationDelayBlocks: number;
+  /** Blocks the active root must stand before pushes can be armed (ADR 0008). */
+  pushDelayBlocks: number;
   /** `hostname` for the CLI (TCP/TLS through CashScript); `wssUrl` for the claim page in a browser. */
   electrum?: { hostname: string; wssUrl?: string };
   rewardCategory?: string;
@@ -23,10 +25,12 @@ export interface NetworkConfig {
 export interface TuaiConfig {
   project: { name: string; subtitle: string; repoUrl: string; siteUrl: string };
   networks: Record<NetworkName, NetworkConfig>;
-  production: { activationDelayBlocks: number };
+  production: { activationDelayBlocks: number; pushDelayBlocks: number };
   tree: { maxDepth: number };
   operators: { threshold: number; total: number; publicKeys: string[] };
   fees: { satsPerByte: number; tokenOutputDustSats: number; receiptDustSats: number };
+  /** Operator push (ADR 0008): smallest push payment in reward base units (decimal string) and vault BCH per push. */
+  push: { minimumUnits: string; maxSatsPerPush: number };
   sponsorApi: {
     baseUrl: string;
     distroPath: string;
@@ -125,6 +129,9 @@ export function validateConfig(c: TuaiConfig): string[] {
     if (!isPositiveInt(n.activationDelayBlocks) || n.activationDelayBlocks > 0xffff) {
       problems.push(`networks.${name}.activationDelayBlocks must be 1..65535 blocks`);
     }
+    if (!isPositiveInt(n.pushDelayBlocks) || n.pushDelayBlocks > 0xffff) {
+      problems.push(`networks.${name}.pushDelayBlocks must be 1..65535 blocks`);
+    }
     if (n.sequenceBlockScale !== undefined && !isPositiveInt(n.sequenceBlockScale)) {
       problems.push(`networks.${name}.sequenceBlockScale must be > 0`);
     }
@@ -136,6 +143,11 @@ export function validateConfig(c: TuaiConfig): string[] {
     }
   }
   if (!isPositiveInt(c.production?.activationDelayBlocks)) problems.push('production.activationDelayBlocks must be > 0');
+  if (!isPositiveInt(c.production?.pushDelayBlocks) || c.production.pushDelayBlocks > 0xffff) {
+    problems.push('production.pushDelayBlocks must be 1..65535 blocks');
+  }
+  if (!/^[1-9]\d*$/.test(c.push?.minimumUnits ?? '')) problems.push('push.minimumUnits must be a positive integer string');
+  if (!isPositiveInt(c.push?.maxSatsPerPush)) problems.push('push.maxSatsPerPush must be > 0');
   if (!isPositiveInt(c.tree?.maxDepth) || c.tree.maxDepth > 32) problems.push('tree.maxDepth must be 1..32');
   const o = c.operators;
   if (!o || !isPositiveInt(o.threshold) || !isPositiveInt(o.total) || o.threshold > o.total) {

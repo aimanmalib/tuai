@@ -6,7 +6,7 @@ import { hashLeaf, type Leaf } from '../../src/leaf.ts';
 import { buildTree, type MerkleTree } from '../../src/merkle/tree.ts';
 import { computeRoot, getProof, type MerkleProof } from '../../src/merkle/proof.ts';
 import type { PoolState } from '../../src/pool/encoding.ts';
-import type { PoolContracts } from '../../src/pool/contracts.ts';
+import type { PoolContracts, PushParams } from '../../src/pool/contracts.ts';
 import { readPending, readPool, type PoolUtxos } from '../../src/pool/utxos.ts';
 import { buildDeploy } from '../../src/tx/deploy.ts';
 import { buildPropose } from '../../src/tx/propose.ts';
@@ -18,6 +18,8 @@ export const FEE_RATE = 1;
 export const SATS = 1000n;
 export const REWARD_SUPPLY = 1_000_000_000n;
 export const DELAY = 3;
+/** Operator push parameters of every test pool unless a test asks for a version 1 pool (ADR 0008). */
+export const PUSH: PushParams = { delay: 5, minimum: '50', sats: 6000 };
 
 const hash160 = (data: Uint8Array): Uint8Array => ripemd160.hash(sha256(data));
 
@@ -54,8 +56,18 @@ export interface PoolFixture {
 /** A fixed txid for measurements that must not change between runs (signature lengths depend on what is signed). */
 export const seededTxid = (seed: string): string => binToHex(sha256(new TextEncoder().encode(`tuai test txid ${seed}`)));
 
-/** Deploys a pool on the mock network with the given state already active; a seed makes the pool category fixed. */
-export async function deployPool(state: PoolState, provider = newProvider(), seed?: string): Promise<PoolFixture> {
+/**
+ * Deploys a pool on the mock network with the given state already active; a seed makes the pool category fixed.
+ * `push: null` deploys the version 1 contracts (no push path), as on the recorded chipnet pool.
+ */
+export async function deployPool(
+  state: PoolState,
+  provider = newProvider(),
+  seed?: string,
+  push: PushParams | null = PUSH,
+  vaultSats = SATS,
+): Promise<PoolFixture> {
+  // vaultSats: BCH kept with the reward tokens; pushes draw their dust and fee from it.
   const payer = testKey('payer');
   const genesis = { ...randomUtxo({ satoshis: 100_000n }), vout: 0 };
   const genesisUtxo = provider.addUtxo(payer.address, seed ? { ...genesis, txid: seededTxid(`${seed} genesis`) } : genesis);
@@ -71,8 +83,10 @@ export async function deployPool(state: PoolState, provider = newProvider(), see
     maxDepth: MAX_DEPTH,
     operatorKeys: OPERATORS.map((k) => k.publicKey),
     activationDelay: DELAY,
+    ...(push ? { push } : {}),
     initialState: state,
     outputSats: SATS,
+    vaultSats,
     feeRate: FEE_RATE,
   });
   const sent = await builder.send();

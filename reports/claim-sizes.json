@@ -1,8 +1,13 @@
 {
-  "description": "Transaction sizes in bytes, measured on the CashScript mock network (BCH_2026_05 VM). Claims: one P2PKH funding input and one change output, Schnorr signatures, proofs at the deepest index of each depth. Root gate: two ECDSA operator signatures for propose, no operator key for activate; one funding input and one change output each.",
+  "description": "Transaction sizes in bytes, measured on the CashScript mock network (BCH_2026_05 VM). Claims: one P2PKH funding input and one change output, Schnorr signatures, proofs at the deepest index of each depth. Root gate: two ECDSA operator signatures for propose, no operator key for activate; one funding input and one change output each. Push: arm with one funding input and one change output; pushes without keeper inputs (the vault pays). version1Claim: the same claims on the version 1 contracts (no push path) of the recorded chipnet pool.",
   "generatedBy": "scripts/claim-sizes.ts",
   "feeRateSatsPerByte": 1,
   "contractBytes": {
+    "ClaimPool": 610,
+    "PoolVault": 39,
+    "RootGate": 501
+  },
+  "version1ContractBytes": {
     "ClaimPool": 563,
     "PoolVault": 39,
     "RootGate": 337
@@ -10,91 +15,111 @@
   "claims": [
     {
       "depth": 1,
-      "firstClaimBytes": 1631,
-      "additionalClaimBytes": 1480,
+      "firstClaimBytes": 1678,
+      "additionalClaimBytes": 1527,
       "poolInput": {
-        "unlockingBytes": 638,
-        "operationCost": 64104,
-        "maximumOperationCost": 543200,
-        "hashDigestIterations": 14,
-        "maximumHashDigestIterations": 339
+        "unlockingBytes": 685,
+        "operationCost": 68894,
+        "maximumOperationCost": 580800,
+        "hashDigestIterations": 15,
+        "maximumHashDigestIterations": 363
       }
     },
     {
       "depth": 7,
-      "firstClaimBytes": 1825,
-      "additionalClaimBytes": 1674,
+      "firstClaimBytes": 1872,
+      "additionalClaimBytes": 1721,
       "poolInput": {
-        "unlockingBytes": 832,
-        "operationCost": 116268,
-        "maximumOperationCost": 698400,
-        "hashDigestIterations": 26,
-        "maximumHashDigestIterations": 436
+        "unlockingBytes": 879,
+        "operationCost": 121058,
+        "maximumOperationCost": 736000,
+        "hashDigestIterations": 27,
+        "maximumHashDigestIterations": 460
       }
     },
     {
       "depth": 9,
-      "firstClaimBytes": 1891,
-      "additionalClaimBytes": 1740,
+      "firstClaimBytes": 1938,
+      "additionalClaimBytes": 1787,
       "poolInput": {
-        "unlockingBytes": 898,
-        "operationCost": 135465,
-        "maximumOperationCost": 751200,
-        "hashDigestIterations": 30,
-        "maximumHashDigestIterations": 469
+        "unlockingBytes": 945,
+        "operationCost": 140255,
+        "maximumOperationCost": 788800,
+        "hashDigestIterations": 31,
+        "maximumHashDigestIterations": 493
       }
     },
     {
       "depth": 10,
-      "firstClaimBytes": 1923,
-      "additionalClaimBytes": 1772,
+      "firstClaimBytes": 1970,
+      "additionalClaimBytes": 1819,
       "poolInput": {
-        "unlockingBytes": 930,
-        "operationCost": 145399,
-        "maximumOperationCost": 776800,
-        "hashDigestIterations": 32,
-        "maximumHashDigestIterations": 485
+        "unlockingBytes": 977,
+        "operationCost": 150189,
+        "maximumOperationCost": 814400,
+        "hashDigestIterations": 33,
+        "maximumHashDigestIterations": 509
       }
     },
     {
       "depth": 14,
-      "firstClaimBytes": 2051,
-      "additionalClaimBytes": 1900,
+      "firstClaimBytes": 2098,
+      "additionalClaimBytes": 1947,
       "poolInput": {
-        "unlockingBytes": 1058,
-        "operationCost": 187375,
-        "maximumOperationCost": 879200,
-        "hashDigestIterations": 40,
-        "maximumHashDigestIterations": 549
+        "unlockingBytes": 1105,
+        "operationCost": 192165,
+        "maximumOperationCost": 916800,
+        "hashDigestIterations": 41,
+        "maximumHashDigestIterations": 573
       }
     },
     {
       "depth": 16,
-      "firstClaimBytes": 2116,
-      "additionalClaimBytes": 1965,
+      "firstClaimBytes": 2163,
+      "additionalClaimBytes": 2012,
       "poolInput": {
-        "unlockingBytes": 1123,
-        "operationCost": 209714,
-        "maximumOperationCost": 931200,
-        "hashDigestIterations": 44,
-        "maximumHashDigestIterations": 582
+        "unlockingBytes": 1170,
+        "operationCost": 214504,
+        "maximumOperationCost": 968800,
+        "hashDigestIterations": 45,
+        "maximumHashDigestIterations": 605
       }
     },
     {
       "depth": 24,
-      "firstClaimBytes": 2373,
-      "additionalClaimBytes": 2222,
+      "firstClaimBytes": 2420,
+      "additionalClaimBytes": 2269,
       "poolInput": {
-        "unlockingBytes": 1380,
-        "operationCost": 308057,
-        "maximumOperationCost": 1136800,
-        "hashDigestIterations": 60,
-        "maximumHashDigestIterations": 710
+        "unlockingBytes": 1427,
+        "operationCost": 312847,
+        "maximumOperationCost": 1174400,
+        "hashDigestIterations": 61,
+        "maximumHashDigestIterations": 734
       }
     }
   ],
   "operator": {
-    "proposeBytes": 862,
-    "activateBytes": 1473
+    "proposeBytes": 1025,
+    "activateBytes": 1684
+  },
+  "push": {
+    "depth": 9,
+    "armBytes": 1685,
+    "firstPushBytes": 2459,
+    "firstPushVaultSats": 4459,
+    "additionalPushBytes": 2308,
+    "additionalPushVaultSats": 3308
+  },
+  "version1Claim": {
+    "depth": 9,
+    "firstClaimBytes": 1891,
+    "additionalClaimBytes": 1740,
+    "poolInput": {
+      "unlockingBytes": 898,
+      "operationCost": 135465,
+      "maximumOperationCost": 751200,
+      "hashDigestIterations": 30,
+      "maximumHashDigestIterations": 469
+    }
   }
 }

@@ -8,10 +8,13 @@ import { treeDepth } from '../src/merkle/tree.ts';
 import { leafFromAddress } from '../src/leaf.ts';
 import { readPending, readPool } from '../src/pool/utxos.ts';
 import { assembleClaim } from '../src/tx/claim.ts';
+import { assemblePush } from '../src/tx/push.ts';
 import { buildPropose } from '../src/tx/propose.ts';
-import { buildActivate } from '../src/tx/activate.ts';
+import { assembleActivate, buildActivate } from '../src/tx/activate.ts';
+import { planArm, planPush } from '../src/tx/push.ts';
+import type { PushParams } from '../src/pool/contracts.ts';
 import {
-  FEE_RATE, OPERATORS, advanceState, claimPlan, deployPool, fund, stateFor, syntheticProof, testKey, type PoolFixture,
+  FEE_RATE, OPERATORS, PUSH, SATS, advanceState, claimPlan, deployPool, fund, stateFor, syntheticProof, testKey, type PoolFixture,
 } from '../tests/helpers/pool-fixture.ts';
 import { DEPTH_DOC_PATH, renderDepthDoc, type ClaimSizeReport, type PoolInputUsage } from './depth-doc.ts';
 
@@ -24,6 +27,8 @@ export const DEPTHS = [...new Set([1, 9, 16, 24, ...loadConfig().cost.recipientC
 const DENSITY_OVERHEAD_BYTES = 41;
 
 const bytesOf = (tx: TransactionBuilder): number => tx.build().length / 2;
+/** Depth of the push and version 1 measurements (a tree of up to 512 leaves, as in the chipnet demonstration). */
+export const PUSH_DEPTH = 9;
 
 function poolInputUsage(tx: TransactionBuilder): PoolInputUsage {
   const m = tx.getVmResourceUsage()[0];
@@ -37,11 +42,11 @@ function poolInputUsage(tx: TransactionBuilder): PoolInputUsage {
   };
 }
 
-async function measureClaims(depth: number) {
+async function measureClaims(depth: number, push: PushParams | null = PUSH) {
   const claimant = testKey('size claimant');
   const first = leafFromAddress(claimant.address, 1_000n);
   const one = syntheticProof(first, depth, 2 ** depth - 1);
-  const f = await deployPool(stateFor(one.root));
+  const f = await deployPool(stateFor(one.root), undefined, undefined, push);
   const firstTx = assembleClaim(claimPlan(f, await readPool(f.contracts), first, one.proof, claimant), f.provider);
   const firstClaimBytes = bytesOf(firstTx);
   const poolInput = poolInputUsage(firstTx);
@@ -53,6 +58,59 @@ async function measureClaims(depth: number) {
   const additionalClaimBytes = bytesOf(moreTx);
   await moreTx.send();
   return { depth, firstClaimBytes, additionalClaimBytes, poolInput };
+}
+
+/** Arm once per root, then push a first and an additional balance; no keeper inputs, the vault pays. */
+async function measurePush(depth: number) {
+  const keeper = testKey('size keeper');
+  const recipient = testKey('size push recipient');
+  const arm = async (f: PoolFixture) => {
+    const tx = assembleActivate(
+      planArm({
+        contracts: f.contracts,
+        pool: await readPool(f.contracts),
+        pending: await readPending(f.contracts),
+        funding: { utxos: [fund(f, keeper)], signer: keeper.signer, changeAddress: keeper.address },
+        feeRate: FEE_RATE,
+      }),
+      f.provider,
+    );
+    const bytes = bytesOf(tx);
+    await tx.send();
+    return bytes;
+  };
+  const push = async (f: PoolFixture, amount: bigint, root: (leaf: ReturnType<typeof leafFromAddress>) => ReturnType<typeof syntheticProof>) => {
+    const leaf = leafFromAddress(recipient.address, amount);
+    const plan = planPush({
+      contracts: f.contracts,
+      pool: await readPool(f.contracts),
+      pending: await readPending(f.contracts),
+      leaf,
+      proof: root(leaf).proof,
+      paymentSats: SATS,
+      receiptSats: SATS,
+      feeRate: FEE_RATE,
+    });
+    const tx = assemblePush(plan, f.provider);
+    const bytes = bytesOf(tx);
+    await tx.send();
+    return { bytes, vaultSats: Number(plan.vaultSats) };
+  };
+  const proofFor = (leaf: ReturnType<typeof leafFromAddress>) => syntheticProof(leaf, depth, 2 ** depth - 1);
+  const f = await deployPool(stateFor(proofFor(leafFromAddress(recipient.address, 1_000n)).root), undefined, undefined, PUSH, 50_000n);
+  const armBytes = await arm(f);
+  const first = await push(f, 1_000n, proofFor);
+  await advanceState(f, stateFor(proofFor(leafFromAddress(recipient.address, 2_500n)).root, 2));
+  await arm(f);
+  const additional = await push(f, 2_500n, proofFor);
+  return {
+    depth,
+    armBytes,
+    firstPushBytes: first.bytes,
+    firstPushVaultSats: first.vaultSats,
+    additionalPushBytes: additional.bytes,
+    additionalPushVaultSats: additional.vaultSats,
+  };
 }
 
 async function measureOperator(f: PoolFixture) {
@@ -83,18 +141,24 @@ async function measureOperator(f: PoolFixture) {
 
 export async function measureReport(): Promise<ClaimSizeReport> {
   const f = await deployPool(stateFor(new Uint8Array(32), 1), undefined, 'size report');
+  const v1 = await deployPool(stateFor(new Uint8Array(32), 1), undefined, 'size report v1', null);
   const claims = [];
   for (const depth of DEPTHS) claims.push(await measureClaims(depth));
   return {
     description:
       'Transaction sizes in bytes, measured on the CashScript mock network (BCH_2026_05 VM). Claims: one P2PKH funding ' +
       'input and one change output, Schnorr signatures, proofs at the deepest index of each depth. Root gate: ' +
-      'two ECDSA operator signatures for propose, no operator key for activate; one funding input and one change output each.',
+      'two ECDSA operator signatures for propose, no operator key for activate; one funding input and one change output each. ' +
+      'Push: arm with one funding input and one change output; pushes without keeper inputs (the vault pays). ' +
+      'version1Claim: the same claims on the version 1 contracts (no push path) of the recorded chipnet pool.',
     generatedBy: 'scripts/claim-sizes.ts',
     feeRateSatsPerByte: FEE_RATE,
     contractBytes: { ClaimPool: f.contracts.pool.bytesize, PoolVault: f.contracts.vault.bytesize, RootGate: f.contracts.gate.bytesize },
+    version1ContractBytes: { ClaimPool: v1.contracts.pool.bytesize, PoolVault: v1.contracts.vault.bytesize, RootGate: v1.contracts.gate.bytesize },
     claims,
     operator: await measureOperator(f),
+    push: await measurePush(PUSH_DEPTH),
+    version1Claim: await measureClaims(PUSH_DEPTH, null),
   };
 }
 
