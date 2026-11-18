@@ -84,6 +84,63 @@
       "spec": "Cara ia berfungsi",
       "measured": "Rekod chipnet",
       "source": "Kod sumber"
+    },
+    "nav": {
+      "label": "Halaman",
+      "claim": "Semak alamat",
+      "activity": "Aktiviti"
+    },
+    "activity": {
+      "heading": "Setiap transaksi di {network}",
+      "intro": "Setiap langkah demonstrasi seperti yang dihantar, mengikut tertib, termasuk yang ditolak nod. Pautan membuka transaksi dalam penjelajah blok.",
+      "loading": "Memuatkan rekod transaksi",
+      "failed": "Rekod transaksi tidak dapat dimuatkan ({reason}).",
+      "empty": "Belum ada transaksi direkodkan untuk {network}.",
+      "runs": {
+        "chipnet": "Kolam tuntutan: tuntutan dan tambahan epoch 2",
+        "chipnet-push": "Kolam kedua: laluan tolak operator"
+      },
+      "run": "Pelaksanaan {run}",
+      "pool": "Kontrak kolam",
+      "count": "{count} transaksi dihantar, {refused} ditolak nod.",
+      "epoch": "epoch {epoch}",
+      "step": {
+        "prepare-genesis": "Sediakan input genesis token",
+        "token-genesis": "Cipta kategori token",
+        "deploy": "Pasang kolam, gerbang dan peti besi",
+        "propose": "Cadangkan akar (dua daripada tiga operator)",
+        "activate": "Aktifkan akar selepas tempoh audit",
+        "fund-demo": "Isi kunci demo yang membayar yuran tuntutan",
+        "claim-first": "Tuntutan pertama",
+        "double-claim": "Tuntut amaun yang sama sekali lagi",
+        "claim-additional": "Tuntut tambahan",
+        "arm": "Mulakan pemasa tolak",
+        "push-first": "Tolakan operator ke satu daun"
+      },
+      "size": "{bytes} bait, yuran {fee} sat",
+      "block": "blok {height}",
+      "unconfirmed": "belum dalam blok",
+      "refused": "Ditolak nod",
+      "explorer": "Buka dalam penjelajah",
+      "copy": "Salin",
+      "copied": "Disalin",
+      "topup": {
+        "heading": "Tambahan epoch {epoch}",
+        "text": "{leaves} daun memperoleh {total} token secara kumulatif hingga epoch {epoch}, {added} lebih daripada epoch {previous}. Amaun yang sudah dituntut dibawa ke hadapan: setiap daun hanya boleh menuntut bezanya."
+      },
+      "seen": {
+        "heading": "Dilihat di rantaian",
+        "text": "Transaksi di kontrak kolam yang tiada dalam rekod di atas, seperti tuntutan yang dibuat sesiapa kemudian.",
+        "none": "Tiada transaksi lain di kontrak kolam.",
+        "item": "Tuntutan dilihat di rantaian",
+        "failed": "Sejarah kolam tidak dapat dibaca dari {server} ({reason}). Rekod di atas tetap menyenaraikan setiap langkah demonstrasi."
+      }
+    },
+    "history": {
+      "heading": "Diperoleh setiap epoch",
+      "epoch": "Epoch {epoch}",
+      "topUp": "tambahan {amount}",
+      "absent": "tiada daun"
     }
   }
 }

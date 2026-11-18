@@ -28,7 +28,12 @@ export class ElectrumSocket {
         clearTimeout(timer);
         reject(new Error('connection failed'));
       };
-      ws.onclose = () => this.failAll(new Error('connection closed'));
+      // A server that closes before opening fails the connect now, not after the timeout.
+      ws.onclose = () => {
+        clearTimeout(timer);
+        reject(new Error('connection closed'));
+        this.failAll(new Error('connection closed'));
+      };
       ws.onmessage = (event: MessageEvent) => this.receive(String(event.data));
       this.ws = ws;
     });
@@ -98,6 +103,25 @@ export async function readChain(url: string, timeoutMs: number, contracts: { poo
       unspent(contracts.vault),
     ]);
     return { tip: tipInfo.height, pool, gate, vault };
+  } finally {
+    socket.close();
+  }
+}
+
+/** Confirmed and mempool history of each address (`blockchain.address.get_history`), then closes the socket. */
+export async function readHistories(
+  url: string,
+  timeoutMs: number,
+  addresses: readonly string[],
+): Promise<Map<string, { tx_hash: string; height: number }[]>> {
+  const socket = new ElectrumSocket(url, timeoutMs);
+  await socket.connect();
+  try {
+    await socket.request('server.version', 'tuai-web', '1.5');
+    const lists = await Promise.all(
+      addresses.map((a) => socket.request<{ tx_hash: string; height: number }[]>('blockchain.address.get_history', a)),
+    );
+    return new Map(addresses.map((a, i) => [a, lists[i] ?? []]));
   } finally {
     socket.close();
   }

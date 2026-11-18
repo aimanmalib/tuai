@@ -33,6 +33,8 @@ export interface FakeChain {
   /** Claimed amounts by leaf. */
   claimed?: { leaf: Leaf; amount: bigint }[];
   tip?: number;
+  /** `blockchain.address.get_history` answers by address; an address not listed has no history. */
+  history?: Record<string, { tx_hash: string; height: number }[]>;
 }
 
 const stateHex = (root: string, e: number) =>
@@ -70,7 +72,9 @@ export async function fakeElectrum(page: Page, chain: FakeChain = {}): Promise<v
             ? { height: tip, hex: '' }
             : msg.method === 'blockchain.address.listunspent'
               ? (unspent[String(msg.params[0])] ?? [])
-              : null;
+              : msg.method === 'blockchain.address.get_history'
+                ? (chain.history?.[String(msg.params[0])] ?? [])
+                : null;
       ws.send(JSON.stringify({ jsonrpc: '2.0', id: msg.id, result }));
     });
   });

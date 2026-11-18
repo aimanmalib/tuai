@@ -84,6 +84,63 @@
       "spec": "How it works",
       "measured": "Chipnet record",
       "source": "Source code"
+    },
+    "nav": {
+      "label": "Pages",
+      "claim": "Check an address",
+      "activity": "Activity"
+    },
+    "activity": {
+      "heading": "Every transaction on {network}",
+      "intro": "Each step of the demonstration as it was sent, in order, including the ones the node refused. Links open the transaction in a block explorer.",
+      "loading": "Loading the transaction record",
+      "failed": "Could not load the transaction record ({reason}).",
+      "empty": "No transactions are recorded for {network} yet.",
+      "runs": {
+        "chipnet": "Claim pool: claims and the epoch 2 top-up",
+        "chipnet-push": "Second pool: operator push path"
+      },
+      "run": "Deployment {run}",
+      "pool": "Pool contract",
+      "count": "{count} transactions sent, {refused} refused by the node.",
+      "epoch": "epoch {epoch}",
+      "step": {
+        "prepare-genesis": "Prepare a token genesis input",
+        "token-genesis": "Create the token category",
+        "deploy": "Deploy the pool, gate and vault",
+        "propose": "Propose a root (two of three operators)",
+        "activate": "Activate the root after the audit window",
+        "fund-demo": "Fund a demo key that pays claim fees",
+        "claim-first": "First claim",
+        "double-claim": "Claim the same amount again",
+        "claim-additional": "Claim the top-up",
+        "arm": "Start the push timer",
+        "push-first": "Operator push to a leaf"
+      },
+      "size": "{bytes} bytes, fee {fee} sat",
+      "block": "block {height}",
+      "unconfirmed": "not in a block",
+      "refused": "Refused by the node",
+      "explorer": "Open in explorer",
+      "copy": "Copy",
+      "copied": "Copied",
+      "topup": {
+        "heading": "Epoch {epoch} top-up",
+        "text": "{leaves} leaves earned {total} tokens in total by epoch {epoch}, {added} more than in epoch {previous}. Claimed amounts carry over: each leaf can claim only the difference."
+      },
+      "seen": {
+        "heading": "Seen on chain",
+        "text": "Transactions at the pool contract that are not in the record above, such as claims anyone made later.",
+        "none": "No other transactions at the pool contract.",
+        "item": "Claim seen on chain",
+        "failed": "Could not read the pool history from {server} ({reason}). The record above still lists every step of the demonstration."
+      }
+    },
+    "history": {
+      "heading": "Earned per epoch",
+      "epoch": "Epoch {epoch}",
+      "topUp": "top-up {amount}",
+      "absent": "no leaf"
     }
   }
 }

@@ -144,6 +144,13 @@ Electrum WebSocket), shows the claimed and claimable amounts from the vault rece
 root that differs from the published file is shown as a named warning. English and Malay. `npm run e2e` runs the
 browser tests on WebKit (iPhone 13) and Chromium. The page runs at <https://tuai.sasateguh.com>; see [ADR 0007](docs/decisions/0007-claim-page.md).
 
+The result also lists the address's cumulative amount in every published epoch and the top-up each epoch added.
+The **Activity** page (<https://tuai.sasateguh.com/#/activity>) lists every recorded transaction of every chipnet
+run in the order it was sent, with an explorer link, size and fee; transactions the node refused are shown with the
+node's message and no link. `scripts/tx-index.ts` builds that list from each `deployments/<run>/transactions.json`
+and the site serves it as `/epochs/<network>/transactions.json`. Below the record, the page reads the pool
+contract's history over Electrum and lists any transaction the record does not hold, such as a claim made later.
+
 ### Proof endpoint
 
 The same static site serves the published epoch files, so any wallet, script or other site can fetch a proof's
@@ -154,6 +161,7 @@ https://tuai.sasateguh.com/epochs/<network>/index.json      # {"network": ..., "
 https://tuai.sasateguh.com/epochs/<network>/pool.json       # contract addresses, token category, deploy txid
 https://tuai.sasateguh.com/epochs/<network>/epoch-<n>.json  # leaves, root, inputsHash, manifest
 https://tuai.sasateguh.com/epochs/<network>/inputs/<file>   # hashed inputs the epoch was built from
+https://tuai.sasateguh.com/epochs/<network>/transactions.json  # every recorded transaction, by run
 ```
 
 ```sh

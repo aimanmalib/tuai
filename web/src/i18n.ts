@@ -21,7 +21,8 @@ export function t(key: string, vars: Record<string, string | number> = {}): stri
   return node.replace(/\{(\w+)\}/g, (whole, name: string) => (name in vars ? String(vars[name]) : whole));
 }
 
-/** Fills every element carrying data-i18n with its text. */
+/** Fills every element carrying data-i18n with its text, and data-i18n-label with its accessible name. */
 export function applyStatic(root: ParentNode): void {
   for (const el of root.querySelectorAll<HTMLElement>('[data-i18n]')) el.textContent = t(el.dataset.i18n ?? '');
+  for (const el of root.querySelectorAll<HTMLElement>('[data-i18n-label]')) el.setAttribute('aria-label', t(el.dataset.i18nLabel ?? ''));
 }

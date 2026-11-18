@@ -4,6 +4,10 @@ import { applyStatic, getLocale, setLocale, t, type Locale } from './i18n.ts';
 import { readChain } from './electrum.ts';
 import { chainViewFrom, claimCommand, lookup, parseAddress, pendingBlocksLeft, type ChainView, type EpochFileView, type PoolRecord } from './model.ts';
 import { renderClaim, renderGate, renderResult } from './render.ts';
+import { getJson } from './fetch-json.ts';
+import { epochHistory } from './activity.ts';
+import { renderHistory } from './activity-view.ts';
+import { showActivity } from './activity-page.ts';
 import type { CashAddressPrefix } from '../../src/leaf.ts';
 
 type NetworkKey = 'chipnet' | 'mainnet';
@@ -17,22 +21,8 @@ const status = byId<HTMLElement>('status');
 const result = byId<HTMLElement>('result');
 const gate = byId<HTMLElement>('gate');
 
-const fileCache = new Map<string, Promise<unknown>>();
-function getJson<T>(path: string): Promise<T> {
-  let p = fileCache.get(path);
-  if (!p) {
-    p = fetch(path, { cache: 'no-cache' }).then((r) => {
-      if (!r.ok) throw new Error(`${r.status} ${path}`);
-      return r.json() as Promise<unknown>;
-    });
-    p.catch(() => fileCache.delete(path));
-    fileCache.set(path, p);
-  }
-  return p as Promise<T>;
-}
-
 function networkConfig(n: NetworkKey) {
-  return config.networks[n] as { addressPrefix: string; electrum: { wssUrl: string }; sequenceBlockScale?: number };
+  return config.networks[n] as { addressPrefix: string; electrum: { wssUrl: string }; sequenceBlockScale?: number; explorerTxUrl?: string };
 }
 
 function showStatus(text: string, kind: 'info' | 'error' = 'info'): void {
@@ -123,6 +113,12 @@ async function check(query: string): Promise<void> {
   }
   showStatus('');
   renderResult(result, found, chain, file.epoch, file.root, config.rewards.decimals);
+  try {
+    const files = await Promise.all(index.epochs.map((e) => getJson<EpochFileView>(`${base}/epoch-${e}.json`)));
+    renderHistory(result, epochHistory(files, parsed.lockingBytecode), config.rewards.decimals);
+  } catch {
+    // The per-epoch history is extra detail; the result above already stands on its own.
+  }
   const address = found.leaf.address ?? query.trim();
   if (found.claimable > 0n) renderClaim(result, claimCommand(address, network, file.epoch, web.deploymentsDir));
 }
@@ -132,17 +128,39 @@ form.addEventListener('submit', (event) => {
   void check(input.value);
 });
 
+const views = { claim: byId('view-claim'), activity: byId('view-activity') };
+
+/** `#/activity` shows the transaction record; anything else shows the address check. */
+function route(): void {
+  const activity = location.hash === '#/activity';
+  views.claim.hidden = activity;
+  views.activity.hidden = !activity;
+  for (const [id, on] of [['nav-claim', !activity], ['nav-activity', activity]] as const) {
+    if (on) byId(id).setAttribute('aria-current', 'page');
+    else byId(id).removeAttribute('aria-current');
+  }
+  if (activity) {
+    const key = select.value as NetworkKey;
+    const net = networkConfig(key);
+    const target = { key, name: t(`network.${key}`), wssUrl: net.electrum.wssUrl, explorerTxUrl: net.explorerTxUrl };
+    void showActivity(byId('activity'), byId('activity-status'), web.epochsPath, target, web.electrumTimeoutSeconds * 1000, config.rewards.decimals);
+  }
+}
+
 byId('lang').addEventListener('click', () => {
   setLocale(getLocale() === 'en' ? 'ms' : 'en');
   localStorage.setItem(web.localeStorageKey, getLocale());
   renderStatic();
-  if (lastQuery !== undefined) void check(lastQuery);
+  if (!views.activity.hidden) route();
+  else if (lastQuery !== undefined) void check(lastQuery);
 });
+window.addEventListener('hashchange', route);
 
 setLocale(initialLocale());
 setLinks();
 renderStatic();
 select.value = web.defaultNetwork;
+route();
 const fromUrl = new URLSearchParams(location.search).get('address');
 if (fromUrl) {
   input.value = fromUrl;

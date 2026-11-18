@@ -20,24 +20,34 @@
       </div>
       <button type="button" id="lang" class="lang" lang="ms"></button>
     </header>
+    <nav class="views" id="views" data-i18n-label="nav.label">
+      <a href="#/" id="nav-claim" data-i18n="nav.claim"></a>
+      <a href="#/activity" id="nav-activity" data-i18n="nav.activity"></a>
+    </nav>
     <main>
       <h1 class="sr-only" data-i18n="title"></h1>
-      <p class="intro" data-i18n="intro"></p>
-      <form id="lookup" class="lookup" novalidate>
-        <div class="field" id="network-field">
-          <label for="network" data-i18n="networkLabel"></label>
-          <select id="network"></select>
-        </div>
-        <div class="field">
-          <label for="address" data-i18n="addressLabel"></label>
-          <input id="address" name="address" type="text" inputmode="text" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="address-hint" />
-          <p id="address-hint" class="hint" data-i18n="addressHint"></p>
-        </div>
-        <button type="submit" id="check" class="primary" data-i18n="check"></button>
-      </form>
-      <div id="status" role="status" aria-live="polite"></div>
-      <section id="result" hidden></section>
-      <section id="gate" class="gate" hidden></section>
+      <div id="view-claim">
+        <p class="intro" data-i18n="intro"></p>
+        <form id="lookup" class="lookup" novalidate>
+          <div class="field" id="network-field">
+            <label for="network" data-i18n="networkLabel"></label>
+            <select id="network"></select>
+          </div>
+          <div class="field">
+            <label for="address" data-i18n="addressLabel"></label>
+            <input id="address" name="address" type="text" inputmode="text" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="address-hint" />
+            <p id="address-hint" class="hint" data-i18n="addressHint"></p>
+          </div>
+          <button type="submit" id="check" class="primary" data-i18n="check"></button>
+        </form>
+        <div id="status" role="status" aria-live="polite"></div>
+        <section id="result" hidden></section>
+        <section id="gate" class="gate" hidden></section>
+      </div>
+      <section id="view-activity" class="activity" hidden>
+        <div id="activity-status" role="status" aria-live="polite"></div>
+        <div id="activity"></div>
+      </section>
     </main>
     <footer class="foot">
       <a id="link-spec" data-i18n="footer.spec"></a>

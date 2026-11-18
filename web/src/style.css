@@ -144,6 +144,43 @@ h3 { font: 600 1.25rem/1.25 var(--serif); margin: 2rem 0 0.75rem; }
 
 .foot { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; padding-top: 2rem; padding-bottom: 3rem; margin-top: 2rem; font-size: 0.9rem; }
 
+/* Page switch: two plain links, the current one underlined in grain gold. */
+.views { max-width: var(--measure); margin: 0 auto; padding: 0.5rem 1rem 0; display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; }
+.views a {
+  display: inline-block; padding: 0.4rem 0; min-height: 2.25rem; font-weight: 600; color: var(--ink-soft);
+  text-decoration: none; border-bottom: 3px solid transparent;
+}
+.views a:hover { color: var(--ink); }
+.views a[aria-current='page'] { color: var(--ink); border-bottom-color: var(--grain); }
+
+/* Activity: one section per deployment run, one card per transaction in the order it was sent. */
+.activity { margin-top: 1rem; }
+.activity .intro { margin-top: 0; }
+.run { margin-top: 2rem; }
+.run h3 { margin-top: 0; }
+.pool { margin: 0 0 1rem; }
+.topup { background: var(--grain-bg); border-radius: 8px; padding: 0.75rem 1rem; margin: 0 0 1rem; }
+.topup h4 { margin: 0 0 0.25rem; font-size: 1rem; }
+.topup p { margin: 0; }
+.txs { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.tx { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--stalk); border-radius: var(--radius-field); padding: 0.6rem 0.8rem; min-width: 0; }
+.tx.refused { border-left-color: var(--husk); }
+.tx-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 1rem; }
+.tx-step { font-weight: 600; }
+.tx-head time { color: var(--ink-soft); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.tx .hash { font-size: 0.8rem; margin: 0.25rem 0; }
+.tx-meta { margin: 0.15rem 0; font-size: 0.85rem; color: var(--ink-soft); overflow-wrap: anywhere; }
+.tx-refused { margin: 0.25rem 0 0; color: var(--husk); font-weight: 600; }
+.tx-error {
+  margin: 0.25rem 0; padding: 0.5rem; background: var(--husk-bg); color: var(--husk); border-radius: var(--radius-field);
+  white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word;
+}
+.tx-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 1rem; margin-top: 0.25rem; font-size: 0.9rem; }
+.tx-actions a { display: inline-flex; align-items: center; min-height: 2.25rem; }
+button.small { min-height: 2.25rem; padding: 0.25rem 0.75rem; font-size: 0.875rem; }
+.seen { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--line); }
+.history h3 { margin-top: 1.5rem; }
+
 @media (max-width: 30rem) {
   .wordmark { font-size: 2.4rem; }
   .lookup { grid-template-columns: minmax(0, 1fr); }
