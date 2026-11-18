@@ -1,0 +1,222 @@
+{
+ "network": "chipnet",
+ "tipHeight": 336075,
+ "transactions": [
+  {
+   "kind": "prepare-genesis",
+   "txid": "14ec5fc2d31da0300dfdeb2bd64bc6b292af5c01e8e0c59bc1274a659e3e18a3",
+   "bytes": 185,
+   "feeSats": 185,
+   "utc": "2026-11-18T00:04:49.100Z",
+   "height": 336009
+  },
+  {
+   "kind": "token-genesis",
+   "txid": "bfb4f1c59e36eb87b65ffdc3fe0b246200f9e6810ad42ce994e8c9c151a6b0a1",
+   "bytes": 262,
+   "feeSats": 262,
+   "utc": "2026-11-18T00:04:51.897Z",
+   "height": 336009
+  },
+  {
+   "kind": "prepare-genesis",
+   "txid": "9d4957d2e44390960854d1e39b7ed9c800cff956568b776abd064aa1cc9f31a6",
+   "bytes": 185,
+   "feeSats": 185,
+   "utc": "2026-11-18T00:05:02.707Z",
+   "height": 336009
+  },
+  {
+   "kind": "deploy",
+   "txid": "6356165de951e6a7e4765151250eec97d853a368da5d11106865307a9ef40cec",
+   "bytes": 858,
+   "feeSats": 858,
+   "utc": "2026-11-18T00:05:05.539Z",
+   "height": 336009
+  },
+  {
+   "kind": "propose-epoch-1",
+   "txid": "72b5fbf76e2a5dfb14932ffe69db28e034cde7724cfac08cea7078217b7efa48",
+   "bytes": 862,
+   "feeSats": 866,
+   "utc": "2026-11-18T00:05:28.410Z",
+   "height": 336009,
+   "note": "operators 1,3"
+  },
+  {
+   "kind": "activate-epoch-1",
+   "txid": null,
+   "bytes": 1473,
+   "feeSats": 1473,
+   "utc": "2026-11-18T00:05:56.469Z",
+   "height": null,
+   "error": "BIP68 sequence lock not satisfied: the transaction was rejected by network rules.\n\nnon-BIP68-final (code 64)\n",
+   "note": "forced unconfirmed block(s) early"
+  },
+  {
+   "kind": "fund-demo-5",
+   "txid": "6c35e14b8d8ea4778e59620eabc8ce7c81a48600811cfff1655f8dd27fcc6228",
+   "bytes": 219,
+   "feeSats": 219,
+   "utc": "2026-11-18T00:06:01.908Z",
+   "height": 336009
+  },
+  {
+   "kind": "activate-epoch-1",
+   "txid": null,
+   "bytes": 1473,
+   "feeSats": 1473,
+   "utc": "2026-11-18T00:07:49.841Z",
+   "height": null,
+   "error": "BIP68 sequence lock not satisfied: the transaction was rejected by network rules.\n\nnon-BIP68-final (code 64)\n"
+  },
+  {
+   "kind": "activate-epoch-1",
+   "txid": null,
+   "bytes": 1473,
+   "feeSats": 1473,
+   "utc": "2026-11-18T00:08:53.465Z",
+   "height": null,
+   "error": "BIP68 sequence lock not satisfied: the transaction was rejected by network rules.\n\nnon-BIP68-final (code 64)\n"
+  },
+  {
+   "kind": "activate-epoch-1",
+   "txid": null,
+   "bytes": 1473,
+   "feeSats": 1473,
+   "utc": "2026-11-18T00:15:05.791Z",
+   "height": null,
+   "error": "BIP68 sequence lock not satisfied: the transaction was rejected by network rules.\n\nnon-BIP68-final (code 64)\n"
+  },
+  {
+   "kind": "activate-epoch-1",
+   "txid": null,
+   "bytes": 1473,
+   "feeSats": 1473,
+   "utc": "2026-11-18T00:18:07.528Z",
+   "height": null,
+   "error": "BIP68 sequence lock not satisfied: the transaction was rejected by network rules.\n\nnon-BIP68-final (code 64)\n",
+   "note": "pending mined at 336009, tip 336021"
+  },
+  {
+   "kind": "activate-epoch-1",
+   "txid": null,
+   "bytes": 1473,
+   "feeSats": 1473,
+   "utc": "2026-11-18T00:34:48.983Z",
+   "height": null,
+   "error": "BIP68 sequence lock not satisfied: the transaction was rejected by network rules.\n\nnon-BIP68-final (code 64)\n",
+   "note": "pending mined at 336009, tip 336034"
+  },
+  {
+   "kind": "activate-epoch-1",
+   "txid": null,
+   "bytes": 1473,
+   "feeSats": 1473,
+   "utc": "2026-11-18T00:36:30.666Z",
+   "height": null,
+   "error": "BIP68 sequence lock not satisfied: the transaction was rejected by network rules.\n\nnon-BIP68-final (code 64)\n",
+   "note": "forced 1 block(s) early; pending mined at 336009, tip 336037"
+  },
+  {
+   "kind": "activate-epoch-1",
+   "txid": "5003786414a7babd59114603a497f9435c6b75989da9a8f183def325df7cd35a",
+   "bytes": 1473,
+   "feeSats": 1473,
+   "utc": "2026-11-18T00:37:07.200Z",
+   "height": 336043,
+   "note": "pending mined at 336009, tip 336038"
+  },
+  {
+   "kind": "claim-first-epoch-1",
+   "txid": "bdb7b8f1e6e03691dc379c8c8fa5834425a75d2580df6a2d5f9a5eca071d6ca4",
+   "bytes": 1899,
+   "feeSats": 1899,
+   "utc": "2026-11-18T00:37:27.664Z",
+   "height": 336043,
+   "note": "leaf 0"
+  },
+  {
+   "kind": "claim-first-epoch-1",
+   "txid": "7b2850831200d256386e285572b6af14e59372b1908edd1b4fbb7bfec73d4f3d",
+   "bytes": 1899,
+   "feeSats": 1899,
+   "utc": "2026-11-18T00:37:38.493Z",
+   "height": 336043,
+   "note": "leaf 1"
+  },
+  {
+   "kind": "claim-first-epoch-1",
+   "txid": "aded1114eb0c2cfb9ad61cc6258fd379bb16b23df1544c4fa65f78ffe5c1cd2f",
+   "bytes": 1901,
+   "feeSats": 1901,
+   "utc": "2026-11-18T00:37:49.277Z",
+   "height": 336043,
+   "note": "leaf 150"
+  },
+  {
+   "kind": "claim-first-epoch-1",
+   "txid": "0041367c3339669e209e168e6ebec362b74e43e481279a662db1cc3ff499d039",
+   "bytes": 1901,
+   "feeSats": 1901,
+   "utc": "2026-11-18T00:38:02.477Z",
+   "height": 336042,
+   "note": "leaf 298"
+  },
+  {
+   "kind": "claim-first-epoch-1",
+   "txid": "e7b5780761a0c254d4db380051d2c616d31c3f560dee796955479a936c73038f",
+   "bytes": 1901,
+   "feeSats": 1901,
+   "utc": "2026-11-18T00:38:16.384Z",
+   "height": 336042,
+   "note": "leaf 299"
+  },
+  {
+   "kind": "double-claim-epoch-1",
+   "txid": null,
+   "bytes": 1899,
+   "feeSats": 1899,
+   "utc": "2026-11-18T00:38:55.645Z",
+   "height": null,
+   "error": "local: ClaimPool.cash:75 Require statement failed at input 0 in contract ClaimPool.cash at line 75.; network: the transaction was rejected by network rules.\n\nmandatory-script-verify-flag-failed (Script failed an OP_VERIFY operation) (code 16)\n",
+   "note": "leaf 0"
+  },
+  {
+   "kind": "propose-epoch-2",
+   "txid": "9bbc758dd43b721a9526e251acd7eb19fc8c2fab8bd7f146acbcfddd94fb2c34",
+   "bytes": 862,
+   "feeSats": 866,
+   "utc": "2026-11-18T00:39:38.468Z",
+   "height": 336042,
+   "note": "operators 2,3"
+  },
+  {
+   "kind": "activate-epoch-2",
+   "txid": "d3217738961f951e97890fdf0782b5091a28bc38f247b820b80ab6af63bf93a3",
+   "bytes": 1473,
+   "feeSats": 1473,
+   "utc": "2026-11-18T01:08:22.248Z",
+   "height": 336075,
+   "note": "pending mined at 336043, tip 336072"
+  },
+  {
+   "kind": "claim-additional-epoch-2",
+   "txid": "3b891a54a58dab33e147e6cb723241d2b8385f161d7fc18a7ef12cd27fed3c36",
+   "bytes": 1748,
+   "feeSats": 1748,
+   "utc": "2026-11-18T01:08:40.888Z",
+   "height": 336075,
+   "note": "leaf 0"
+  },
+  {
+   "kind": "claim-additional-epoch-2",
+   "txid": "9c0edf1cbb7803e643b50c9bfd3ba9eac50b217b39686cfd84cc5ae6c6720164",
+   "bytes": 1750,
+   "feeSats": 1750,
+   "utc": "2026-11-18T01:09:03.151Z",
+   "height": 336075,
+   "note": "leaf 299"
+  }
+ ]
+}
