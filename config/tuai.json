@@ -13,7 +13,8 @@
     "chipnet": {
       "addressPrefix": "bchtest",
       "electrum": {
-        "hostname": "chipnet.bch.ninja"
+        "hostname": "chipnet.bch.ninja",
+        "wssUrl": "wss://chipnet.bch.ninja:50004"
       },
       "activationDelayBlocks": 3,
       "rewardCategory": "",
@@ -23,7 +24,8 @@
     "mainnet": {
       "addressPrefix": "bitcoincash",
       "electrum": {
-        "hostname": "bch.imaginary.cash"
+        "hostname": "bch.imaginary.cash",
+        "wssUrl": "wss://bch.imaginary.cash:50004"
       },
       "activationDelayBlocks": 6,
       "rewardCategory": ""
@@ -96,5 +98,16 @@
     "topUpWhole": 250,
     "tokenSupplyWhole": 1000000,
     "otherPayerFundingSats": 20000
+  },
+  "web": {
+    "networks": [
+      "chipnet"
+    ],
+    "defaultNetwork": "chipnet",
+    "electrumTimeoutSeconds": 20,
+    "epochsPath": "/epochs",
+    "deploymentsDir": "deployments",
+    "defaultLocale": "en",
+    "localeStorageKey": "tuai.locale"
   }
 }

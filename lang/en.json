@@ -15,5 +15,74 @@
   },
   "wallet": {
     "address": "{role}: {address}"
+  },
+  "web": {
+    "title": "Tuai: claim FoldingCash rewards",
+    "tagline": "Pull-based reward claims for FoldingCash",
+    "bannerEntry": "Entry for {event}, bounty “{bounty}”.",
+    "bannerSource": "Source code",
+    "bannerPrize": "Prize address",
+    "langLabel": "Language",
+    "langOther": "Bahasa Melayu",
+    "intro": "Enter the Bitcoin Cash address you fold for. This page finds your leaf in the published epoch file, checks its proof in your browser, and compares the root with the one the pool contract holds on chain.",
+    "networkLabel": "Network",
+    "network": {
+      "chipnet": "Chipnet (test network)",
+      "mainnet": "Mainnet"
+    },
+    "addressLabel": "Your address",
+    "addressHint": "With or without the prefix. Token-aware (z) and ordinary (q) addresses find the same leaf.",
+    "check": "Check address",
+    "checking": "Reading the chain and the epoch file",
+    "error": {
+      "invalid": "That is not a valid CashAddr. Check for a missing or extra character.",
+      "wrongNetwork": "This is a {prefix} address. This page shows {network}; use an address that starts with {expected}.",
+      "notFound": "No leaf for this address in epoch {epoch}. Rewards appear here once an epoch that includes the address is published.",
+      "badProof": "The proof for this leaf is malformed. Do not claim from this file.",
+      "chain": "Could not read the chain from {server} ({reason}). Nothing was checked; try again.",
+      "epochMissing": "The pool holds epoch {epoch} on chain, but this site has no file for it yet.",
+      "files": "Could not load the published epoch files ({reason})."
+    },
+    "result": {
+      "heading": "Your rewards in epoch {epoch}",
+      "claimable": "Claimable now",
+      "cumulative": "Earned in total",
+      "claimed": "Already claimed",
+      "unit": "tokens",
+      "allClaimed": "Everything earned so far has been claimed."
+    },
+    "proof": {
+      "heading": "Proof, checked in this browser",
+      "leaf": "Your leaf, index {index}",
+      "level": "Level {level}",
+      "left": "your branch is on the left",
+      "right": "your branch is on the right",
+      "fileRoot": "Root in the epoch file",
+      "chainRoot": "Root the pool contract holds, epoch {epoch}",
+      "match": "The proof leads to the root the pool contract holds. A claim with this proof will pay.",
+      "fileMismatch": "The proof does not lead to the root in the epoch file. Do not claim from this file.",
+      "rootMismatch": "Root mismatch: the epoch file has {fileRoot} for epoch {fileEpoch}, but the pool contract holds {chainRoot} for epoch {chainEpoch}. Do not trust these amounts until the matching file is published."
+    },
+    "gate": {
+      "heading": "Root updates",
+      "active": "Active: epoch {epoch}, chain tip {tip}.",
+      "none": "No new root is waiting.",
+      "waiting": "Epoch {epoch} is in its audit window: {blocks} blocks left before anyone can activate it.",
+      "ready": "Epoch {epoch} has passed its audit window. Anyone can activate it now.",
+      "unconfirmed": "Epoch {epoch} has been proposed and is not in a block yet.",
+      "window": "A new root becomes claimable {blocks} blocks after two of three operators propose it (a short window for this demonstration). In production the window is {production} blocks, about one day."
+    },
+    "claim": {
+      "heading": "Claim",
+      "text": "Anyone can submit the claim and pay its fee; the tokens always go to the address in the leaf. Run this from a clone of the repository:",
+      "copy": "Copy command",
+      "copied": "Copied",
+      "copyFailed": "Select the command and copy it by hand."
+    },
+    "footer": {
+      "spec": "How it works",
+      "measured": "Chipnet record",
+      "source": "Source code"
+    }
   }
 }

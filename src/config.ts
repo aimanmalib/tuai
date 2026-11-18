@@ -8,7 +8,8 @@ export const NETWORKS: readonly NetworkName[] = ['mock', 'chipnet', 'mainnet'];
 export interface NetworkConfig {
   addressPrefix: 'bitcoincash' | 'bchtest' | 'bchreg';
   activationDelayBlocks: number;
-  electrum?: { hostname: string };
+  /** `hostname` for the CLI (TCP/TLS through CashScript); `wssUrl` for the claim page in a browser. */
+  electrum?: { hostname: string; wssUrl?: string };
   rewardCategory?: string;
   /** Block explorer page for a transaction; the txid is appended. */
   explorerTxUrl?: string;
@@ -41,6 +42,20 @@ export interface TuaiConfig {
   banner: { event: string; bounty: string; prizeAddress: string };
   cost: CostConfig;
   demo: DemoConfig;
+  web: WebConfig;
+}
+
+/** Claim page: which deployments it shows and where it reads chain state from. */
+export interface WebConfig {
+  networks: NetworkName[];
+  defaultNetwork: NetworkName;
+  electrumTimeoutSeconds: number;
+  /** URL path the epoch files are served under: `<epochsPath>/<network>/epoch-<n>.json`. */
+  epochsPath: string;
+  /** Repository folder the served files are copied from. */
+  deploymentsDir: string;
+  defaultLocale: 'en' | 'ms';
+  localeStorageKey: string;
 }
 
 /** The public demonstration tree (chipnet): demo key positions, amounts in whole tokens, and its funding. */
@@ -133,7 +148,24 @@ export function validateConfig(c: TuaiConfig): string[] {
   if (!c.banner?.prizeAddress?.startsWith('bitcoincash:')) problems.push('banner.prizeAddress must be a mainnet address');
   problems.push(...validateCost(c.cost));
   problems.push(...validateDemo(c.demo));
+  problems.push(...validateWeb(c));
   return problems;
+}
+
+function validateWeb(c: TuaiConfig): string[] {
+  const w = c.web;
+  if (!w) return ['web is missing'];
+  const out: string[] = [];
+  if (!Array.isArray(w.networks) || w.networks.length === 0 || !w.networks.includes(w.defaultNetwork)) {
+    out.push('web.networks must list web.defaultNetwork');
+  }
+  for (const n of w.networks ?? []) {
+    if (!/^wss:\/\//.test(c.networks?.[n]?.electrum?.wssUrl ?? '')) out.push(`networks.${n}.electrum.wssUrl must be a wss URL`);
+  }
+  if (!isPositiveInt(w.electrumTimeoutSeconds)) out.push('web.electrumTimeoutSeconds must be > 0');
+  if (!/^\/[a-z0-9-]+$/.test(w.epochsPath ?? '')) out.push('web.epochsPath must be one absolute path segment');
+  if (w.defaultLocale !== 'en' && w.defaultLocale !== 'ms') out.push('web.defaultLocale must be en or ms');
+  return out;
 }
 
 function validateCost(k: CostConfig | undefined): string[] {

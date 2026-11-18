@@ -15,5 +15,74 @@
   },
   "wallet": {
     "address": "{role}: {address}"
+  },
+  "web": {
+    "title": "Tuai: tuntut ganjaran FoldingCash",
+    "tagline": "Tuntutan ganjaran FoldingCash yang ditarik sendiri",
+    "bannerEntry": "Penyertaan {event}, bounty “{bounty}”.",
+    "bannerSource": "Kod sumber",
+    "bannerPrize": "Alamat hadiah",
+    "langLabel": "Bahasa",
+    "langOther": "English",
+    "intro": "Masukkan alamat Bitcoin Cash yang anda guna untuk folding. Halaman ini mencari daun anda dalam fail epoch yang diterbitkan, menyemak buktinya dalam pelayar anda, dan membandingkan akarnya dengan akar yang dipegang kontrak pool di rantaian.",
+    "networkLabel": "Rangkaian",
+    "network": {
+      "chipnet": "Chipnet (rangkaian ujian)",
+      "mainnet": "Mainnet"
+    },
+    "addressLabel": "Alamat anda",
+    "addressHint": "Dengan atau tanpa awalan. Alamat token (z) dan alamat biasa (q) menemui daun yang sama.",
+    "check": "Semak alamat",
+    "checking": "Membaca rantaian dan fail epoch",
+    "error": {
+      "invalid": "Itu bukan CashAddr yang sah. Semak aksara yang tertinggal atau berlebihan.",
+      "wrongNetwork": "Ini alamat {prefix}. Halaman ini memaparkan {network}; guna alamat yang bermula dengan {expected}.",
+      "notFound": "Tiada daun untuk alamat ini dalam epoch {epoch}. Ganjaran muncul di sini selepas epoch yang mengandungi alamat ini diterbitkan.",
+      "badProof": "Bukti untuk daun ini rosak. Jangan menuntut dari fail ini.",
+      "chain": "Tidak dapat membaca rantaian dari {server} ({reason}). Tiada apa yang disemak; cuba lagi.",
+      "epochMissing": "Pool memegang epoch {epoch} di rantaian, tetapi laman ini belum ada failnya.",
+      "files": "Tidak dapat memuat fail epoch yang diterbitkan ({reason})."
+    },
+    "result": {
+      "heading": "Ganjaran anda dalam epoch {epoch}",
+      "claimable": "Boleh dituntut sekarang",
+      "cumulative": "Jumlah diperoleh",
+      "claimed": "Sudah dituntut",
+      "unit": "token",
+      "allClaimed": "Semua yang diperoleh setakat ini sudah dituntut."
+    },
+    "proof": {
+      "heading": "Bukti, disemak dalam pelayar ini",
+      "leaf": "Daun anda, indeks {index}",
+      "level": "Aras {level}",
+      "left": "cabang anda di kiri",
+      "right": "cabang anda di kanan",
+      "fileRoot": "Akar dalam fail epoch",
+      "chainRoot": "Akar yang dipegang kontrak pool, epoch {epoch}",
+      "match": "Bukti ini sampai ke akar yang dipegang kontrak pool. Tuntutan dengan bukti ini akan dibayar.",
+      "fileMismatch": "Bukti ini tidak sampai ke akar dalam fail epoch. Jangan menuntut dari fail ini.",
+      "rootMismatch": "Akar tidak sepadan: fail epoch ada {fileRoot} untuk epoch {fileEpoch}, tetapi kontrak pool memegang {chainRoot} untuk epoch {chainEpoch}. Jangan percaya jumlah ini sehingga fail yang sepadan diterbitkan."
+    },
+    "gate": {
+      "heading": "Kemas kini akar",
+      "active": "Aktif: epoch {epoch}, hujung rantaian {tip}.",
+      "none": "Tiada akar baharu yang menunggu.",
+      "waiting": "Epoch {epoch} dalam tempoh audit: {blocks} blok lagi sebelum sesiapa boleh mengaktifkannya.",
+      "ready": "Epoch {epoch} sudah melepasi tempoh audit. Sesiapa boleh mengaktifkannya sekarang.",
+      "unconfirmed": "Epoch {epoch} sudah dicadangkan dan belum masuk blok.",
+      "window": "Akar baharu boleh dituntut {blocks} blok selepas dua daripada tiga operator mencadangkannya (tempoh pendek untuk demonstrasi ini). Dalam pengeluaran tempohnya {production} blok, kira-kira sehari."
+    },
+    "claim": {
+      "heading": "Tuntut",
+      "text": "Sesiapa boleh menghantar tuntutan dan membayar yurannya; token sentiasa pergi ke alamat dalam daun. Jalankan ini dari klon repositori:",
+      "copy": "Salin arahan",
+      "copied": "Disalin",
+      "copyFailed": "Pilih arahan itu dan salin sendiri."
+    },
+    "footer": {
+      "spec": "Cara ia berfungsi",
+      "measured": "Rekod chipnet",
+      "source": "Kod sumber"
+    }
   }
 }
