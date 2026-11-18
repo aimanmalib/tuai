@@ -1,0 +1,104 @@
+// Minimal Electrum JSON-RPC client over WebSocket (protocol 1.5, Fulcrum). Read-only: no keys, no broadcasts.
+import type { ElectrumUtxo } from './model.ts';
+
+type Pending = { resolve: (v: unknown) => void; reject: (e: Error) => void; timer: ReturnType<typeof setTimeout> };
+
+export class ElectrumSocket {
+  private ws: WebSocket | undefined;
+  private nextId = 1;
+  private readonly pending = new Map<number, Pending>();
+
+  constructor(
+    private readonly url: string,
+    private readonly timeoutMs: number,
+  ) {}
+
+  connect(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const ws = new WebSocket(this.url);
+      const timer = setTimeout(() => {
+        ws.close();
+        reject(new Error('timeout'));
+      }, this.timeoutMs);
+      ws.onopen = () => {
+        clearTimeout(timer);
+        resolve();
+      };
+      ws.onerror = () => {
+        clearTimeout(timer);
+        reject(new Error('connection failed'));
+      };
+      ws.onclose = () => this.failAll(new Error('connection closed'));
+      ws.onmessage = (event: MessageEvent) => this.receive(String(event.data));
+      this.ws = ws;
+    });
+  }
+
+  request<T>(method: string, ...params: unknown[]): Promise<T> {
+    const ws = this.ws;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return Promise.reject(new Error('not connected'));
+    const id = this.nextId++;
+    return new Promise<T>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(`timeout: ${method}`));
+      }, this.timeoutMs);
+      this.pending.set(id, { resolve: resolve as (v: unknown) => void, reject, timer });
+      ws.send(JSON.stringify({ jsonrpc: '2.0', id, method, params }));
+    });
+  }
+
+  close(): void {
+    this.ws?.close();
+    this.ws = undefined;
+  }
+
+  private receive(text: string): void {
+    let msg: { id?: number; result?: unknown; error?: { message?: string } };
+    try {
+      msg = JSON.parse(text) as typeof msg;
+    } catch {
+      return;
+    }
+    const entry = msg.id === undefined ? undefined : this.pending.get(msg.id);
+    if (!entry || msg.id === undefined) return;
+    this.pending.delete(msg.id);
+    clearTimeout(entry.timer);
+    if (msg.error) entry.reject(new Error(msg.error.message ?? 'server error'));
+    else entry.resolve(msg.result);
+  }
+
+  private failAll(error: Error): void {
+    for (const [id, entry] of this.pending) {
+      clearTimeout(entry.timer);
+      entry.reject(error);
+      this.pending.delete(id);
+    }
+  }
+}
+
+export interface ChainReads {
+  tip: number;
+  pool: ElectrumUtxo[];
+  gate: ElectrumUtxo[];
+  vault: ElectrumUtxo[];
+}
+
+/** Reads the tip and the three contract addresses of a deployment, then closes the socket. */
+export async function readChain(url: string, timeoutMs: number, contracts: { pool: string; gate: string; vault: string }): Promise<ChainReads> {
+  const socket = new ElectrumSocket(url, timeoutMs);
+  await socket.connect();
+  try {
+    await socket.request('server.version', 'tuai-web', '1.5');
+    const unspent = (address: string) => socket.request<ElectrumUtxo[]>('blockchain.address.listunspent', address, 'include_tokens');
+    const [tipInfo, pool, gate, vault] = await Promise.all([
+      socket.request<{ height: number }>('blockchain.headers.get_tip'),
+      unspent(contracts.pool),
+      unspent(contracts.gate),
+      unspent(contracts.vault),
+    ]);
+    return { tip: tipInfo.height, pool, gate, vault };
+  } finally {
+    socket.close();
+  }
+}
