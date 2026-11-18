@@ -40,11 +40,14 @@ export async function propose(ctx: Context, a: ParsedArgs) {
 }
 
 export class NotYetError extends Error {
-  constructor(readonly blocksLeft: number | undefined) {
+  constructor(
+    readonly blocksLeft: number | undefined,
+    step = 'activation',
+  ) {
     super(
       blocksLeft === undefined
-        ? 'the pending root is not confirmed yet; activation is possible once it has aged the activation delay'
-        : `the pending root can be activated in ${blocksLeft} more block(s)`,
+        ? `the pending-root NFT is not confirmed yet; ${step} is possible once it has aged the required delay`
+        : `${step} is possible in ${blocksLeft} more block(s)`,
     );
   }
 }

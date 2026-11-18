@@ -8,6 +8,7 @@ import { deploy, tokenGenesis } from './commands/deploy.ts';
 import { demoAllocations, demoDoubleClaim, fund } from './commands/demo.ts';
 import { epochBuild, epochVerify } from './commands/epoch.ts';
 import { NotYetError, activate, propose } from './commands/root.ts';
+import { arm, push } from './commands/push.ts';
 import { budget, status } from './commands/status.ts';
 import { watch } from './commands/watch.ts';
 
@@ -22,6 +23,8 @@ const COMMANDS: Record<string, Handler> = {
   propose,
   activate,
   claim,
+  arm,
+  push,
   status,
   budget,
   fund,
@@ -57,12 +60,13 @@ export async function main(argv: readonly string[], overrides: ContextOverrides 
   }
   const found = findCommand(a);
   if (!found || has(a, 'help')) {
-    out([t('cli.usage'), ...Object.keys(COMMANDS).map((c) => `  tuai ${c}`), t('cli.networks')].join('\n'));
+    out([t('cli.usage'), ...Object.keys(COMMANDS).map((c) => `  tuai ${c}`), t('cli.networks'), t('cli.runs')].join('\n'));
     return found || has(a, 'help') ? EXIT.ok : EXIT.usage;
   }
   const [name, handler] = found;
   try {
-    const ctx = makeContext(parseNetwork(flag(a, 'network')), { ...overrides, out });
+    const run = flag(a, 'run');
+    const ctx = makeContext(parseNetwork(flag(a, 'network')), { ...overrides, out, ...(run === undefined ? {} : { run }) });
     const result = await handler(ctx, a);
     if (has(a, 'json')) out(toJson(result));
     else out(`${t('cli.done', { command: name, network: ctx.network })}\n${toJson(result)}`);

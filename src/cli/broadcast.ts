@@ -13,6 +13,11 @@ export interface BroadcastOptions {
   /** Locking bytecode of project wallet outputs (change), which do not count as spent. */
   ownLockingBytecode: Uint8Array;
   note?: string;
+  /**
+   * False sends without CashScript's local evaluation, so a transaction the contracts refuse is refused by the network
+   * itself and that refusal is recorded. The mock network has no node, so it always evaluates locally.
+   */
+  localCheck?: boolean;
 }
 
 const outpoint = (u: { txid: string; vout: number }): string => `${u.txid}:${u.vout}`;
@@ -46,7 +51,7 @@ export async function broadcast(ctx: Context, builder: TransactionBuilder, o: Br
   let txid: string;
   try {
     // Local evaluation first: script failures are reported with CashScript's names before anything is sent.
-    builder.debug();
+    if (o.localCheck !== false || ctx.network === 'mock') builder.debug();
     txid = await ctx.provider.sendRawTransaction(m.hex);
   } catch (e) {
     const record: TxRecord = { ...base, txid: null, error: (e as Error).message.slice(0, 500) };

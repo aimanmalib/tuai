@@ -4,6 +4,7 @@ import type { SpendableUtxo } from 'cashscript';
 import { findLeaf, leafFromJson, readEpochFile, type LeafJson } from '../../epoch/file.ts';
 import { addressToLockingBytecode } from '../../leaf.ts';
 import { readPool, type PoolUtxos } from '../../pool/utxos.ts';
+import type { PoolContracts } from '../../pool/contracts.ts';
 import { assembleClaim, planClaim, type ClaimPlan } from '../../tx/claim.ts';
 import { flag, requireFlag, type ParsedArgs } from '../args.ts';
 import { broadcast } from '../broadcast.ts';
@@ -22,16 +23,15 @@ export interface PreparedClaim {
   payer: ProjectKey;
 }
 
-/**
- * Finds the leaf for `address` in an epoch file and plans its claim against the pool. `adjustPool` lets the
- * double-claim demonstration hide a receipt; normal claims pass nothing.
- */
-export async function prepareClaim(
-  ctx: Context,
-  a: ParsedArgs,
-  address: string,
-  adjustPool?: (pool: PoolUtxos, lockingBytecode: Uint8Array) => PoolUtxos,
-): Promise<PreparedClaim> {
+export interface ActiveLeaf {
+  entry: LeafJson;
+  epoch: number;
+  contracts: PoolContracts;
+  live: PoolUtxos;
+}
+
+/** Finds the leaf for `address` in the epoch file given by `--epoch`, which must hold the pool's active root. */
+export async function activeLeaf(ctx: Context, a: ParsedArgs, address: string): Promise<ActiveLeaf> {
   const file = readEpochFile(requireFlag(a, 'epoch'));
   const lockingBytecode = addressToLockingBytecode(address, ctx.prefix);
   const entry = findLeaf(file, binToHex(lockingBytecode));
@@ -42,20 +42,36 @@ export async function prepareClaim(
   if (active !== file.root || live.decodedState.epoch !== file.epoch) {
     throw new Error(`epoch file root ${file.root} (epoch ${file.epoch}) is not the active root ${active} (epoch ${live.decodedState.epoch})`);
   }
-  const pool = adjustPool ? adjustPool(live, lockingBytecode) : live;
+  return { entry, epoch: file.epoch, contracts, live };
+}
+
+export const proofOf = (entry: LeafJson) => ({ index: entry.index, siblings: entry.proof.map((s) => hexToBinChecked(s, 32)) });
+
+/**
+ * Plans the claim of `address`'s leaf against the pool. `adjustPool` lets the double-claim demonstration hide a
+ * receipt; normal claims pass nothing.
+ */
+export async function prepareClaim(
+  ctx: Context,
+  a: ParsedArgs,
+  address: string,
+  adjustPool?: (pool: PoolUtxos, lockingBytecode: Uint8Array) => PoolUtxos,
+): Promise<PreparedClaim> {
+  const { entry, epoch, contracts, live } = await activeLeaf(ctx, a, address);
+  const pool = adjustPool ? adjustPool(live, addressToLockingBytecode(address, ctx.prefix)) : live;
   const payer = loadKey(ctx, flag(a, 'payer') ?? payerRole(ctx.network));
   const funding = selectFunding(await plainUtxos(ctx, payer), CLAIM_FUNDING_SATS);
   const plan = planClaim({
     contracts,
     pool,
     leaf: leafFromJson(entry),
-    proof: { index: entry.index, siblings: entry.proof.map((s) => hexToBinChecked(s, 32)) },
+    proof: proofOf(entry),
     funding: { utxos: funding, signer: payer.signer, changeAddress: payer.address },
     paymentSats: BigInt(ctx.config.fees.tokenOutputDustSats),
     receiptSats: BigInt(ctx.config.fees.receiptDustSats),
     feeRate: ctx.config.fees.satsPerByte,
   });
-  return { entry, epoch: file.epoch, plan, funding, payer };
+  return { entry, epoch, plan, funding, payer };
 }
 
 /**

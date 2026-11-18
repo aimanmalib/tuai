@@ -16,7 +16,7 @@ export interface TxRecord {
   note?: string;
 }
 
-/** Per-network operating log under state/runs: pool parameters, reward category and every broadcast. */
+/** Operating log per deployment (network, or network plus run name) under state/runs: pool parameters, reward category and every broadcast. */
 export interface RunLog {
   network: string;
   rewardCategory?: string;
@@ -24,7 +24,7 @@ export interface RunLog {
   txs: TxRecord[];
 }
 
-export const runLogPath = (ctx: Context): string => resolve(ctx.stateDir, 'runs', `${ctx.network}.json`);
+export const runLogPath = (ctx: Context): string => resolve(ctx.stateDir, 'runs', `${ctx.deployment}.json`);
 
 export function readRunLog(ctx: Context): RunLog {
   const path = runLogPath(ctx);
@@ -46,6 +46,6 @@ export function updateRunLog(ctx: Context, change: (log: RunLog) => void): RunLo
 
 export function requirePool(ctx: Context): PoolParams & { deployTxid: string } {
   const pool = readRunLog(ctx).pool;
-  if (!pool) throw new Error(`no pool deployed on ${ctx.network} yet; run tuai deploy first`);
+  if (!pool) throw new Error(`no pool deployed on ${ctx.deployment} yet; run tuai deploy first`);
   return pool;
 }

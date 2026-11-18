@@ -18,6 +18,12 @@ export interface ProjectKey {
 export interface Context {
   config: TuaiConfig;
   network: NetworkName;
+  /**
+   * Name of the operating record: `<network>` by default, `<network>-<run>` with `--run <run>`. It names the run log
+   * (`state/runs/<name>.json`) and the public folder (`deployments/<name>/`), so a second pool on one network keeps its
+   * own record.
+   */
+  deployment: string;
   prefix: CashAddressPrefix;
   repoRoot: string;
   stateDir: string;
@@ -34,6 +40,8 @@ export interface Context {
 
 export interface ContextOverrides {
   config?: TuaiConfig;
+  /** Run name from `--run`; see `Context.deployment`. */
+  run?: string;
   repoRoot?: string;
   stateDir?: string;
   provider?: NetworkProvider;
@@ -57,6 +65,12 @@ function electrumHeight(provider: ElectrumNetworkProvider): (txid: string) => Pr
   };
 }
 
+export function deploymentName(network: NetworkName, run: string | undefined): string {
+  if (run === undefined) return network;
+  if (!/^[a-z0-9][a-z0-9-]{0,31}$/.test(run)) throw new Error(`--run must be 1 to 32 lowercase letters, digits or hyphens: ${run}`);
+  return `${network}-${run}`;
+}
+
 export function makeContext(network: NetworkName, o: ContextOverrides = {}): Context {
   const config = o.config ?? loadConfig();
   const repoRoot = o.repoRoot ?? REPO_ROOT;
@@ -74,6 +88,7 @@ export function makeContext(network: NetworkName, o: ContextOverrides = {}): Con
   return {
     config,
     network,
+    deployment: deploymentName(network, o.run),
     prefix: config.networks[network].addressPrefix,
     repoRoot,
     stateDir: o.stateDir ?? resolve(repoRoot, 'state'),

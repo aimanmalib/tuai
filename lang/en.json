@@ -7,7 +7,8 @@
     "networks": "Networks: chipnet (default), mainnet, mock (in-process only, nothing is kept between runs)",
     "done": "{command} on {network}:",
     "error": "Error: {message}",
-    "notYet": "Not yet: {message}"
+    "notYet": "Not yet: {message}",
+    "runs": "Run names: --run <name> keeps a second pool on the same network in its own record (state/runs/<network>-<name>.json, deployments/<network>-<name>/)"
   },
   "budget": {
     "exceeded": "Mainnet budget exceeded: {spent} + {next} sats is above the limit of {limit} sats",

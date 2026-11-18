@@ -38,7 +38,7 @@ async function sources(ctx: Context, a: ParsedArgs): Promise<{ list: InputSource
 export async function epochBuild(ctx: Context, a: ParsedArgs) {
   const previousPath = flag(a, 'previous');
   const nextEpoch = previousPath ? readEpochFile(previousPath).epoch + 1 : 1;
-  const outPath = flag(a, 'out') ?? resolve(ctx.repoRoot, 'deployments', ctx.network, `epoch-${nextEpoch}.json`);
+  const outPath = flag(a, 'out') ?? resolve(ctx.repoRoot, 'deployments', ctx.deployment, `epoch-${nextEpoch}.json`);
   const { list, fromCache } = await sources(ctx, a);
   const method = Number(flag(a, 'method') ?? ctx.config.sponsorApi.linkMethod) as LinkMethod;
   const file = buildEpoch({
