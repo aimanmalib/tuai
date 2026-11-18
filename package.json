@@ -18,7 +18,8 @@
     "claim-sizes": "tsx scripts/claim-sizes.ts",
     "tuai": "tsx bin/tuai.ts",
     "push-measure": "tsx scripts/push-measure.ts",
-    "cost": "tsx scripts/cost.ts"
+    "cost": "tsx scripts/cost.ts",
+    "demo:mock": "vitest run tests/cli-e2e.test.ts --reporter=verbose"
   },
   "dependencies": {
     "@bitauth/libauth": "3.0.0",
