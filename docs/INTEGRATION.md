@@ -56,7 +56,19 @@ tuai activate --network mainnet
 
 Recipients then claim with `tuai claim <address> --epoch <file>`, or through any wallet or relayer that builds the
 transaction in [`SPEC.md`](SPEC.md) section 5.4.
-A relayer can pay for someone else's claim; the contract still sends the tokens to the leaf's own address.
+A relayer can pay for someone else's claim; the contract still sends the tokens to the leaf's own address. The
+chipnet demo relayer in `src/relay/` is one such service (ADR [0009](decisions/0009-chipnet-relayer.md)); it is
+limited to chipnet, and on mainnet the same transaction would be funded by the claimant's wallet or a relayer
+FoldingCash chooses to run.
+
+## Optional operator push
+
+For recipients who never claim, the operators can still push. Once the active root has stood for
+`production.pushDelayBlocks` blocks (`config/tuai.json`) with no newer proposal, anyone runs `tuai arm`; after that
+`tuai push <address> --epoch <file>` pays a leaf whose unclaimed balance is at least `push.minimumUnits`, to the
+leaf's own locking bytecode, and updates the same receipt a claim would, so a later claim pays only the rest. Dust
+and fee come from BCH the operators left in the vault (`tuai deploy --vault-sats N`). Details and limits: ADR
+[0008](decisions/0008-operator-push.md).
 
 ## Watching
 
@@ -64,6 +76,10 @@ A relayer can pay for someone else's claim; the contract still sends the tokens 
 compares it with the pending and active roots on chain, and checks method 0 leaves against the public Folding@home
 daily user summary. Method 1 leaves (FoldingCash's own address mapping) are listed as not checkable from public data.
 It needs no keys.
+
+`tuai watch --network <net> --deployment deployments/<net>` reads the root and inputs hash from every recorded
+propose and activate transaction on chain and compares them with values rebuilt from the committed epoch files;
+any difference exits 1 and is named. The chipnet result is in [`reports/watch-chipnet.json`](../reports/watch-chipnet.json).
 
 ## Trust that stays with FoldingCash
 

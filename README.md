@@ -4,6 +4,30 @@ Entry for **BCH BLAZE 2026**, bounty "Trust-minimized, pull-based reward claims 
 
 Claim page: <https://tuai.sasateguh.com> (chipnet demonstration).
 
+## Reviewer guide
+
+A five-minute path through the working system, all on chipnet:
+
+1. Open <https://tuai.sasateguh.com/#/activity>. Every transaction of the chipnet runs is listed in order (deploy,
+   propose, the early activations the node refused, activate, claims, the refused double claim, epoch 2, push), each
+   with its size, fee and an explorer link; refused ones show the node's message instead of a link.
+2. Open <https://tuai.sasateguh.com> and press **Try a demo address**, which picks a leaf that still has tokens
+   to claim (or paste any address from
+   [`deployments/chipnet/epoch-2.json`](deployments/chipnet/epoch-2.json)). The page finds the leaf, rebuilds the
+   Merkle root in the browser and compares it with the root the pool holds on chain, then shows the cumulative,
+   claimed and claimable amounts from the vault receipt.
+3. Press **Claim now**. A chipnet relayer pays the fee and dust; the contract still pays the tokens only to the
+   leaf's address. The page shows the txid with an explorer link, and the claim then appears on the activity page.
+   The first claim made this way, checked on chain, is
+   `2b6a7acc0963b14c0a227014eca58bf0c9b931dd9c26f90d6ce808111d582a9f`
+   ([`docs/MEASURED.md`](docs/MEASURED.md#chipnet-claims-from-the-page)).
+4. Press **Try to claim again** on the same leaf. The second claim is refused by the contract and by the node, and
+   the page shows both messages.
+5. In a clone: `npm ci && npm test` (offline), then
+   `npx tsx bin/tuai.ts epoch verify deployments/chipnet/epoch-2.json` to rebuild the published root from its inputs.
+
+When the relayer is empty, busy or switched off, the page says so and shows the CLI command instead of the button.
+
 ## What it is
 
 FoldingCash pays `FLDCH` tokens to Folding@home contributors by sending one output per recipient every period. Tuai
@@ -61,18 +85,24 @@ Chipnet transactions below are from the demonstration recorded in [`docs/MEASURE
 | No claim threshold; the claimant pays dust and fee | [`src/tx/claim.ts`](src/tx/claim.ts), `payment > 0` in [`ClaimPool.claim`](contracts/ClaimPool.cash) | `tests/claim-pool.test.ts` | fees and dust came from each claim's own funding input (the project payer key or a demo key), not from the pool; leaf 0's top-up was funded by leaf 150's key and still paid leaf 0 |
 | Reference transaction-building code, chipnet demo of several hundred leaves, cost comparison with push | [`src/tx/`](src/tx/), [`bin/tuai.ts`](bin/tuai.ts), [`docs/MEASURED.md`](docs/MEASURED.md), [`docs/COST.md`](docs/COST.md) | `tests/cli-e2e.test.ts`, `tests/cost.test.ts`, `tests/chipnet-record.test.ts` | all 24 attempts with full txids in [`docs/MEASURED.md`](docs/MEASURED.md#chipnet) |
 
-Stretch items built: cumulative-only roots; inputs hash on chain and a watcher that reads each epoch's root and inputs
-hash from the chipnet transactions, recomputes both from the committed files, and checks method 0 links of the real
-push distributions against the Folding@home daily summary ([`reports/watch-chipnet.json`](reports/watch-chipnet.json),
-see [Watcher](#watcher)); 2-of-3 root authority; proof depth and VM limit analysis
-([`docs/DEPTH.md`](docs/DEPTH.md)); the operator push path behind a delay (`RootGate.arm`) and a minimum
-([`ClaimPool.claim`](contracts/ClaimPool.cash), [`src/tx/push.ts`](src/tx/push.ts), `tests/operator-push.test.ts`, ADR
-[0008](docs/decisions/0008-operator-push.md)), tested on the mock network and run on a second chipnet pool
-(`tuai --run push`): arm `a7087d2fd81c54eb5136b7de3836b2b67ba4efadc2b67d35b9d1de00d023dd32`, push
-`5fc63b2474f735cecd558e43b017c52d43a7120dd2b13f47fd5ed1c6481f42e0` paid from the vault's BCH with no wallet input, and
-an early arm and a push below the minimum refused by the network
-([`docs/MEASURED.md`](docs/MEASURED.md#chipnet-operator-push)). The 300-leaf chipnet pool runs the version 1
-contracts, deployed before the push path.
+### Optional and stretch items
+
+Every optional and stretch item on the bounty page, built or not:
+
+| Item | Status | Where | Evidence |
+|---|---|---|---|
+| Proof-serving endpoint (optional) | built | static files under `/epochs/<network>/` from [`scripts/web-epochs.ts`](scripts/web-epochs.ts), see [Proof endpoint](#proof-endpoint) | `curl -s https://tuai.sasateguh.com/epochs/chipnet/epoch-2.json`; `tests/web-epochs.test.ts` |
+| Simple claim UI or CLI (optional) | built, both | [`web/`](web/) (English and Malay), [`bin/tuai.ts`](bin/tuai.ts) | <https://tuai.sasateguh.com>; `e2e/`; `tests/cli-e2e.test.ts` |
+| Relayer that submits claims, paying only the user's address (optional) | built on chipnet, triggered by the user | [`src/relay/`](src/relay/), ADR [0009](docs/decisions/0009-chipnet-relayer.md) | page claim `2b6a7acc0963b14c0a227014eca58bf0c9b931dd9c26f90d6ce808111d582a9f`; `tests/relay.test.ts`, `tests/relay-http.test.ts`, `e2e/relay.spec.ts` |
+| Auto-claim when a balance crosses a threshold the user chose (optional) | not built | the relayer above claims only when asked | |
+| Cumulative-only roots (stretch) | built | [`src/epoch/`](src/epoch/), `alreadyClaimed` in the receipt | top-up claim `3b891a54a58dab33e147e6cb723241d2b8385f161d7fc18a7ef12cd27fed3c36` paid only the epoch 2 difference |
+| Watcher with input snapshot hash published with the root (stretch) | built | inputs hash in the state NFT, [`src/watch/`](src/watch/), [Watcher](#watcher) | [`reports/watch-chipnet.json`](reports/watch-chipnet.json), [`docs/MEASURED.md`](docs/MEASURED.md#watcher) |
+| Independently verifiable links for compatibility users (stretch) | not built | method byte in each leaf; method 1 leaves are reported as not checkable | proposed mechanism in [Open questions answered](#open-questions-answered) |
+| Operator push path after a long timelock, with a minimum (stretch) | built | `RootGate.arm`, push branch of [`ClaimPool.claim`](contracts/ClaimPool.cash), [`src/tx/push.ts`](src/tx/push.ts), ADR [0008](docs/decisions/0008-operator-push.md) | second chipnet pool (`tuai --run push`): arm `a7087d2fd81c54eb5136b7de3836b2b67ba4efadc2b67d35b9d1de00d023dd32`, push `5fc63b2474f735cecd558e43b017c52d43a7120dd2b13f47fd5ed1c6481f42e0` paid from the vault's BCH; an early arm and a push below the minimum refused ([`docs/MEASURED.md`](docs/MEASURED.md#chipnet-operator-push)) |
+| Merkle depth and VM limit analysis (stretch) | built | [`docs/DEPTH.md`](docs/DEPTH.md), `npm run claim-sizes` | claim size per depth and the depth at which each VM limit binds |
+
+The 300-leaf chipnet pool runs the version 1 contracts, deployed before the push path; the push path ran on the
+second chipnet pool of five leaves.
 
 ## Open questions answered
 
@@ -107,6 +137,10 @@ contracts, deployed before the push path.
   daily files are taken as published.
 - **Recipients and relayers:** anyone may submit a claim, an activation, an arm or a push; none can change where
   tokens go. A push may spend up to `pushSats` of the vault's BCH; the operator decides how much BCH to leave there.
+- **The chipnet demo relayer** holds one chipnet key with a small balance and nothing else (no operator, payer or
+  mainnet key). It checks every output before sending (leaf, pool, vault or its own change; the exact token amount;
+  a fee cap) as a second guard behind the contracts. It runs only on chipnet: the network is a constant in code and
+  the config must list chipnet alone (ADR [0009](docs/decisions/0009-chipnet-relayer.md)).
 
 ## Cost
 
@@ -143,6 +177,9 @@ finds the leaf, recomputes the root in the browser, compares it with the root th
 Electrum WebSocket), shows the claimed and claimable amounts from the vault receipt, and gives the claim command. A
 root that differs from the published file is shown as a named warning. English and Malay. `npm run e2e` runs the
 browser tests on WebKit (iPhone 13) and Chromium. The page runs at <https://tuai.sasateguh.com>; see [ADR 0007](docs/decisions/0007-claim-page.md).
+On chipnet the address card also offers **Claim now**, sent by the demo relayer (`GET /api/relay/status`,
+`POST /api/relay/claim`), and **Try to claim again** on a claimed leaf, which shows the contract's and the node's
+refusal; see [ADR 0009](docs/decisions/0009-chipnet-relayer.md) and [Trust boundaries](#trust-boundaries).
 
 The result also lists the address's cumulative amount in every published epoch and the top-up each epoch added.
 The **Activity** page (<https://tuai.sasateguh.com/#/activity>) lists every recorded transaction of every chipnet
@@ -231,7 +268,8 @@ in [`lang/en.json`](lang/en.json) and [`lang/ms.json`](lang/ms.json).
 - All claims go through one state UTXO, so two claims in the same moment conflict and one must be rebuilt.
 - Operator keys are fixed in the gate. Rotating them means a new deployment.
 - The CLI signs a proposal with two operator key files on one machine.
-- Method 1 address links cannot be checked from public data.
+- Method 1 address links cannot be checked from public data; the stretch item for independently verifiable
+  compatibility links is not built.
 - The sponsor's October 2026 distribution had one recipient, so the chipnet tree uses five project demo keys and
   295 synthetic leaves nobody holds a key for (ADR [0006](docs/decisions/0006-chipnet-demonstration.md)). No real
   participant's address is in the demonstration.
@@ -239,7 +277,9 @@ in [`lang/en.json`](lang/en.json) and [`lang/ms.json`](lang/ms.json).
   so the demo delay of 3 took 30 blocks (ADR 0006).
 - The 300-leaf chipnet demonstration ran the version 1 contracts (kept in `src/contracts/artifacts/v1/`); the push
   path ran on a second chipnet pool of five leaves. Pushes open only between `pushDelay` blocks after activation and the next proposal.
-- The demonstration runs on chipnet only. The claim page shows the CLI command; it does not sign claims with a wallet.
+- The demonstration runs on chipnet only. The claim page claims through the chipnet demo relayer or shows the CLI
+  command; it does not sign claims with a browser wallet. The relayer claims only when a user presses the button;
+  auto-claim above a threshold the user chose is not built.
 
 ## AI disclosure
 
