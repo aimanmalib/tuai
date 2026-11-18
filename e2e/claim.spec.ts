@@ -36,8 +36,8 @@ test('shows the leaf, the proof verified against the chain root, and the claim c
   await expect(page.locator('#claim-command')).toContainText(`claim ${leaf.address} --network chipnet --epoch deployments/chipnet/epoch-${epoch.epoch}.json`);
   await expect(page.locator('#gate-pending')).toHaveText('No new root is waiting.');
   await noHorizontalOverflow(page);
-  if (process.env.AUTOPILOT_BUKTI_DIR) {
-    await page.screenshot({ path: `${process.env.AUTOPILOT_BUKTI_DIR}/tuai-f6-result-${test.info().project.name}.png`, fullPage: true });
+  if (process.env.SCREENSHOT_DIR) {
+    await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-f6-result-${test.info().project.name}.png`, fullPage: true });
   }
   const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
   expect(axe.violations.map((v) => `${v.id}: ${v.nodes.length}`)).toEqual([]);
@@ -93,8 +93,8 @@ test('fits a 320 px screen with a result and the full claim command', async ({ p
     const box = await page.locator(sel).boundingBox();
     expect(box && box.x + box.width).toBeLessThanOrEqual(320);
   }
-  if (process.env.AUTOPILOT_BUKTI_DIR) {
-    await page.screenshot({ path: `${process.env.AUTOPILOT_BUKTI_DIR}/tuai-f6-320-${test.info().project.name}.png`, fullPage: true });
+  if (process.env.SCREENSHOT_DIR) {
+    await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-f6-320-${test.info().project.name}.png`, fullPage: true });
   }
   expect(errors).toEqual([]);
 });
