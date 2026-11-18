@@ -67,8 +67,12 @@ push distributions against the Folding@home daily summary ([`reports/watch-chipn
 see [Watcher](#watcher)); 2-of-3 root authority; proof depth and VM limit analysis
 ([`docs/DEPTH.md`](docs/DEPTH.md)); the operator push path behind a delay (`RootGate.arm`) and a minimum
 ([`ClaimPool.claim`](contracts/ClaimPool.cash), [`src/tx/push.ts`](src/tx/push.ts), `tests/operator-push.test.ts`, ADR
-[0008](docs/decisions/0008-operator-push.md)), tested on the mock network. The recorded chipnet pool runs the
-version 1 contracts, deployed before the push path.
+[0008](docs/decisions/0008-operator-push.md)), tested on the mock network and run on a second chipnet pool
+(`tuai --run push`): arm `a7087d2fd81c54eb5136b7de3836b2b67ba4efadc2b67d35b9d1de00d023dd32`, push
+`5fc63b2474f735cecd558e43b017c52d43a7120dd2b13f47fd5ed1c6481f42e0` paid from the vault's BCH with no wallet input, and
+an early arm and a push below the minimum refused by the network
+([`docs/MEASURED.md`](docs/MEASURED.md#chipnet-operator-push)). The 300-leaf chipnet pool runs the version 1
+contracts, deployed before the push path.
 
 ## Open questions answered
 
@@ -225,8 +229,8 @@ in [`lang/en.json`](lang/en.json) and [`lang/ms.json`](lang/ms.json).
   participant's address is in the demonstration.
 - Chipnet nodes read a block-count sequence lock as ten one-minute blocks per unit at the time of the demonstration,
   so the demo delay of 3 took 30 blocks (ADR 0006).
-- The chipnet demonstration ran the version 1 contracts (kept in `src/contracts/artifacts/v1/`), so the push path is
-  tested on the mock network only. Pushes open only between `pushDelay` blocks after activation and the next proposal.
+- The 300-leaf chipnet demonstration ran the version 1 contracts (kept in `src/contracts/artifacts/v1/`); the push
+  path ran on a second chipnet pool of five leaves. Pushes open only between `pushDelay` blocks after activation and the next proposal.
 - The demonstration runs on chipnet only. The claim page shows the CLI command; it does not sign claims with a wallet.
 
 ## AI disclosure

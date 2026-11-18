@@ -60,7 +60,10 @@ closing the window, an ordinary claim while armed, and a version 1 pool. Each re
 
 - `pushDelay` must be shorter than the time between activation and the next proposal, or the window never opens.
   With monthly epochs, operators push before they propose the next root.
-- The chipnet demonstration recorded in `docs/MEASURED.md` ran the version 1 contracts, without the push path.
+- The 300-leaf chipnet demonstration in `docs/MEASURED.md` ran the version 1 contracts, without the push path. A
+  second, smaller chipnet pool (`tuai --run push`, `deployments/chipnet-push/`) runs these contracts and records an
+  early arm and a push below the minimum refused by the network, an arm, a push and a pull claim (`docs/MEASURED.md`,
+  Chipnet operator push).
 - Pushes are serialized through the state NFT like claims.
 - RootGate grew from 337 to 501 bytes, and propose and activate carry it, so the fixed operator cost per epoch rose
   (`docs/COST.md`). The point where push costs the distributor more than pull moved from 2 to 3 recipients per epoch.

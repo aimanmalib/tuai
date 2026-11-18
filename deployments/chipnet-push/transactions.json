@@ -1,0 +1,104 @@
+{
+ "network": "chipnet",
+ "deployment": "chipnet-push",
+ "tipHeight": 336474,
+ "transactions": [
+  {
+   "kind": "prepare-genesis",
+   "txid": "5745ddb93df78406fdbf0b16d7d74964a76839bd2f746efae3a35ed731dfad49",
+   "bytes": 185,
+   "feeSats": 185,
+   "utc": "2026-11-18T06:33:52.867Z",
+   "height": 336402
+  },
+  {
+   "kind": "token-genesis",
+   "txid": "aa1c5c4af246dbc0b1d784e145c3c77f4d3e6c089fb55c4dc64cb796bb005068",
+   "bytes": 262,
+   "feeSats": 262,
+   "utc": "2026-11-18T06:33:56.354Z",
+   "height": 336402
+  },
+  {
+   "kind": "prepare-genesis",
+   "txid": "99bf150551834802dda9fb0f2e712a3773f541728905846606f02bcecfe935f5",
+   "bytes": 185,
+   "feeSats": 185,
+   "utc": "2026-11-18T06:34:18.964Z",
+   "height": 336402
+  },
+  {
+   "kind": "deploy",
+   "txid": "152f133cbf09c7838ad6e1309e225ccb551b86bd282b7fdbc1be0e65de57b117",
+   "bytes": 858,
+   "feeSats": 858,
+   "utc": "2026-11-18T06:34:22.081Z",
+   "height": 336402
+  },
+  {
+   "kind": "propose-epoch-1",
+   "txid": "f138cca88613543409a9380becbac8264e2cccdcd331796bc3bb442ad6d7b3a7",
+   "bytes": 1024,
+   "feeSats": 1030,
+   "utc": "2026-11-18T06:34:54.261Z",
+   "height": 336402,
+   "note": "operators 1,2"
+  },
+  {
+   "kind": "activate-epoch-1",
+   "txid": "7ad329860c61266cb76e6362b88776398aab453e1ca5e39a3fdd046fdfe5108e",
+   "bytes": 1688,
+   "feeSats": 1688,
+   "utc": "2026-11-18T07:08:08.378Z",
+   "height": 336441,
+   "note": "pending mined at 336402, tip 336433"
+  },
+  {
+   "kind": "arm-epoch-1",
+   "txid": null,
+   "bytes": 1689,
+   "feeSats": 1689,
+   "utc": "2026-11-18T07:16:24.259Z",
+   "height": null,
+   "error": "BIP68 sequence lock not satisfied: the transaction was rejected by network rules.\n\nnon-BIP68-final (code 64)\n",
+   "note": "forced 29 block(s) early; pending mined at 336441, tip 336441"
+  },
+  {
+   "kind": "arm-epoch-1",
+   "txid": "a7087d2fd81c54eb5136b7de3836b2b67ba4efadc2b67d35b9d1de00d023dd32",
+   "bytes": 1689,
+   "feeSats": 1689,
+   "utc": "2026-11-18T07:44:45.563Z",
+   "height": 336472,
+   "note": "pending mined at 336441, tip 336471"
+  },
+  {
+   "kind": "push-first-epoch-1",
+   "txid": null,
+   "bytes": 2278,
+   "feeSats": 2278,
+   "utc": "2026-11-18T07:46:39.860Z",
+   "height": null,
+   "error": "the transaction was rejected by network rules.\n\nmandatory-script-verify-flag-failed (Script failed an OP_VERIFY operation) (code 16)\n",
+   "note": "leaf 1, 4278 sats from the vault, below the minimum 10000000000"
+  },
+  {
+   "kind": "push-first-epoch-1",
+   "txid": "5fc63b2474f735cecd558e43b017c52d43a7120dd2b13f47fd5ed1c6481f42e0",
+   "bytes": 2278,
+   "feeSats": 2278,
+   "utc": "2026-11-18T07:46:58.671Z",
+   "height": 336474,
+   "note": "leaf 4, 4278 sats from the vault"
+  },
+  {
+   "kind": "claim-first-epoch-1",
+   "txid": "cbf3836d89da6a4677a313ce35a92e5c8319ff2132ae0843365891fcc1f81e8c",
+   "bytes": 1757,
+   "feeSats": 1757,
+   "utc": "2026-11-18T07:47:45.159Z",
+   "height": 336474,
+   "note": "leaf 1"
+  }
+ ]
+}
