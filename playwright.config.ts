@@ -2,7 +2,8 @@ import { defineConfig, devices } from '@playwright/test';
 
 // Two modes. By default the claim page is built and served by `vite preview`, and chain reads go to a fake Electrum
 // server inside each test. With E2E_BASE_URL set, only the read-only live checks run, against that deployed URL.
-const PORT = 4310;
+// E2E_PORT moves the preview server when 4310 is taken on a shared machine.
+const PORT = Number(process.env.E2E_PORT ?? 4310);
 const live = process.env.E2E_BASE_URL;
 
 export default defineConfig({
