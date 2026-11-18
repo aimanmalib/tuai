@@ -9,6 +9,7 @@ import { demoAllocations, demoDoubleClaim, fund } from './commands/demo.ts';
 import { epochBuild, epochVerify } from './commands/epoch.ts';
 import { NotYetError, activate, propose } from './commands/root.ts';
 import { arm, push } from './commands/push.ts';
+import { relayKey } from './commands/relay.ts';
 import { budget, status } from './commands/status.ts';
 import { watch } from './commands/watch.ts';
 
@@ -28,6 +29,7 @@ const COMMANDS: Record<string, Handler> = {
   status,
   budget,
   fund,
+  'relay-key': relayKey,
   'demo allocations': demoAllocations,
   'demo double-claim': demoDoubleClaim,
 };

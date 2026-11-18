@@ -5,8 +5,7 @@ import { binToHex } from '@bitauth/libauth';
 import { hexToBinChecked } from '../../bytes.ts';
 import { demoLayout, syntheticAmount } from '../../demo/layout.ts';
 import { lockingBytecodeToAddress } from '../../leaf.ts';
-import { receiptKey } from '../../pool/encoding.ts';
-import type { PoolUtxos } from '../../pool/utxos.ts';
+import { withoutOwnReceipt } from '../../pool/hide-receipt.ts';
 import { assembleClaim } from '../../tx/claim.ts';
 import { flag, requireFlag, type ParsedArgs } from '../args.ts';
 import { broadcast, measure } from '../broadcast.ts';
@@ -57,20 +56,6 @@ export async function fund(ctx: Context, a: ParsedArgs) {
     .addBchChangeOutputIfNeeded({ to: payer.address, feeRate: ctx.config.fees.satsPerByte });
   const tx = await broadcast(ctx, builder, { kind: `fund-${role}`, ownInputs: funding, ownLockingBytecode: payer.lockingBytecode });
   return { to: to.address, sats: sats.toString(), tx };
-}
-
-/**
- * Hides a leaf's own receipt so the claim is planned as a first claim again: the predecessor's `next` is read as
- * if the receipt were absent. The contract reads the real commitment, so it must refuse the insertion.
- */
-export function withoutOwnReceipt(pool: PoolUtxos, lockingBytecode: Uint8Array): PoolUtxos {
-  const key = binToHex(receiptKey(lockingBytecode));
-  const own = pool.receipts.find((r) => binToHex(r.receipt.key) === key);
-  if (!own) throw new Error('this leaf has no receipt yet; claim it first');
-  const receipts = pool.receipts
-    .filter((r) => r !== own)
-    .map((r) => (binToHex(r.receipt.next) === key ? { ...r, receipt: { ...r.receipt, next: own.receipt.next } } : r));
-  return { ...pool, receipts };
 }
 
 /**

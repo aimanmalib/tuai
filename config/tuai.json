@@ -126,5 +126,24 @@
     "fahDir": "state/fah",
     "stateDir": "state/watch",
     "reportPath": "reports/watch-chipnet.json"
+  },
+  "relay": {
+    "enabled": true,
+    "networks": [
+      "chipnet"
+    ],
+    "deployment": "chipnet",
+    "port": 8081,
+    "statusPath": "/api/relay/status",
+    "healthPath": "/api/relay/healthz",
+    "claimPath": "/api/relay/claim",
+    "maxClaimsPerHour": 30,
+    "minBalanceSats": 6000,
+    "maxFeeSatsPerClaim": 4000,
+    "maxBodyBytes": 1024,
+    "electrumTimeoutSeconds": 20,
+    "keyFileEnv": "TUAI_RELAY_KEY_FILE",
+    "offEnv": "TUAI_RELAY_OFF",
+    "keyRole": "relay-chipnet"
   }
 }

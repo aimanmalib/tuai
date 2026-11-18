@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import { validateRelay, type RelayConfig } from './relay/config.ts';
 
 export type NetworkName = 'mock' | 'chipnet' | 'mainnet';
 export const NETWORKS: readonly NetworkName[] = ['mock', 'chipnet', 'mainnet'];
@@ -48,6 +49,8 @@ export interface TuaiConfig {
   demo: DemoConfig;
   web: WebConfig;
   watch: WatchConfig;
+  /** Chipnet demo relayer (docs/decisions/0009-chipnet-relayer.md). */
+  relay: RelayConfig;
 }
 
 /** Watcher report: the deployment it checks on chain, the public Folding@home summary, and where results go. */
@@ -176,6 +179,7 @@ export function validateConfig(c: TuaiConfig): string[] {
   problems.push(...validateCost(c.cost));
   problems.push(...validateDemo(c.demo));
   problems.push(...validateWeb(c));
+  problems.push(...validateRelay(c.relay));
   return problems;
 }
 
