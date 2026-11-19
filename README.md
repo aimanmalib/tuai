@@ -94,6 +94,7 @@ Every optional and stretch item on the bounty page, built or not:
 | Proof-serving endpoint (optional) | built | static files under `/epochs/<network>/` from [`scripts/web-epochs.ts`](scripts/web-epochs.ts), see [Proof endpoint](#proof-endpoint) | `curl -s https://tuai.sasateguh.com/epochs/chipnet/epoch-2.json`; `tests/web-epochs.test.ts` |
 | Simple claim UI or CLI (optional) | built, both | [`web/`](web/) (English and Malay), [`bin/tuai.ts`](bin/tuai.ts) | <https://tuai.sasateguh.com>; `e2e/`; `tests/cli-e2e.test.ts` |
 | Relayer that submits claims, paying only the user's address (optional) | built on chipnet, triggered by the user | [`src/relay/`](src/relay/), ADR [0009](docs/decisions/0009-chipnet-relayer.md) | page claim `2b6a7acc0963b14c0a227014eca58bf0c9b931dd9c26f90d6ce808111d582a9f`; `tests/relay.test.ts`, `tests/relay-http.test.ts`, `e2e/relay.spec.ts` |
+| Claim with the user's own wallet (usability) | built on chipnet, not yet run with a real wallet | [`src/relay/prepare.ts`](src/relay/prepare.ts) (unsigned claim from the wallet's coins), [`web/src/wallet-check.ts`](web/src/wallet-check.ts) (the page checks every input and output), [`web/src/wizardconnect.ts`](web/src/wizardconnect.ts), ADR [0012](docs/decisions/0012-wallet-claims.md) | `tests/wallet-claim.test.ts` (fake wallet signs, VM accepts; wrong key, redirected payment, skimmed change and foreign input refused) |
 | Auto-claim when a balance crosses a threshold the user chose (optional) | built on chipnet, one pass per run of `tuai relay --optins <file>` | [`src/relay/service.ts`](src/relay/service.ts) `autoClaim`, [`src/relay/optins.ts`](src/relay/optins.ts), ADR [0010](docs/decisions/0010-relayer-auto-claim.md) | auto-claim `4997b741bac51ce4dae947276b1d7820638d986b8213725f95361b11d834d788`, two leaves skipped below their thresholds ([MEASURED](docs/MEASURED.md#chipnet-auto-claims-by-threshold)); `tests/relay-auto.test.ts` |
 | Cumulative-only roots (stretch) | built | [`src/epoch/`](src/epoch/), `alreadyClaimed` in the receipt | top-up claim `3b891a54a58dab33e147e6cb723241d2b8385f161d7fc18a7ef12cd27fed3c36` paid only the epoch 2 difference |
 | Watcher with input snapshot hash published with the root (stretch) | built | inputs hash in the state NFT, [`src/watch/`](src/watch/), [Watcher](#watcher) | [`reports/watch-chipnet.json`](reports/watch-chipnet.json), [`docs/MEASURED.md`](docs/MEASURED.md#watcher) |
@@ -279,8 +280,9 @@ in [`lang/en.json`](lang/en.json) and [`lang/ms.json`](lang/ms.json).
   so the demo delay of 3 took 30 blocks (ADR 0006).
 - The 300-leaf chipnet demonstration ran the version 1 contracts (kept in `src/contracts/artifacts/v1/`); the push
   path ran on a second chipnet pool of five leaves. Pushes open only between `pushDelay` blocks after activation and the next proposal.
-- The demonstration runs on chipnet only. The claim page claims through the chipnet demo relayer or shows the CLI
-  command; it does not sign claims with a browser wallet. The relayer claims when a user presses the button,
+- The demonstration runs on chipnet only. The claim page claims through the chipnet demo relayer, through the
+  user's own WizardConnect wallet on chipnet, or shows the CLI command. No wallet claim from a real wallet is
+  recorded yet; the wallet path is tested with an in-process fake wallet. The relayer claims when a user presses the button,
   or for leaves in an opt-in file the relayer operator holds once their threshold is reached (`tuai relay`); a
   signed opt-in request from the leaf holder is not built.
 
@@ -292,4 +294,5 @@ On-chain measurements in `docs/MEASURED.md` come from transactions the tools in 
 
 ## License
 
-MIT, see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE). The page loads the WizardConnect libraries (`@wizardconnect/core`,
+`@wizardconnect/dapp`, LGPL-3.0) unmodified from npm, as a separate file, only for a wallet claim.

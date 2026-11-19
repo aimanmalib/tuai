@@ -1,4 +1,4 @@
-// HTTP front of the relayer (node:http, no framework). Two routes, JSON only, small bodies, never cached.
+// HTTP front of the relayer (node:http, no framework). Three routes, JSON only, small bodies, never cached.
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import type { RelayConfig } from './config.ts';
 import type { RelayReply } from './service.ts';
@@ -6,6 +6,8 @@ import type { RelayReply } from './service.ts';
 export interface RelayHandlers {
   status(): Promise<RelayReply>;
   claim(body: unknown): Promise<RelayReply>;
+  /** Wallet claims: plans an unsigned claim the user's wallet pays for. Absent = route not served. */
+  prepare?(body: unknown): Promise<RelayReply>;
 }
 
 function send(res: ServerResponse, r: RelayReply): void {
@@ -42,9 +44,25 @@ function readBody(req: IncomingMessage, max: number): Promise<string | null> {
 }
 
 /** Handles one request; `log` receives a short line per request (route and result code, never key material). */
-export function relayHandler(cfg: Pick<RelayConfig, 'statusPath' | 'healthPath' | 'claimPath' | 'maxBodyBytes'>, h: RelayHandlers, log: (line: string) => void) {
+async function readJson(req: IncomingMessage, max: number): Promise<{ body: unknown } | null> {
+  const raw = await readBody(req, max);
+  if (raw === null) return null;
+  try {
+    return { body: JSON.parse(raw) };
+  } catch {
+    return { body: null };
+  }
+}
+
+export function relayHandler(
+  cfg: Pick<RelayConfig, 'statusPath' | 'healthPath' | 'claimPath' | 'maxBodyBytes'> & { wallet: Pick<RelayConfig['wallet'], 'preparePath' | 'maxBodyBytes'> },
+  h: RelayHandlers,
+  log: (line: string) => void,
+) {
+  const posts = new Map<string, { max: number; run: (body: unknown) => Promise<RelayReply> }>([[cfg.claimPath, { max: cfg.maxBodyBytes, run: h.claim }]]);
+  if (h.prepare) posts.set(cfg.wallet.preparePath, { max: cfg.wallet.maxBodyBytes, run: h.prepare });
   return async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
-    const path = (req.url ?? '').split('?')[0];
+    const path = (req.url ?? '').split('?')[0] ?? '';
     let r: RelayReply;
     try {
       if (path === cfg.healthPath) {
@@ -52,19 +70,11 @@ export function relayHandler(cfg: Pick<RelayConfig, 'statusPath' | 'healthPath' 
         return;
       }
       if (path === cfg.statusPath && (req.method === 'GET' || req.method === 'HEAD')) r = await h.status();
-      else if (path === cfg.claimPath && req.method === 'POST') {
-        const raw = await readBody(req, cfg.maxBodyBytes);
-        if (raw === null) r = { status: 413, body: { code: 'tooLarge' } };
-        else {
-          let body: unknown;
-          try {
-            body = JSON.parse(raw);
-          } catch {
-            body = null;
-          }
-          r = await h.claim(body);
-        }
-      } else if (path === cfg.statusPath || path === cfg.claimPath) r = { status: 405, body: { code: 'method' } };
+      else if (posts.has(path) && req.method === 'POST') {
+        const route = posts.get(path)!;
+        const parsed = await readJson(req, route.max);
+        r = parsed === null ? { status: 413, body: { code: 'tooLarge' } } : await route.run(parsed.body);
+      } else if (path === cfg.statusPath || posts.has(path)) r = { status: 405, body: { code: 'method' } };
       else r = { status: 404, body: { code: 'notFound' } };
     } catch (e) {
       r = { status: 502, body: { code: 'chainError', message: ((e as Error).message ?? '').split('\n')[0]?.slice(0, 200) } };

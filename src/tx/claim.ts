@@ -13,7 +13,7 @@ export interface ClaimOptions {
   leaf: Leaf;
   proof: MerkleProof;
   /** Anyone may fund a claim; the payment still goes to the leaf's locking bytecode. */
-  funding: { utxos: SpendableUtxo[]; signer: SignatureTemplate; changeAddress: string };
+  funding: { utxos: SpendableUtxo[]; signer: SignatureTemplate | ((utxo: SpendableUtxo) => Unlocker); changeAddress: string };
   /** Satoshis carried by the payment output and by a newly inserted receipt (paid by the claimant). */
   paymentSats: bigint;
   receiptSats: bigint;
@@ -105,15 +105,19 @@ export function planClaimCore(o: ClaimCoreOptions): ClaimCore {
   return { kind: match.kind === 'own' ? 'additional' : 'first', payment, receipt: match.item, reward, inputs, outputs };
 }
 
-/** Plans a claim funded by anyone; the payment still goes to the leaf's locking bytecode. */
+/**
+ * Plans a claim funded by anyone; the payment still goes to the leaf's locking bytecode. `signer` is a key, or one
+ * unlocker per funding coin (a wallet's placeholder, signed later by the wallet).
+ */
 export function planClaim(o: ClaimOptions): ClaimPlan {
   const core = planClaimCore(o);
-  const signer = o.funding.signer.unlockP2PKH();
+  const s = o.funding.signer;
+  const unlock = typeof s === 'function' ? s : ((p2pkh: Unlocker) => () => p2pkh)(s.unlockP2PKH());
   return {
     kind: core.kind,
     payment: core.payment,
     receipt: core.receipt,
-    inputs: [...core.inputs, ...o.funding.utxos.map((utxo) => ({ utxo, unlocker: signer }))],
+    inputs: [...core.inputs, ...o.funding.utxos.map((utxo) => ({ utxo, unlocker: unlock(utxo) }))],
     outputs: core.outputs,
     changeAddress: o.funding.changeAddress,
     feeRate: o.feeRate,

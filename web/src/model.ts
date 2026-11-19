@@ -27,6 +27,7 @@ export interface EpochFileView {
 export interface PoolRecord {
   network: string;
   poolCategory: string;
+  rewardCategory: string;
   activationDelay: number;
   maxDepth: number;
   deployTxid: string;

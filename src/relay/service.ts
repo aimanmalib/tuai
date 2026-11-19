@@ -1,18 +1,20 @@
 // The demo relayer's logic, without HTTP: it pays the fee and dust of a claim from its own chipnet key. The
 // contracts send the reward tokens to the leaf's own locking bytecode; the relayer cannot direct them anywhere else.
-import { binToHex, decodeCashAddress, hexToBin } from '@bitauth/libauth';
+import { decodeCashAddress, hexToBin } from '@bitauth/libauth';
 import type { NetworkProvider, SignatureTemplate, TransactionBuilder } from 'cashscript';
-import { findLeaf, leafFromJson, type EpochFile, type LeafJson } from '../epoch/file.ts';
+import { leafFromJson, type EpochFile, type LeafJson } from '../epoch/file.ts';
 import { addressToLockingBytecode, type CashAddressPrefix } from '../leaf.ts';
-import { findReceipt, receiptKey } from '../pool/encoding.ts';
 import type { PoolContracts } from '../pool/contracts.ts';
 import { withoutOwnReceipt } from '../pool/hide-receipt.ts';
-import { readPool, type PoolUtxos } from '../pool/utxos.ts';
+import type { PoolUtxos } from '../pool/utxos.ts';
 import { assembleClaim, planClaim, type ClaimPlan } from '../tx/claim.ts';
 import { hexToBinChecked } from '../bytes.ts';
 import { assertRelayNetwork, type RelayConfig } from './config.ts';
 import { checkClaimOutputs } from './guard.ts';
 import { HourlyLimit, SerialQueue } from './limits.ts';
+import { firstLine, lookupLeaf, reply, withTimeout, type RelayReply } from './lookup.ts';
+
+export type { RelayReply } from './lookup.ts';
 
 /** A leaf holder's opt-in: claim for me once my claimable reward tokens reach `minAmount`. */
 export interface OptIn {
@@ -43,31 +45,25 @@ export interface RelayDeps {
   alterPlan?: (plan: ClaimPlan) => void;
 }
 
-export interface RelayReply {
-  status: number;
-  body: Record<string, unknown>;
-}
-
-const reply = (status: number, code: string, extra: Record<string, unknown> = {}): RelayReply => ({ status, body: { code, ...extra } });
-const firstLine = (e: unknown): string => ((e as Error).message ?? String(e)).split('\n')[0]?.slice(0, 300) ?? 'error';
-
-function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const limit = new Promise<never>((_, reject) => (timer = setTimeout(() => reject(new Error('the chain server did not answer in time')), ms)));
-  return Promise.race([p, limit]).finally(() => clearTimeout(timer));
+/** A CashAddr of the relay network, with or without its prefix. */
+export function parseAddress(raw: unknown, prefix: CashAddressPrefix): { address: string; lockingBytecode: Uint8Array } | RelayReply {
+  if (typeof raw !== 'string' || raw.length > 128) return reply(400, 'badRequest');
+  const lower = raw.trim().toLowerCase();
+  const full = lower.includes(':') ? lower : `${prefix}:${lower}`;
+  const decoded = decodeCashAddress(full);
+  if (typeof decoded === 'string') return reply(400, 'badAddress');
+  if (decoded.prefix !== prefix) return reply(400, 'wrongNetwork');
+  return { address: full, lockingBytecode: addressToLockingBytecode(full) };
 }
 
 /** Parses `{ address, again? }`; the address must be a CashAddr of the relay network. */
 export function parseClaimBody(body: unknown, prefix: CashAddressPrefix): { lockingBytecode: Uint8Array; again: boolean } | RelayReply {
   const b = body as { address?: unknown; again?: unknown } | null;
-  if (!b || typeof b !== 'object' || typeof b.address !== 'string' || b.address.length > 128) return reply(400, 'badRequest');
+  if (!b || typeof b !== 'object' || typeof b.address !== 'string') return reply(400, 'badRequest');
   if (b.again !== undefined && typeof b.again !== 'boolean') return reply(400, 'badRequest');
-  const raw = b.address.trim().toLowerCase();
-  const full = raw.includes(':') ? raw : `${prefix}:${raw}`;
-  const decoded = decodeCashAddress(full);
-  if (typeof decoded === 'string') return reply(400, 'badAddress');
-  if (decoded.prefix !== prefix) return reply(400, 'wrongNetwork');
-  return { lockingBytecode: addressToLockingBytecode(full), again: b.again === true };
+  const a = parseAddress(b.address, prefix);
+  if ('status' in a) return a;
+  return { lockingBytecode: a.lockingBytecode, again: b.again === true };
 }
 
 export function createRelay(d: RelayDeps) {
@@ -115,9 +111,6 @@ export function createRelay(d: RelayDeps) {
     };
   }
 
-  const fileFor = (pool: PoolUtxos): EpochFile | undefined =>
-    d.epochs.find((f) => f.root === binToHex(pool.decodedState.root) && f.epoch === pool.decodedState.epoch);
-
   function plan(pool: PoolUtxos, entry: LeafJson, funding: Awaited<ReturnType<typeof funds>>['utxos']) {
     const picked = [];
     let sum = 0n;
@@ -150,18 +143,7 @@ export function createRelay(d: RelayDeps) {
     return { hex };
   }
 
-  /** Reads the pool and the leaf's receipt: what the leaf may claim now. */
-  async function lookup(lockingBytecode: Uint8Array) {
-    const pool = await withTimeout(readPool(d.contracts), ms);
-    const file = fileFor(pool);
-    if (!file) return reply(503, 'epochMissing', { epoch: pool.decodedState.epoch });
-    const entry = findLeaf(file, binToHex(lockingBytecode));
-    if (!entry) return reply(404, 'notInEpoch', { epoch: file.epoch });
-    const own = findReceipt(pool.receipts, (r) => r.receipt, receiptKey(lockingBytecode));
-    const claimed = own?.kind === 'own' ? own.receipt.claimed : 0n;
-    const cumulative = BigInt(entry.cumulative);
-    return { pool, entry, claimed, claimable: cumulative > claimed ? cumulative - claimed : 0n };
-  }
+  const lookup = (lockingBytecode: Uint8Array) => lookupLeaf(d.contracts, d.epochs, lockingBytecode, ms);
 
   /** `minAmount` is the opt-in threshold of `tuai relay`: below it nothing is sent. The page uses 1. */
   async function attempt(lockingBytecode: Uint8Array, again: boolean, minAmount = 1n, dryRun = false): Promise<RelayReply> {

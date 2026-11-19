@@ -147,6 +147,16 @@
     "electrumTimeoutSeconds": 20,
     "keyFileEnv": "TUAI_RELAY_KEY_FILE",
     "offEnv": "TUAI_RELAY_OFF",
-    "keyRole": "relay-chipnet"
+    "keyRole": "relay-chipnet",
+    "wallet": {
+      "enabled": true,
+      "preparePath": "/api/relay/prepare",
+      "maxBodyBytes": 2048,
+      "maxAddresses": 6,
+      "maxSpendSats": 6000,
+      "maxPreparesPerHour": 120,
+      "scanAddresses": 3,
+      "relayUrls": []
+    }
   }
 }

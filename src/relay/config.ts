@@ -29,6 +29,24 @@ export interface RelayConfig {
   offEnv: string;
   /** Role written into a key file made by `tuai relay-key`. */
   keyRole: string;
+  /** Wallet claims (docs/decisions/0012-wallet-claims.md): the relay prepares, the user's wallet signs and pays. */
+  wallet: WalletClaimConfig;
+}
+
+export interface WalletClaimConfig {
+  enabled: boolean;
+  preparePath: string;
+  maxBodyBytes: number;
+  /** Most wallet addresses one prepare request may list; the relay reads their coins from the chain. */
+  maxAddresses: number;
+  /** Most satoshis a claim may take from the wallet: fee plus the dust of the payment and of a new receipt. */
+  maxSpendSats: number;
+  /** Global limit on prepare requests; they read the chain but never sign or send. */
+  maxPreparesPerHour: number;
+  /** Receive and change addresses the page derives from the wallet's keys and looks up for coins. */
+  scanAddresses: number;
+  /** Nostr relays for the WizardConnect session; empty means the library's defaults. */
+  relayUrls: string[];
 }
 
 const isPositiveInt = (n: unknown): n is number => Number.isSafeInteger(n) && (n as number) > 0;
@@ -60,5 +78,21 @@ export function validateRelay(r: RelayConfig | undefined): string[] {
     if (!/^[A-Z][A-Z0-9_]*$/.test(r[k] ?? '')) out.push(`relay.${k} must be an environment variable name`);
   }
   if (!/^relay-chipnet[a-z0-9-]*$/.test(r.keyRole ?? '')) out.push('relay.keyRole must start with relay-chipnet');
+  out.push(...validateWallet(r.wallet));
+  return out;
+}
+
+export function validateWallet(w: WalletClaimConfig | undefined): string[] {
+  if (!w) return ['relay.wallet is missing'];
+  const out: string[] = [];
+  if (typeof w.enabled !== 'boolean') out.push('relay.wallet.enabled must be true or false');
+  if (!/^\/api\/relay\/[a-z]+$/.test(w.preparePath ?? '')) out.push('relay.wallet.preparePath must be under /api/relay/');
+  for (const k of ['maxBodyBytes', 'maxAddresses', 'maxSpendSats', 'maxPreparesPerHour', 'scanAddresses'] as const) {
+    if (!isPositiveInt(w[k])) out.push(`relay.wallet.${k} must be > 0`);
+  }
+  if (isPositiveInt(w.scanAddresses) && w.scanAddresses * 2 > w.maxAddresses) out.push('relay.wallet.scanAddresses * 2 must be <= maxAddresses');
+  if (!Array.isArray(w.relayUrls) || w.relayUrls.some((u) => typeof u !== 'string' || !u.startsWith('wss://'))) {
+    out.push('relay.wallet.relayUrls must list wss:// URLs');
+  }
   return out;
 }

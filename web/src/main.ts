@@ -10,7 +10,9 @@ import { renderHistory } from './activity-view.ts';
 import { showActivity } from './activity-page.ts';
 import { relayStatus, type RelayAnswer, type RelayStatus } from './relay.ts';
 import { renderRelay } from './relay-view.ts';
-import type { CashAddressPrefix } from '../../src/leaf.ts';
+import { addressToLockingBytecode, type CashAddressPrefix } from '../../src/leaf.ts';
+import { renderWalletClaim } from './wallet-view.ts';
+import { formatUnits } from './model.ts';
 
 type NetworkKey = 'chipnet' | 'mainnet';
 const web = config.web;
@@ -145,6 +147,30 @@ async function check(query: string, notice?: RelayAnswer): Promise<void> {
       timeoutMs: 120_000,
       explorerTxUrl: net.explorerTxUrl,
       notice,
+      onSent: (answer) => void check(query, answer),
+    });
+  }
+  const st = relayOn(network) ? await relay : OFF;
+  const walletCfg = relayCfg.wallet;
+  if (relayOn(network) && walletCfg.enabled && found.fileMatchesChain === 'match' && found.claimable > 0n && st.reason !== 'off' && st.reason !== 'unreachable') {
+    renderWalletClaim(result, {
+      address,
+      prefix: net.addressPrefix,
+      claimable: found.claimable,
+      amountText: formatUnits(found.claimable, config.rewards.decimals, getLocale()),
+      check: {
+        leaf: parsed.lockingBytecode,
+        pool: addressToLockingBytecode(record.contracts.pool),
+        vault: addressToLockingBytecode(record.contracts.vault),
+        rewardCategory: record.rewardCategory,
+        claimable: found.claimable,
+        maxSpendSats: BigInt(walletCfg.maxSpendSats),
+      },
+      preparePath: walletCfg.preparePath,
+      scanAddresses: walletCfg.scanAddresses,
+      relayUrls: walletCfg.relayUrls,
+      timeoutMs: 120_000,
+      explorerTxUrl: net.explorerTxUrl,
       onSent: (answer) => void check(query, answer),
     });
   }

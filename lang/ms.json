@@ -190,6 +190,46 @@
       "demo": "Cuba alamat demo",
       "demoHint": "Mengisi daun epoch aktif yang masih ada token untuk dituntut. Kebanyakan daun demo tiada kunci yang diketahui; tuntutan tetap membayarnya, menunjukkan sesiapa pun boleh menuntut untuk sesuatu alamat.",
       "demoNone": "Setiap daun epoch aktif sudah menuntut semuanya."
+    },
+    "walletClaim": {
+      "heading": "Tuntut dengan dompet anda sendiri",
+      "text": "Sambungkan dompet WizardConnect di chipnet. Pelayan ini menyediakan tuntutan, halaman ini menyemak setiap input dan output, dan dompet anda menandatangani serta membayar yuran dan dust. Kontrak tetap menghantar token hanya ke alamat dalam daun.",
+      "button": "Sambung dompet (WizardConnect)",
+      "loading": "Memuatkan sambungan dompet.",
+      "scan": "Imbas kod ini dengan dompet WizardConnect, atau buka pautan pada peranti yang ada dompet itu.",
+      "qrLabel": "Kod pasangan WizardConnect",
+      "open": "Buka dalam aplikasi dompet",
+      "copy": "Salin pautan",
+      "copied": "Disalin",
+      "cancel": "Batal",
+      "dappName": "Tuntutan ganjaran Tuai",
+      "theWallet": "dompet",
+      "preparing": "Disambungkan ke {wallet}. Menyediakan tuntutan daripada syiling chipnet dompet anda.",
+      "noKeys": "dompet tidak berkongsi kunci terima atau baki",
+      "prompt": "Tuntut {amount} token ganjaran ujian ke {address}",
+      "approve": "Luluskan dalam dompet anda. Ia membayar {sats} satoshi untuk yuran dan dust; {amount} token pergi ke alamat daun.",
+      "refused": "Halaman ini menolak transaksi yang disediakan dan tidak menghantarnya ke dompet anda: {reason}",
+      "cancelled": "Dibatalkan. Tiada apa-apa ditandatangani.",
+      "failed": "Tuntutan dompet tidak selesai: {message}",
+      "code": {
+        "nothingToClaim": "Alamat ini tiada baki untuk dituntut.",
+        "walletEmpty": "Tiada syiling chipnet dalam {count} alamat terima dan baki pertama dompet ini. Ia perlukan kira-kira {sats} satoshi.",
+        "walletShort": "Syiling chipnet dompet tidak cukup untuk yuran dan dust (kira-kira {sats} satoshi).",
+        "notInEpoch": "Alamat ini tiada dalam epoch aktif.",
+        "epochMissing": "Pelayan tiada fail epoch yang dipegang pool.",
+        "off": "Tuntutan dompet dimatikan di pelayan ini.",
+        "hourFull": "Pelayan mencapai had sejam untuk tuntutan yang disediakan. Cuba lagi kemudian.",
+        "badRequest": "Permintaan tidak diterima.",
+        "badAddress": "Satu alamat tidak diterima.",
+        "wrongNetwork": "Alamat dompet bukan alamat chipnet.",
+        "tooManyAddresses": "Terlalu banyak alamat dompet dihantar.",
+        "changeNotInWallet": "Alamat baki bukan salah satu alamat dompet.",
+        "tooLarge": "Permintaan terlalu besar.",
+        "guardRefused": "Pelayan menolak pelannya sendiri.",
+        "spendTooHigh": "Tuntutan akan menelan kos dompet melebihi had.",
+        "chainError": "Pelayan rantaian tidak menjawab.",
+        "unknown": "Pelayan tidak dapat dihubungi."
+      }
     }
   }
 }

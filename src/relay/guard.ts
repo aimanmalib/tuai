@@ -20,7 +20,7 @@ export interface GuardExpectation {
   payment: bigint;
 }
 
-const scriptOf = (to: Output['to']): string => binToHex(typeof to === 'string' ? addressToLockingBytecode(to) : to);
+export const scriptOf = (to: Output['to']): string => binToHex(typeof to === 'string' ? addressToLockingBytecode(to) : to);
 
 /** Returns why the outputs are refused, or null when every output is one a claim may create. */
 export function checkClaimOutputs(outputs: readonly Output[], s: GuardScripts, e: GuardExpectation): string | null {

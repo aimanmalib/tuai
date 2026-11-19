@@ -190,6 +190,46 @@
       "demo": "Try a demo address",
       "demoHint": "Fills in a leaf of the active epoch that still has tokens to claim. Most demo leaves have no known key; a claim still pays them, which shows that anyone can claim for an address.",
       "demoNone": "Every leaf of the active epoch has claimed everything."
+    },
+    "walletClaim": {
+      "heading": "Claim with your own wallet",
+      "text": "Connect a WizardConnect wallet on chipnet. This server prepares the claim, this page checks every input and output, and your wallet signs and pays the fee and dust. The contract still sends the tokens only to the address in the leaf.",
+      "button": "Connect a wallet (WizardConnect)",
+      "loading": "Loading the wallet connection.",
+      "scan": "Scan this code with a WizardConnect wallet, or open the link on the device that has the wallet.",
+      "qrLabel": "WizardConnect pairing code",
+      "open": "Open in a wallet app",
+      "copy": "Copy link",
+      "copied": "Copied",
+      "cancel": "Cancel",
+      "dappName": "Tuai reward claims",
+      "theWallet": "the wallet",
+      "preparing": "Connected to {wallet}. Preparing the claim from your wallet's chipnet coins.",
+      "noKeys": "the wallet shared no receive or change keys",
+      "prompt": "Claim {amount} test reward tokens to {address}",
+      "approve": "Approve in your wallet. It pays {sats} satoshis of fee and dust; {amount} tokens go to the leaf address.",
+      "refused": "This page refused the prepared transaction and did not send it to your wallet: {reason}",
+      "cancelled": "Cancelled. Nothing was signed.",
+      "failed": "The wallet claim did not finish: {message}",
+      "code": {
+        "nothingToClaim": "This address has nothing left to claim.",
+        "walletEmpty": "No chipnet coins were found in the first {count} receive and change addresses of this wallet. It needs about {sats} satoshis.",
+        "walletShort": "The wallet's chipnet coins do not cover the fee and dust (about {sats} satoshis).",
+        "notInEpoch": "This address is not in the active epoch.",
+        "epochMissing": "The server does not have the epoch file the pool holds.",
+        "off": "Wallet claims are switched off on this server.",
+        "hourFull": "The server reached its hourly limit for prepared claims. Try again later.",
+        "badRequest": "The request was not accepted.",
+        "badAddress": "An address was not accepted.",
+        "wrongNetwork": "The wallet's addresses are not chipnet addresses.",
+        "tooManyAddresses": "Too many wallet addresses were sent.",
+        "changeNotInWallet": "The change address is not one of the wallet's addresses.",
+        "tooLarge": "The request was too large.",
+        "guardRefused": "The server refused its own plan.",
+        "spendTooHigh": "The claim would cost the wallet more than the limit.",
+        "chainError": "The chain server did not answer.",
+        "unknown": "The server could not be reached."
+      }
     }
   }
 }

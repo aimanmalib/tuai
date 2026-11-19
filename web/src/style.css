@@ -198,3 +198,9 @@ button.small { min-height: 2.25rem; padding: 0.25rem 0.75rem; font-size: 0.875re
 .relay-out.error { background: var(--husk-bg); border-color: var(--husk); color: var(--husk); }
 .demo-pick { margin: 0.75rem 0 0; display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; }
 .demo-pick .hint { flex: 1 1 16rem; margin: 0; }
+
+/* Wallet claim (ADR 0012): the pairing code stays readable on a 320 px screen. */
+.qr-box { margin: 0.5rem 0; max-width: min(16rem, 100%); }
+.qr { display: block; width: 100%; height: auto; }
+.qr-bg { fill: var(--panel); }
+.qr-dot { fill: var(--ink); }

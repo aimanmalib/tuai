@@ -7,6 +7,7 @@ import { RELAY_NETWORK, assertRelayNetwork } from './config.ts';
 import { loadRelayDeployment } from './deployment.ts';
 import { relayHandler, startRelayServer } from './http.ts';
 import { loadRelayKey } from './key.ts';
+import { createPrepare } from './prepare.ts';
 import { createRelay } from './service.ts';
 
 const config = loadConfig();
@@ -32,6 +33,17 @@ const service = createRelay({
   now: () => new Date(),
   off: process.env[relay.offEnv] === '1',
 });
+const wallet = createPrepare({
+  network: RELAY_NETWORK,
+  relay,
+  fees: config.fees,
+  prefix: net.addressPrefix,
+  contracts,
+  epochs,
+  provider,
+  now: () => new Date(),
+  off: process.env[relay.offEnv] === '1',
+});
 const log = (line: string) => process.stdout.write(`${line}\n`);
-startRelayServer(relay.port, relayHandler(relay, service, log));
+startRelayServer(relay.port, relayHandler(relay, { ...service, prepare: wallet.prepare }, log));
 log(`relayer on ${RELAY_NETWORK}, pool ${poolAddress}, relayer address ${key.address}, port ${relay.port}`);
