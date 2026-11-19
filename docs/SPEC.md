@@ -179,3 +179,31 @@ one 32-byte sibling to a claim.
   do not change.
 - The contracts need the 2026 VM (commitments above 40 bytes, proof loops, 33-byte number comparisons). The mock
   network and chipnet run it.
+
+## 8. Signed compatibility links
+
+A method 1 leaf pays an address FoldingCash mapped to a Folding@home user who has no address in their name. To make
+that mapping checkable, the user signs this text (lines joined by a single `\n`, no trailing newline) with the key
+of the mapped address:
+
+```
+FoldingCash compatibility link
+domain: <link.domain from config/tuai.json>
+fah: <Folding@home user name, exactly as in the daily stats file>
+address: <P2PKH CashAddr with prefix, lowercase, without the token flag>
+```
+
+- Hash: the wallet signed message format, `hash256(varint(24) || "Bitcoin Signed Message:\n" || varint(len) || text)`,
+  so Electron Cash and other wallets that sign messages produce a valid link. `tests/link.test.ts` checks the hash
+  against a published signature vector.
+- Signature: base64 of 65 bytes, `header || r || s`, `header = 27 + recoveryId (+ 4 for a compressed key)`.
+- Check: recover the public key, `hash160` it, compare with the address's key hash. Only P2PKH addresses can be
+  linked this way. The domain stops a link signed for one distributor from being reused for another.
+- Links file, published next to the epoch inputs: `{ "links": [{ "name", "address", "signature" }] }`.
+
+Tools: `tuai link sign --name <n> --address <a> --key-file <file>` (WIF or a key file, prints the address and
+signature only), `tuai link verify --name <n> --address <a> --signature <s>`, and
+`tuai watch --epoch <file> --links <file>` (or `tuai link verify --links <file> --epoch <file>`). The watcher lists
+each method 1 leaf as verified (with the names signed for it) or unverified; a link whose signature fails is a finding
+and makes the command exit 1. An unverified leaf is not an error: it means the mapping is taken on FoldingCash's word,
+as before.

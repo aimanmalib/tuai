@@ -97,7 +97,7 @@ Every optional and stretch item on the bounty page, built or not:
 | Auto-claim when a balance crosses a threshold the user chose (optional) | built on chipnet, one pass per run of `tuai relay --optins <file>` | [`src/relay/service.ts`](src/relay/service.ts) `autoClaim`, [`src/relay/optins.ts`](src/relay/optins.ts), ADR [0010](docs/decisions/0010-relayer-auto-claim.md) | auto-claim `4997b741bac51ce4dae947276b1d7820638d986b8213725f95361b11d834d788`, two leaves skipped below their thresholds ([MEASURED](docs/MEASURED.md#chipnet-auto-claims-by-threshold)); `tests/relay-auto.test.ts` |
 | Cumulative-only roots (stretch) | built | [`src/epoch/`](src/epoch/), `alreadyClaimed` in the receipt | top-up claim `3b891a54a58dab33e147e6cb723241d2b8385f161d7fc18a7ef12cd27fed3c36` paid only the epoch 2 difference |
 | Watcher with input snapshot hash published with the root (stretch) | built | inputs hash in the state NFT, [`src/watch/`](src/watch/), [Watcher](#watcher) | [`reports/watch-chipnet.json`](reports/watch-chipnet.json), [`docs/MEASURED.md`](docs/MEASURED.md#watcher) |
-| Independently verifiable links for compatibility users (stretch) | not built | method byte in each leaf; method 1 leaves are reported as not checkable | proposed mechanism in [Open questions answered](#open-questions-answered) |
+| Independently verifiable links for compatibility users (stretch) | built, off chain | [`src/link/`](src/link/), `tuai link sign`/`tuai link verify`, `tuai watch --links`, [SPEC section 8](docs/SPEC.md#8-signed-compatibility-links), ADR [0011](docs/decisions/0011-signed-compatibility-links.md) | `tests/link.test.ts` (wallet signed message vector; other address, other name, tampered signature and other domain refused) |
 | Operator push path after a long timelock, with a minimum (stretch) | built | `RootGate.arm`, push branch of [`ClaimPool.claim`](contracts/ClaimPool.cash), [`src/tx/push.ts`](src/tx/push.ts), ADR [0008](docs/decisions/0008-operator-push.md) | second chipnet pool (`tuai --run push`): arm `a7087d2fd81c54eb5136b7de3836b2b67ba4efadc2b67d35b9d1de00d023dd32`, push `5fc63b2474f735cecd558e43b017c52d43a7120dd2b13f47fd5ed1c6481f42e0` paid from the vault's BCH; an early arm and a push below the minimum refused ([`docs/MEASURED.md`](docs/MEASURED.md#chipnet-operator-push)) |
 | Merkle depth and VM limit analysis (stretch) | built | [`docs/DEPTH.md`](docs/DEPTH.md), `npm run claim-sizes` | claim size per depth and the depth at which each VM limit binds |
 
@@ -122,8 +122,9 @@ second chipnet pool of five leaves.
 - **Leaf contents.** Link method (1 byte), cumulative amount (8 bytes), locking bytecode. The method byte records
   how the address was linked, so a watcher knows which leaves it can check.
 - **Link verification.** Method 0 (address in the Folding@home name) is checked by `tuai watch --fah` against the
-  public daily file. Method 1 (FoldingCash's own mapping) is flagged as not checkable; a BCH signed message from the
-  linked address published with the epoch inputs would make it checkable. That is not built.
+  public daily file. Method 1 (FoldingCash's own mapping) is checked by `tuai watch --links` against a BCH signed
+  message from the linked address naming the Folding@home user, published with the epoch inputs
+  ([SPEC section 8](docs/SPEC.md#8-signed-compatibility-links)). Method 1 leaves without one are listed as unverified.
 
 ## Trust boundaries
 
@@ -269,8 +270,8 @@ in [`lang/en.json`](lang/en.json) and [`lang/ms.json`](lang/ms.json).
 - All claims go through one state UTXO, so two claims in the same moment conflict and one must be rebuilt.
 - Operator keys are fixed in the gate. Rotating them means a new deployment.
 - The CLI signs a proposal with two operator key files on one machine.
-- Method 1 address links cannot be checked from public data; the stretch item for independently verifiable
-  compatibility links is not built.
+- A signed link proves that the key of a method 1 address names a Folding@home user, not that the user controls that
+  Folding@home account, and the contracts do not require one: an unverified method 1 leaf still pays.
 - The sponsor's October 2026 distribution had one recipient, so the chipnet tree uses five project demo keys and
   295 synthetic leaves nobody holds a key for (ADR [0006](docs/decisions/0006-chipnet-demonstration.md)). No real
   participant's address is in the demonstration.

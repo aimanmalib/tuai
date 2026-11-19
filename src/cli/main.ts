@@ -9,6 +9,7 @@ import { demoAllocations, demoDoubleClaim, fund } from './commands/demo.ts';
 import { epochBuild, epochVerify } from './commands/epoch.ts';
 import { NotYetError, activate, propose } from './commands/root.ts';
 import { arm, push } from './commands/push.ts';
+import { linkSign, linkVerify } from './commands/link.ts';
 import { relayKey } from './commands/relay.ts';
 import { relayAutoClaim } from './commands/auto-claim.ts';
 import { budget, status } from './commands/status.ts';
@@ -21,6 +22,8 @@ const COMMANDS: Record<string, Handler> = {
   'epoch verify': epochVerify,
   'token genesis': tokenGenesis,
   watch,
+  'link sign': linkSign,
+  'link verify': linkVerify,
   deploy,
   propose,
   activate,

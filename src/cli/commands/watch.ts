@@ -5,6 +5,7 @@ import { verifyEpoch } from '../../epoch/verify.ts';
 import { readPending, readPool } from '../../pool/utxos.ts';
 import { watchDeployment } from '../../watch/chain-roots.ts';
 import { addressesInFahSummary, checkLinks } from '../../watch/fah.ts';
+import { checkCompatLinks, readLinksFile } from '../../link/check.ts';
 import { flag, requireFlag, type ParsedArgs } from '../args.ts';
 import type { Context } from '../context.ts';
 import { contractsFor } from '../pool.ts';
@@ -14,8 +15,9 @@ import { readRunLog } from '../runs.ts';
  * `watch --deployment <dir>`: recomputes every epoch file of a recorded deployment and compares its root and inputs
  * hash with the state NFT its propose and activate transactions carry on chain.
  *
- * `watch --epoch <file> [--fah <daily_user_summary.txt>]`: recomputes the epoch, checks method 0 leaves against
- * public Folding@home names, and when a pool is deployed compares the file with the active and pending roots.
+ * `watch --epoch <file> [--fah <daily_user_summary.txt>] [--links <links.json>]`: recomputes the epoch, checks method 0
+ * leaves against public Folding@home names and method 1 leaves against signed links (unverified leaves are reported,
+ * invalid links are findings), and when a pool is deployed compares the file with the active and pending roots.
  */
 export async function watch(ctx: Context, a: ParsedArgs) {
   const deployment = flag(a, 'deployment');
@@ -32,6 +34,12 @@ export async function watch(ctx: Context, a: ParsedArgs) {
     links = checkLinks(readEpochFile(path), addressesInFahSummary(readFileSync(fahPath, 'utf8')));
     for (const u of links.unlinked) findings.push(`leaf ${u.index} (${u.address ?? 'no address'}) is not linked in any Folding@home name`);
   }
+  const linksPath = flag(a, 'links');
+  let compat = null;
+  if (linksPath) {
+    compat = checkCompatLinks(readEpochFile(path), readLinksFile(linksPath), ctx.config.link.domain);
+    for (const i of compat.invalid) findings.push(`signed link ${i.entry} is invalid: ${i.reason}`);
+  }
   let chain = null;
   if (readRunLog(ctx).pool) {
     const contracts = contractsFor(ctx);
@@ -45,5 +53,5 @@ export async function watch(ctx: Context, a: ParsedArgs) {
       if (!chain.matched) findings.push(`epoch ${file.epoch} on chain commits to a different root or inputs hash than this file`);
     }
   }
-  return { ok: findings.length === 0, epoch: verify.epoch, root: verify.root, leaves: verify.leaves, links, chain, findings };
+  return { ok: findings.length === 0, epoch: verify.epoch, root: verify.root, leaves: verify.leaves, links, compat, chain, findings };
 }

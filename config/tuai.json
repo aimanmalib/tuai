@@ -127,6 +127,9 @@
     "stateDir": "state/watch",
     "reportPath": "reports/watch-chipnet.json"
   },
+  "link": {
+    "domain": "folding.cash"
+  },
   "relay": {
     "enabled": true,
     "networks": [

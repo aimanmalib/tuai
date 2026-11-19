@@ -49,6 +49,8 @@ export interface TuaiConfig {
   demo: DemoConfig;
   web: WebConfig;
   watch: WatchConfig;
+  /** Signed compatibility links (docs/SPEC.md section 8): the domain every link message names. */
+  link: { domain: string };
   /** Chipnet demo relayer (docs/decisions/0009-chipnet-relayer.md). */
   relay: RelayConfig;
 }
@@ -179,6 +181,9 @@ export function validateConfig(c: TuaiConfig): string[] {
   problems.push(...validateCost(c.cost));
   problems.push(...validateDemo(c.demo));
   problems.push(...validateWeb(c));
+  if (typeof c.link?.domain !== 'string' || !/^[a-z0-9.-]{1,100}$/.test(c.link.domain)) {
+    problems.push('link.domain must be a lowercase host name');
+  }
   problems.push(...validateRelay(c.relay));
   return problems;
 }

@@ -89,9 +89,10 @@ any difference exits 1 and is named. The chipnet result is in [`reports/watch-ch
 - The distribution API decides who is eligible and how much they get. Tuai commits to its exact response (the
   inputs hash), so a later change to the API's answer is visible, but it cannot tell whether the answer was right.
 - The Folding@home daily files are taken as published.
-- Address links made by FoldingCash's mapping (method 1) are taken as given. A way to make them checkable is for the
-  linked address to sign the Folding@home name with a BCH signed message and publish that next to the epoch inputs;
-  this is not built.
+- Address links made by FoldingCash's mapping (method 1) are taken as given unless the linked address signs a link
+  message naming the Folding@home user (`tuai link sign`, or any wallet that signs messages) and the signed link is
+  published next to the epoch inputs; `tuai watch --links` then lists the leaf as verified ([`SPEC.md`](SPEC.md)
+  section 8).
 
 ## Moving an existing distribution
 
