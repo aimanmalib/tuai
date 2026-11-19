@@ -197,6 +197,9 @@ Other scripts: `npm run vectors` (test vectors), `npm run contracts` (compile `c
 `npm run claim-sizes` (sizes and `docs/DEPTH.md`), `npm run cost` (`docs/COST.md`), `bash scripts/gerbang-ujian.sh`
 (lint, typecheck, contract compile check, tests).
 
+`.github/workflows/test.yml` runs the same `npm ci` and `npm test` on every push and pull request once the repository
+is public; the job is skipped while the repository is private.
+
 ### Claim page
 
 `npm run web:dev` serves the claim page from `web/`; `npm run web:build` writes it to `dist/` together with the
