@@ -14,6 +14,12 @@ import { assertRelayNetwork, type RelayConfig } from './config.ts';
 import { checkClaimOutputs } from './guard.ts';
 import { HourlyLimit, SerialQueue } from './limits.ts';
 
+/** A leaf holder's opt-in: claim for me once my claimable reward tokens reach `minAmount`. */
+export interface OptIn {
+  address: string;
+  minAmount: bigint;
+}
+
 export interface RelayKey {
   signer: SignatureTemplate;
   lockingBytecode: Uint8Array;
@@ -144,10 +150,8 @@ export function createRelay(d: RelayDeps) {
     return { hex };
   }
 
-  async function attempt(lockingBytecode: Uint8Array, again: boolean): Promise<RelayReply> {
-    const { utxos, balance } = await funds();
-    const reason = offReason(balance);
-    if (reason === 'off' || reason === 'lowBalance') return reply(503, reason);
+  /** Reads the pool and the leaf's receipt: what the leaf may claim now. */
+  async function lookup(lockingBytecode: Uint8Array) {
     const pool = await withTimeout(readPool(d.contracts), ms);
     const file = fileFor(pool);
     if (!file) return reply(503, 'epochMissing', { epoch: pool.decodedState.epoch });
@@ -156,8 +160,22 @@ export function createRelay(d: RelayDeps) {
     const own = findReceipt(pool.receipts, (r) => r.receipt, receiptKey(lockingBytecode));
     const claimed = own?.kind === 'own' ? own.receipt.claimed : 0n;
     const cumulative = BigInt(entry.cumulative);
-    const claimable = cumulative > claimed ? cumulative - claimed : 0n;
+    return { pool, entry, claimed, claimable: cumulative > claimed ? cumulative - claimed : 0n };
+  }
+
+  /** `minAmount` is the opt-in threshold of `tuai relay`: below it nothing is sent. The page uses 1. */
+  async function attempt(lockingBytecode: Uint8Array, again: boolean, minAmount = 1n, dryRun = false): Promise<RelayReply> {
+    const { utxos, balance } = await funds();
+    const reason = offReason(balance);
+    if (reason === 'off' || reason === 'lowBalance') return reply(503, reason);
+    const found = await lookup(lockingBytecode);
+    if ('status' in found) return found;
+    const { pool, entry, claimed, claimable } = found;
     if (!again && claimable === 0n) return reply(200, 'nothingToClaim', { claimed: claimed.toString() });
+    if (!again && claimable < minAmount) {
+      return reply(200, 'belowThreshold', { claimable: claimable.toString(), minAmount: minAmount.toString() });
+    }
+    if (dryRun) return reply(200, 'wouldClaim', { claimable: claimable.toString() });
     if (again && claimed === 0n) return reply(409, 'notClaimedYet');
     if (!limit.take()) return reply(429, 'hourFull');
 
@@ -201,7 +219,21 @@ export function createRelay(d: RelayDeps) {
     return queue.run(() => attempt(parsed.lockingBytecode, parsed.again));
   }
 
-  return { status, claim };
+  /**
+   * Auto-claim (docs/decisions/0010-relayer-auto-claim.md): one claim per opted-in leaf whose claimable amount reached
+   * the leaf's own threshold. Same path, guard and limits as the page button; the contracts pay the leaf only.
+   */
+  async function autoClaim(optIns: readonly OptIn[], dryRun = false): Promise<(RelayReply['body'] & { address: string })[]> {
+    const out = [];
+    for (const o of optIns) {
+      const parsed = parseClaimBody({ address: o.address }, d.prefix);
+      const r = 'status' in parsed ? parsed : await queue.run(() => attempt(parsed.lockingBytecode, false, o.minAmount, dryRun));
+      out.push({ address: o.address, ...r.body });
+    }
+    return out;
+  }
+
+  return { status, claim, autoClaim };
 }
 
 export type Relay = ReturnType<typeof createRelay>;

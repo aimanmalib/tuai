@@ -1,79 +1,15 @@
 // The chipnet demo relayer on the mock network (docs/decisions/0009-chipnet-relayer.md): it pays fee and dust, the
 // reward goes to the leaf, foreign outputs are refused before sending, and it never runs on another network.
 import { describe, expect, it } from 'vitest';
-import { binToHex } from '@bitauth/libauth';
-import { randomUtxo, type Output } from 'cashscript';
-import { loadConfig } from '../src/config.ts';
-import type { EpochFile } from '../src/epoch/file.ts';
-import { leafFromAddress, type Leaf } from '../src/leaf.ts';
+import type { Output } from 'cashscript';
 import { readPool } from '../src/pool/utxos.ts';
-import { planClaim, type ClaimPlan } from '../src/tx/claim.ts';
-import { validateRelay, type RelayConfig } from '../src/relay/config.ts';
+import { planClaim } from '../src/tx/claim.ts';
+import { validateRelay } from '../src/relay/config.ts';
 import { checkClaimOutputs } from '../src/relay/guard.ts';
-import { createRelay, parseClaimBody, type RelayDeps } from '../src/relay/service.ts';
-import { deployPool, stateFor, testKey, treeOf, FEE_RATE, SATS, type PoolFixture } from './helpers/pool-fixture.ts';
-
-const config = loadConfig();
-const alice = testKey('alice');
-const bob = testKey('bob');
-const mallory = testKey('mallory');
-const relayer = testKey('relayer');
-const leaves: Leaf[] = [leafFromAddress(alice.address, 100n), leafFromAddress(bob.address, 250n), leafFromAddress(testKey('c').address, 7n)];
-
-function epochFile(): EpochFile {
-  const { tree, proof } = treeOf(leaves);
-  return {
-    epoch: 1,
-    root: binToHex(tree.root),
-    leaves: leaves.map((l, index) => ({
-      index,
-      address: null,
-      method: l.method,
-      cumulative: l.cumulative.toString(),
-      lockingBytecode: binToHex(l.lockingBytecode),
-      proof: proof(index).siblings.map(binToHex),
-    })),
-  } as unknown as EpochFile;
-}
-
-interface Setup {
-  f: PoolFixture;
-  relay: ReturnType<typeof createRelay>;
-  sends: () => number;
-  clock: { ms: number };
-}
-
-async function setup(o: { relay?: Partial<RelayConfig>; fund?: bigint; network?: string; off?: boolean; alterPlan?: (p: ClaimPlan) => void } = {}): Promise<Setup> {
-  const file = epochFile();
-  const f = await deployPool(stateFor(Uint8Array.from(Buffer.from(file.root, 'hex'))), undefined, undefined, null);
-  if (o.fund !== 0n) f.provider.addUtxo(relayer.address, randomUtxo({ satoshis: o.fund ?? 50_000n }));
-  let count = 0;
-  const send = f.provider.sendRawTransaction.bind(f.provider);
-  f.provider.sendRawTransaction = (hex: string) => {
-    count += 1;
-    return send(hex);
-  };
-  const clock = { ms: Date.parse('2026-11-19T00:00:00Z') };
-  const deps: RelayDeps = {
-    network: o.network ?? 'chipnet',
-    relay: { ...config.relay, ...o.relay },
-    fees: config.fees,
-    prefix: 'bchtest',
-    contracts: f.contracts,
-    epochs: [file],
-    key: relayer,
-    provider: f.provider,
-    now: () => new Date(clock.ms),
-    off: o.off ?? false,
-    ...(o.alterPlan ? { alterPlan: o.alterPlan } : {}),
-  };
-  return { f, relay: createRelay(deps), sends: () => count, clock };
-}
-
-const tokensAt = async (f: PoolFixture, address: string) =>
-  (await f.provider.getUtxos(address))
-    .filter((u) => u.token?.category === f.contracts.params.rewardCategory && !u.token.nft)
-    .reduce((s, u) => s + (u.token?.amount ?? 0n), 0n);
+import { parseClaimBody } from '../src/relay/service.ts';
+import { FEE_RATE, SATS } from './helpers/pool-fixture.ts';
+import { alice, bob, config, epochFile, leaves, mallory, relayer, setup, tokensAt } from './helpers/relay-fixture.ts';
+import type { Leaf } from '../src/leaf.ts';
 
 describe('chipnet demo relayer', () => {
   it('pays the leaf exactly its cumulative amount; the relayer only pays fee and dust', async () => {
