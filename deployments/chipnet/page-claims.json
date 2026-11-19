@@ -9,12 +9,26 @@
    "feeSats": 1901,
    "height": 337326,
    "paid": "30400000000"
+  },
+  {
+   "utc": "2026-11-18T23:51:01.000Z",
+   "address": "bchtest:zzde36p2dz0f0vr2w7txyjwpkk6whkucjvyw2efm8l",
+   "txid": "99e747919759e690c3f9e20d852202b976944519513ae629a8e33e7f924ebb66",
+   "bytes": 1901,
+   "feeSats": 1901,
+   "height": 337491,
+   "paid": "5100000000"
   }
  ],
  "refusals": [
   {
    "utc": "2026-11-18T21:46:05.000Z",
    "address": "bchtest:zz8fm0yp5j5as68vel8rvskv7xtz8xca8g90zrn4mm",
+   "message": "Local check: ClaimPool.cash:75 Require statement failed at input 0 in contract ClaimPool.cash at line 75. Node: the transaction was rejected by network rules."
+  },
+  {
+   "utc": "2026-11-18T23:51:16.000Z",
+   "address": "bchtest:zzde36p2dz0f0vr2w7txyjwpkk6whkucjvyw2efm8l",
    "message": "Local check: ClaimPool.cash:75 Require statement failed at input 0 in contract ClaimPool.cash at line 75. Node: the transaction was rejected by network rules."
   }
  ]

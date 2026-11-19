@@ -163,8 +163,10 @@ and list below are generated from `deployments/chipnet/page-claims.json`.
 | # | When (UTC) | Leaf address | Transaction | Bytes | Fee (sat) | Block | Tokens paid |
 |---|---|---|---|---|---|---|---|
 | 1 | 2026-11-18 21:45:50 | `bchtest:zz8fm0yp5j5as68vel8rvskv7xtz8xca8g90zrn4mm` | [`2b6a7acc0963b14c0a227014eca58bf0c9b931dd9c26f90d6ce808111d582a9f`](https://cbch.loping.net/tx/2b6a7acc0963b14c0a227014eca58bf0c9b931dd9c26f90d6ce808111d582a9f) | 1901 | 1901 | 337326 | 30400000000 |
+| 2 | 2026-11-18 23:51:01 | `bchtest:zzde36p2dz0f0vr2w7txyjwpkk6whkucjvyw2efm8l` | [`99e747919759e690c3f9e20d852202b976944519513ae629a8e33e7f924ebb66`](https://cbch.loping.net/tx/99e747919759e690c3f9e20d852202b976944519513ae629a8e33e7f924ebb66) | 1901 | 1901 | 337491 | 5100000000 |
 
 "Try to claim again" on a claimed leaf, answered by the node and shown on the page:
 
 - 2026-11-18 21:46:05 UTC, `bchtest:zz8fm0yp5j5as68vel8rvskv7xtz8xca8g90zrn4mm`: refused, `Local check: ClaimPool.cash:75 Require statement failed at input 0 in contract ClaimPool.cash at line 75. Node: the transaction was rejected by network rules.`
+- 2026-11-18 23:51:16 UTC, `bchtest:zzde36p2dz0f0vr2w7txyjwpkk6whkucjvyw2efm8l`: refused, `Local check: ClaimPool.cash:75 Require statement failed at input 0 in contract ClaimPool.cash at line 75. Node: the transaction was rejected by network rules.`
 <!-- chipnet-page-transactions:end -->
