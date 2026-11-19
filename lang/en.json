@@ -114,6 +114,8 @@
         "fund-relay-chipnet": "Fund the demo relayer that pays claim fees from the page",
         "claim-page": "Claim made from the claim page",
         "claim-page-refused": "Claim attempt from the claim page",
+        "claim-auto": "Auto-claim by the relayer once the leaf's opt-in threshold was reached",
+        "claim-auto-refused": "Auto-claim attempt by the relayer",
         "claim-first": "First claim",
         "double-claim": "Claim the same amount again",
         "claim-additional": "Claim the top-up",

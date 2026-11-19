@@ -6,6 +6,9 @@
  *   npx tsx scripts/page-claims.ts claim <txid> --address <leaf address> --relay <relayer address> --utc <ISO time>
  *   npx tsx scripts/page-claims.ts refused --address <leaf address> --message <node message> --utc <ISO time>
  *   npx tsx scripts/page-claims.ts
+ * With --kind auto the same checks record a claim made by `tuai relay` auto-claim instead (auto-claims.json and the
+ * "chipnet-auto" block); --paid then gives the amount the relayer read from the leaf's receipt on chain, and the
+ * check fails unless the leaf received exactly that and no more than its cumulative amount.
  */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -22,17 +25,26 @@ const config = loadConfig();
 const n = config.networks[NET];
 if (!n?.electrum || !n.explorerTxUrl) throw new Error(`${NET} has no Electrum server or explorer URL in the config`);
 const dir = resolve(REPO_ROOT, 'deployments', config.relay.deployment);
-const recordPath = resolve(dir, 'page-claims.json');
+const { positionals, values } = parseArgs({
+  allowPositionals: true,
+  options: {
+    address: { type: 'string' },
+    relay: { type: 'string' },
+    message: { type: 'string' },
+    utc: { type: 'string' },
+    kind: { type: 'string', default: 'page' },
+    paid: { type: 'string' },
+  },
+});
+if (values.kind !== 'page' && values.kind !== 'auto') throw new Error('--kind is page or auto');
+const auto = values.kind === 'auto';
+const recordPath = resolve(dir, auto ? 'auto-claims.json' : 'page-claims.json');
 const record: PageClaimsRecord = existsSync(recordPath)
   ? (JSON.parse(readFileSync(recordPath, 'utf8')) as PageClaimsRecord)
   : { network: NET, claims: [], refusals: [] };
 const provider = new ElectrumNetworkProvider(NET, { hostname: n.electrum.hostname });
 const tip = await provider.getBlockHeight();
 
-const { positionals, values } = parseArgs({
-  allowPositionals: true,
-  options: { address: { type: 'string' }, relay: { type: 'string' }, message: { type: 'string' }, utc: { type: 'string' } },
-});
 const [mode, txid] = positionals;
 
 async function rawTx(id: string) {
@@ -63,7 +75,8 @@ if (mode === 'claim') {
   // Tokens paid before this claim: the receipt is not readable here, so the expected amount comes from the
   // cumulative amount minus earlier page claims of the same leaf (the page only offers leaves with nothing claimed).
   const before = record.claims.filter((c) => c.address === values.address).reduce((s, c) => s + BigInt(c.paid), 0n);
-  const amount = BigInt(leaf.cumulative) - before;
+  const amount = auto ? BigInt(values.paid ?? '0') : BigInt(leaf.cumulative) - before;
+  if (amount <= 0n || amount > BigInt(leaf.cumulative)) throw new Error(`the amount to check, ${amount}, is not within the leaf's cumulative amount`);
   const problems = checkPageClaim(tx.outputs, {
     pool: addressToLockingBytecode(pool.contracts.pool, 'bchtest'),
     contracts: Object.values(pool.contracts).map((a) => addressToLockingBytecode(a, 'bchtest')),
@@ -89,7 +102,7 @@ if (mode === 'claim') {
 for (const c of record.claims) c.height = await heightOf(c.txid);
 writeFileSync(recordPath, `${JSON.stringify(record, null, 1)}\n`);
 const measured = resolve(REPO_ROOT, 'docs', 'MEASURED.md');
-writeFileSync(measured, replaceGenerated(readFileSync(measured, 'utf8'), `${NET}-page`, renderPageClaims(record, n.explorerTxUrl)));
+writeFileSync(measured, replaceGenerated(readFileSync(measured, 'utf8'), `${NET}-${values.kind}`, renderPageClaims(record, n.explorerTxUrl)));
 console.log(`${record.claims.length} claims, ${record.refusals.length} refusals, tip ${tip}`);
 process.exit(0);
 

@@ -12,17 +12,23 @@ export { parseKind };
 /**
  * Claims made from the public page and refused attempts, as an operator recorded them after checking each on chain
  * (deployments/<run>/page-claims.json). Claims become `claim-page` entries, refusals `claim-page-refused` with no link.
+ * Auto-claims sent by `tuai relay` and checked the same way (auto-claims.json) become `claim-auto` entries.
  */
-function pageClaimTxs(dir: string, run: string, network: string, explorer: string | undefined): ActivityTx[] {
-  const file = join(dir, 'page-claims.json');
+const CHECKED_CLAIMS = [
+  { file: 'page-claims.json', step: 'claim-page' },
+  { file: 'auto-claims.json', step: 'claim-auto' },
+] as const;
+
+function checkedClaimTxs(dir: string, run: string, network: string, explorer: string | undefined, source: (typeof CHECKED_CLAIMS)[number]): ActivityTx[] {
+  const file = join(dir, source.file);
   if (!existsSync(file)) return [];
   const record = JSON.parse(readFileSync(file, 'utf8')) as PageClaimsRecord;
-  if (record.network !== network) throw new Error(`${run}: page-claims.json is ${record.network}, pool.json is ${network}`);
+  if (record.network !== network) throw new Error(`${run}: ${source.file} is ${record.network}, pool.json is ${network}`);
   const claims = record.claims.map(
     (c): ActivityTx => ({
-      step: 'claim-page',
+      step: source.step,
       epoch: null,
-      kind: 'claim-page',
+      kind: source.step,
       txid: c.txid,
       bytes: c.bytes,
       feeSats: c.feeSats,
@@ -34,9 +40,9 @@ function pageClaimTxs(dir: string, run: string, network: string, explorer: strin
   );
   const refusals = record.refusals.map(
     (r): ActivityTx => ({
-      step: 'claim-page-refused',
+      step: `${source.step}-refused`,
       epoch: null,
-      kind: 'claim-page-refused',
+      kind: `${source.step}-refused`,
       txid: null,
       bytes: 0,
       feeSats: 0,
@@ -64,7 +70,7 @@ function epochTotals(dir: string): EpochTotal[] {
 }
 
 /** One index per network found under the deployments folder; runs in folder-name order, transactions in recorded order,
- * followed by the claims made from the page. */
+ * followed by the checked claims made from the page and by auto-claim. */
 export function buildTxIndex(repoRoot: string, deploymentsDir: string, explorerTxUrl: Readonly<Record<string, string | undefined>>): ActivityIndex[] {
   const base = join(repoRoot, deploymentsDir);
   const byNetwork = new Map<string, ActivityRun[]>();
@@ -92,7 +98,7 @@ export function buildTxIndex(repoRoot: string, deploymentsDir: string, explorerT
         url: mined && explorer ? `${explorer}${tx.txid}` : null,
       };
     });
-    transactions.push(...pageClaimTxs(dir, run, record.network, explorer));
+    for (const source of CHECKED_CLAIMS) transactions.push(...checkedClaimTxs(dir, run, record.network, explorer, source));
     const runs = byNetwork.get(record.network) ?? [];
     runs.push({ run, pool: pool.contracts.pool, epochs: epochTotals(dir), transactions });
     byNetwork.set(record.network, runs);

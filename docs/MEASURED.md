@@ -170,3 +170,20 @@ and list below are generated from `deployments/chipnet/page-claims.json`.
 - 2026-11-18 21:46:05 UTC, `bchtest:zz8fm0yp5j5as68vel8rvskv7xtz8xca8g90zrn4mm`: refused, `Local check: ClaimPool.cash:75 Require statement failed at input 0 in contract ClaimPool.cash at line 75. Node: the transaction was rejected by network rules.`
 - 2026-11-18 23:51:16 UTC, `bchtest:zzde36p2dz0f0vr2w7txyjwpkk6whkucjvyw2efm8l`: refused, `Local check: ClaimPool.cash:75 Require statement failed at input 0 in contract ClaimPool.cash at line 75. Node: the transaction was rejected by network rules.`
 <!-- chipnet-page-transactions:end -->
+
+## Chipnet auto-claims by threshold
+
+`tuai relay --network chipnet --optins examples/relay-optins.json` (docs/decisions/0010-relayer-auto-claim.md) claims
+for each opted-in leaf whose claimable amount, read from the pool and the leaf's receipt on chain, has reached the
+leaf's own `minAmount`. The relayer key pays fee and dust; the contracts send the reward to the leaf. One pass on
+2026-11-19 01:06:04 UTC with five opted-in demo leaves: two had nothing left to claim, one claim was sent (threshold
+20000000000, claimable 25000000000), two were skipped below their thresholds (30000000000 and 100000000000, claimable
+25000000000 each) and nothing was sent for them. Each sent transaction was read back from Electrum by
+`scripts/page-claims.ts --kind auto` before it was recorded, with the same output checks as the page claims above.
+The table is generated from `deployments/chipnet/auto-claims.json`.
+
+<!-- chipnet-auto-transactions:start -->
+| # | When (UTC) | Leaf address | Transaction | Bytes | Fee (sat) | Block | Tokens paid |
+|---|---|---|---|---|---|---|---|
+| 1 | 2026-11-19 01:06:03 | `bchtest:zp9pp55lnkj2p99hsvpaed95g2dx6e38xs5x0x0h7m` | [`4997b741bac51ce4dae947276b1d7820638d986b8213725f95361b11d834d788`](https://cbch.loping.net/tx/4997b741bac51ce4dae947276b1d7820638d986b8213725f95361b11d834d788) | 1748 | 1748 | - | 25000000000 |
+<!-- chipnet-auto-transactions:end -->

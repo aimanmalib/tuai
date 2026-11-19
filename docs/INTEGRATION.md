@@ -60,6 +60,9 @@ A relayer can pay for someone else's claim; the contract still sends the tokens 
 chipnet demo relayer in `src/relay/` is one such service (ADR [0009](decisions/0009-chipnet-relayer.md)); it is
 limited to chipnet, and on mainnet the same transaction would be funded by the claimant's wallet or a relayer
 FoldingCash chooses to run.
+The same relayer can claim on a schedule for holders who opted in with a threshold:
+`tuai relay --optins <file>` claims each listed leaf once `cumulative - claimed` reaches its `minAmount`, and skips
+the others without sending anything (ADR [0010](decisions/0010-relayer-auto-claim.md)).
 
 ## Optional operator push
 

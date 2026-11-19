@@ -15,21 +15,24 @@ const indexes = buildTxIndex(process.cwd(), 'deployments', { chipnet: explorer }
 const recorded = readdirSync('deployments')
   .filter((run) => existsSync(join('deployments', run, 'transactions.json')))
   .map((run) => ({ run, ...(JSON.parse(readFileSync(join('deployments', run, 'transactions.json'), 'utf8')) as { network: string; transactions: unknown[] }) }));
-// Claims made from the page, recorded beside a run after an on-chain check.
-const pageRecords = recorded
-  .filter((r) => existsSync(join('deployments', r.run, 'page-claims.json')))
-  .map((r) => ({
+// Claims made from the page or by relayer auto-claim, recorded beside a run after an on-chain check.
+const SOURCES = [
+  { file: 'page-claims.json', step: 'claim-page' },
+  { file: 'auto-claims.json', step: 'claim-auto' },
+];
+const pageRecords = recorded.flatMap((r) =>
+  SOURCES.filter((s) => existsSync(join('deployments', r.run, s.file))).map((s) => ({
     run: r.run,
-    ...(JSON.parse(readFileSync(join('deployments', r.run, 'page-claims.json'), 'utf8')) as {
+    step: s.step,
+    ...(JSON.parse(readFileSync(join('deployments', r.run, s.file), 'utf8')) as {
       network: string;
       claims: { txid: string; height: number | null }[];
       refusals: { message: string }[];
     }),
-  }));
-const pageCount = (run: string) => {
-  const p = pageRecords.find((r) => r.run === run);
-  return p === undefined ? 0 : p.claims.length + p.refusals.length;
-};
+  })),
+);
+const pageCount = (run: string) =>
+  pageRecords.filter((r) => r.run === run).reduce((n, p) => n + p.claims.length + p.refusals.length, 0);
 
 describe('activity index', () => {
   it('lists every recorded transaction of every run, grouped by network', () => {
@@ -42,14 +45,14 @@ describe('activity index', () => {
     expect(txIndexFiles(indexes).map((f) => f.path)).toEqual(indexes.map((i) => `${i.network}/transactions.json`));
   });
 
-  it('lists every claim made from the page with its txid, and every refused attempt without a link', () => {
-    expect(pageRecords.length).toBeGreaterThan(0);
+  it('lists every checked claim (page and auto-claim) with its txid, and every refused attempt without a link', () => {
+    expect(pageRecords.map((p) => p.step)).toEqual(expect.arrayContaining(['claim-page', 'claim-auto']));
     for (const p of pageRecords) {
       const txs = indexes.find((i) => i.network === p.network)!.runs.find((r) => r.run === p.run)!.transactions;
       for (const c of p.claims) {
-        expect(txs.find((t) => t.txid === c.txid), c.txid).toMatchObject({ step: 'claim-page', height: c.height, url: `${explorer}${c.txid}` });
+        expect(txs.find((t) => t.txid === c.txid), c.txid).toMatchObject({ step: p.step, height: c.height, url: `${explorer}${c.txid}` });
       }
-      const refused = txs.filter((t) => t.step === 'claim-page-refused');
+      const refused = txs.filter((t) => t.step === `${p.step}-refused`);
       expect(refused.map((t) => t.error)).toEqual(p.refusals.map((r) => r.message.trim()));
       for (const t of refused) expect(t).toMatchObject({ txid: null, url: null });
     }

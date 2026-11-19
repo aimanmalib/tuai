@@ -1,0 +1,15 @@
+{
+ "network": "chipnet",
+ "claims": [
+  {
+   "utc": "2026-11-19T01:06:03.972Z",
+   "address": "bchtest:zp9pp55lnkj2p99hsvpaed95g2dx6e38xs5x0x0h7m",
+   "txid": "4997b741bac51ce4dae947276b1d7820638d986b8213725f95361b11d834d788",
+   "bytes": 1748,
+   "feeSats": 1748,
+   "height": null,
+   "paid": "25000000000"
+  }
+ ],
+ "refusals": []
+}
