@@ -1,0 +1,85 @@
+{
+ "network": "chipnet",
+ "deployment": "chipnet-push-tree",
+ "tipHeight": 338178,
+ "transactions": [
+  {
+   "kind": "prepare-genesis",
+   "txid": "12fa477a27c05116e24b7533a16bfc8a3efbd4eb565e896b4df9cb34853b1492",
+   "bytes": 326,
+   "feeSats": 326,
+   "utc": "2026-11-19T11:22:57.850Z",
+   "height": 338103
+  },
+  {
+   "kind": "token-genesis",
+   "txid": "f0080f1614797db35d1a802deac72a7167fc4aee2f48f2fc511fe3afec460f80",
+   "bytes": 262,
+   "feeSats": 262,
+   "utc": "2026-11-19T11:23:01.282Z",
+   "height": 338103
+  },
+  {
+   "kind": "prepare-genesis",
+   "txid": "784f639856525bbaf0d66f8f251e5c261a4f2aedb04fb1f4b4acfeb6ad0a0e64",
+   "bytes": 185,
+   "feeSats": 185,
+   "utc": "2026-11-19T11:23:23.351Z",
+   "height": 338103
+  },
+  {
+   "kind": "deploy",
+   "txid": "aa9a353473a628ee5f5582aa11050d01658688080207b0b4a908a4900d249523",
+   "bytes": 858,
+   "feeSats": 858,
+   "utc": "2026-11-19T11:23:27.166Z",
+   "height": 338103
+  },
+  {
+   "kind": "propose-epoch-1",
+   "txid": "781357aae6abb25d921140e9624638fe89eec926299b97beabd11afcb16a6ece",
+   "bytes": 1026,
+   "feeSats": 1028,
+   "utc": "2026-11-19T11:24:23.665Z",
+   "height": 338103,
+   "note": "operators 1,2"
+  },
+  {
+   "kind": "activate-epoch-1",
+   "txid": "607ce1a9251f00cbffb63b3a09710be73194cdb4d90f3df30615165ac4cccef5",
+   "bytes": 1688,
+   "feeSats": 1688,
+   "utc": "2026-11-19T11:56:36.350Z",
+   "height": 338137,
+   "note": "pending mined at 338103, tip 338135"
+  },
+  {
+   "kind": "arm-epoch-1",
+   "txid": "1cd76219725bcce8c195285de642a2da149ea73b8161d8ce4c537ee8c4862931",
+   "bytes": 1689,
+   "feeSats": 1689,
+   "utc": "2026-11-19T12:33:03.586Z",
+   "height": 338178,
+   "note": "pending mined at 338137, tip 338170"
+  },
+  {
+   "kind": "push-first-epoch-1",
+   "txid": "b956eef69882b31323dac9b4f8181e38eadcb4015f9a8cfff44ec8ef53429c65",
+   "bytes": 2473,
+   "feeSats": 2473,
+   "utc": "2026-11-19T12:33:25.278Z",
+   "height": 338178,
+   "note": "leaf 150, 4473 sats from the vault"
+  },
+  {
+   "kind": "push-first-epoch-1",
+   "txid": null,
+   "bytes": 2467,
+   "feeSats": 2467,
+   "utc": "2026-11-19T12:33:57.468Z",
+   "height": null,
+   "error": "the transaction was rejected by network rules.\n\nmandatory-script-verify-flag-failed (Script failed an OP_VERIFY operation) (code 16)\n",
+   "note": "leaf 9, 4467 sats from the vault, below the minimum 10000000000"
+  }
+ ]
+}

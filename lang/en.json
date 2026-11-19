@@ -98,7 +98,8 @@
       "empty": "No transactions are recorded for {network} yet.",
       "runs": {
         "chipnet": "Claim pool: claims and the epoch 2 top-up",
-        "chipnet-push": "Second pool: operator push path"
+        "chipnet-push": "Second pool: operator push path",
+        "chipnet-push-tree": "Third pool: operator push on the 300-leaf tree"
       },
       "run": "Deployment {run}",
       "pool": "Pool contract",

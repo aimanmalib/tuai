@@ -98,7 +98,8 @@
       "empty": "Belum ada transaksi direkodkan untuk {network}.",
       "runs": {
         "chipnet": "Kolam tuntutan: tuntutan dan tambahan epoch 2",
-        "chipnet-push": "Kolam kedua: laluan tolak operator"
+        "chipnet-push": "Kolam kedua: laluan tolak operator",
+        "chipnet-push-tree": "Kolam ketiga: tolak operator pada pokok 300 daun"
       },
       "run": "Pelaksanaan {run}",
       "pool": "Kontrak kolam",
