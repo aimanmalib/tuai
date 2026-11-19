@@ -1,8 +1,6 @@
 import { TransactionBuilder, type Output, type SignatureTemplate, type SpendableUtxo, type Unlocker } from 'cashscript';
-import { binsAreEqual } from '@bitauth/libauth';
-import { encodeState } from '../pool/encoding.ts';
 import { unlockerFor, type PoolContracts } from '../pool/contracts.ts';
-import type { PendingUtxo, PoolUtxos } from '../pool/utxos.ts';
+import { shardsOf, type PendingUtxo, type PoolUtxos } from '../pool/utxos.ts';
 import { blockSequence } from '../gate/maturity.ts';
 
 export interface ActivateOptions {
@@ -28,14 +26,18 @@ export interface ActivatePlan {
   feeRate: number;
 }
 
-/** Copies the pending root into the pool state. Valid once the pending UTXO is `activationDelay` blocks old. */
+/**
+ * Copies the pending root into one pool state NFT. Valid once the pending UTXO is `activationDelay` blocks old.
+ * A sharded pool (ADR 0013) activates its stale shards one transaction at a time, oldest epoch first; each
+ * activation recreates the pending UTXO, so the next one waits the delay again.
+ */
 export function planActivate(o: ActivateOptions): ActivatePlan {
   const { pool, gate, params } = o.contracts;
-  const active = o.pool.decodedState;
   const next = o.pending.pending;
-  if (next.epoch <= active.epoch) throw new Error(`nothing to activate: pending epoch ${next.epoch}, active epoch ${active.epoch}`);
-  if (binsAreEqual(encodeState(next), encodeState(active))) throw new Error('the pending root is already active');
-  const state = o.pool.state;
+  const stale = shardsOf(o.pool).filter((s) => s.state.epoch < next.epoch);
+  const target = stale.reduce<(typeof stale)[number] | undefined>((a, s) => (!a || s.state.epoch < a.state.epoch ? s : a), undefined);
+  if (!target) throw new Error(`nothing to activate: pending epoch ${next.epoch}, active epoch ${o.pool.decodedState.epoch}`);
+  const state = target.utxo;
   const pending = o.pending.utxo;
   if (!state.token?.nft || !pending.token?.nft) throw new Error('pool state or pending UTXO has no NFT');
   const payer = o.funding.signer.unlockP2PKH();

@@ -118,8 +118,15 @@ describe('claim page chain view', () => {
     const unconfirmed = chainWith({ gate: [nft('mutable', stateHex('cd'.repeat(32), file.epoch + 1), 0)] });
     expect(pendingBlocksLeft(unconfirmed, record)).toBeUndefined();
   });
-  it('refuses a deployment without exactly one state NFT', () => {
-    expect(() => chainViewFrom(record, 1, [], [], [])).toThrow(/one pool state NFT/);
+  it('refuses a deployment without a state NFT', () => {
+    expect(() => chainViewFrom(record, 1, [], [], [])).toThrow(/no pool state NFT/);
+  });
+  it('reads the newest epoch of a sharded pool as the active root (ADR 0013)', () => {
+    const states = [nft('minting', stateHex('ab'.repeat(32), file.epoch - 1)), nft('minting', stateHex(file.root, file.epoch))];
+    const gate = [nft('mutable', stateHex(file.root, file.epoch))];
+    const view = chainViewFrom(record, 500, states, gate, []);
+    expect(view.active.epoch).toBe(file.epoch);
+    expect(view.pending).toBeUndefined();
   });
 });
 

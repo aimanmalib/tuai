@@ -7,7 +7,7 @@ import { buildTree, type MerkleTree } from '../../src/merkle/tree.ts';
 import { computeRoot, getProof, type MerkleProof } from '../../src/merkle/proof.ts';
 import type { PoolState } from '../../src/pool/encoding.ts';
 import type { PoolContracts, PushParams } from '../../src/pool/contracts.ts';
-import { readPending, readPool, type PoolUtxos } from '../../src/pool/utxos.ts';
+import { readPending, readPool, shardsOf, type PoolUtxos } from '../../src/pool/utxos.ts';
 import { buildDeploy } from '../../src/tx/deploy.ts';
 import { buildPropose } from '../../src/tx/propose.ts';
 import { buildActivate } from '../../src/tx/activate.ts';
@@ -66,6 +66,7 @@ export async function deployPool(
   seed?: string,
   push: PushParams | null = PUSH,
   vaultSats = SATS,
+  shards = 1,
 ): Promise<PoolFixture> {
   // vaultSats: BCH kept with the reward tokens; pushes draw their dust and fee from it.
   const payer = testKey('payer');
@@ -87,6 +88,7 @@ export async function deployPool(
     initialState: state,
     outputSats: SATS,
     vaultSats,
+    shards,
     feeRate: FEE_RATE,
   });
   const sent = await builder.send();
@@ -151,12 +153,17 @@ export async function advanceState(f: PoolFixture, state: PoolState): Promise<Po
     funding: { utxos: [fund(f, funder)], signer: funder.signer, changeAddress: funder.address },
     feeRate: FEE_RATE,
   }).send();
-  await buildActivate({
-    contracts: f.contracts,
-    pool: await readPool(f.contracts),
-    pending: await readPending(f.contracts),
-    funding: { utxos: [fund(f, funder)], signer: funder.signer, changeAddress: funder.address },
-    feeRate: FEE_RATE,
-  }).send();
+  // A sharded pool takes one activation per state NFT (ADR 0013).
+  for (;;) {
+    const pool = await readPool(f.contracts);
+    if (shardsOf(pool).every((s) => s.state.epoch >= state.epoch)) break;
+    await buildActivate({
+      contracts: f.contracts,
+      pool,
+      pending: await readPending(f.contracts),
+      funding: { utxos: [fund(f, funder)], signer: funder.signer, changeAddress: funder.address },
+      feeRate: FEE_RATE,
+    }).send();
+  }
   return readPool(f.contracts);
 }

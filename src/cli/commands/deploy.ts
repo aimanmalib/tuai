@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { TransactionBuilder } from 'cashscript';
 import { buildDeploy } from '../../tx/deploy.ts';
 import { pushParamsFromConfig } from '../../pool/contracts.ts';
+import { MAX_SHARDS } from '../../pool/shards.ts';
 import { flag, requireFlag, type ParsedArgs } from '../args.ts';
 import { broadcast } from '../broadcast.ts';
 import { loadKey, operatorKeys, payerRole, type Context } from '../context.ts';
@@ -14,6 +15,13 @@ function vaultSats(a: ParsedArgs): { vaultSats?: bigint } {
   if (value === undefined) return {};
   if (!/^\d+$/.test(value)) throw new Error('--vault-sats must be a whole number of satoshis');
   return { vaultSats: BigInt(value) };
+}
+
+function shardCount(ctx: Context, a: ParsedArgs): number {
+  const value = flag(a, 'shards');
+  if (value === undefined) return ctx.config.pool.shards;
+  if (!/^\d+$/.test(value) || Number(value) < 1 || Number(value) > MAX_SHARDS) throw new Error(`--shards must be a whole number from 1 to ${MAX_SHARDS}`);
+  return Number(value);
 }
 
 /** `token genesis --amount N`: creates a fungible test token held by the payer key. */
@@ -34,8 +42,10 @@ export async function tokenGenesis(ctx: Context, a: ParsedArgs) {
 }
 
 /**
- * `deploy [--vault-sats N] [--run <name>]`: moves all of the payer's reward tokens into a new pool with an empty root
- * (epoch 0). `--vault-sats` leaves that much BCH with the reward tokens, which operator pushes spend on dust and fees.
+ * `deploy [--vault-sats N] [--shards K] [--run <name>]`: moves all of the payer's reward tokens into a new pool with an
+ * empty root (epoch 0). `--shards` (default `pool.shards` in the config) splits the pool into K state NFT and reward
+ * token pairs, so K claims can confirm in one block (ADR 0013). `--vault-sats` leaves that much BCH with the reward
+ * tokens, which operator pushes spend on dust and fees.
  */
 export async function deploy(ctx: Context, a: ParsedArgs) {
   if (readRunLog(ctx).pool && !a.flags.has('force')) throw new Error(`a pool is already deployed on ${ctx.deployment}; pass --force to replace it, or --run <name> for a separate record`);
@@ -61,6 +71,7 @@ export async function deploy(ctx: Context, a: ParsedArgs) {
     ...params,
     outputSats: BigInt(ctx.config.fees.tokenOutputDustSats),
     ...vaultSats(a),
+    shards: shardCount(ctx, a),
     feeRate: ctx.config.fees.satsPerByte,
   });
   const tx = await broadcast(ctx, builder, { kind: 'deploy', ownInputs: [genesis, ...rewardUtxos], ownLockingBytecode: payer.lockingBytecode });

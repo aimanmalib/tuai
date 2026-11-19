@@ -31,6 +31,7 @@ export interface ClaimSizeReport {
     additionalPushVaultSats: number;
   };
   version1Claim: { depth: number; firstClaimBytes: number; additionalClaimBytes: number };
+  shardedClaim: { shards: number; depth: number; firstClaimBytes: number; additionalClaimBytes: number };
 }
 
 export interface DepthLimits {
@@ -145,5 +146,12 @@ an additional claim ${n(report.version1Claim.additionalClaimBytes)} bytes; with 
 ${n(claimAt(report, report.version1Claim.depth).firstClaimBytes)} and ${n(claimAt(report, report.version1Claim.depth).additionalClaimBytes)} bytes
 (+${n(claimAt(report, report.version1Claim.depth).firstClaimBytes - report.version1Claim.firstClaimBytes)}).
 Version 1 contract sizes: ${Object.entries(report.version1ContractBytes).map(([k, v]) => `${k} ${n(v)} bytes`).join(', ')}.
+
+## Sharded pool
+
+A pool deployed with ${n(report.shardedClaim.shards)} state NFT and reward token pairs (ADR 0013) uses the same contracts,
+so a claim is the same size. At depth ${n(report.shardedClaim.depth)}, a first claim is ${n(report.shardedClaim.firstClaimBytes)} bytes and an
+additional claim ${n(report.shardedClaim.additionalClaimBytes)} bytes on the sharded pool, and
+${n(claimAt(report, report.shardedClaim.depth).firstClaimBytes)} and ${n(claimAt(report, report.shardedClaim.depth).additionalClaimBytes)} bytes on a pool with one pair.
 `;
 }

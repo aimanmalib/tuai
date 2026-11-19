@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { validateRelay, type RelayConfig } from './relay/config.ts';
+import { MAX_SHARDS } from './pool/shards.ts';
 
 export type NetworkName = 'mock' | 'chipnet' | 'mainnet';
 export const NETWORKS: readonly NetworkName[] = ['mock', 'chipnet', 'mainnet'];
@@ -28,6 +29,8 @@ export interface TuaiConfig {
   networks: Record<NetworkName, NetworkConfig>;
   production: { activationDelayBlocks: number; pushDelayBlocks: number };
   tree: { maxDepth: number };
+  /** State NFT copies and reward token UTXOs a new pool is deployed with (ADR 0013); 1 = no sharding. */
+  pool: { shards: number };
   operators: { threshold: number; total: number; publicKeys: string[] };
   fees: { satsPerByte: number; tokenOutputDustSats: number; receiptDustSats: number };
   /** Operator push (ADR 0008): smallest push payment in reward base units (decimal string) and vault BCH per push. */
@@ -147,6 +150,7 @@ export function validateConfig(c: TuaiConfig): string[] {
       problems.push(`networks.${name}.rewardCategory must be 32 bytes of hex`);
     }
   }
+  if (!isPositiveInt(c.pool?.shards) || c.pool.shards > MAX_SHARDS) problems.push(`pool.shards must be 1..${MAX_SHARDS}`);
   if (!isPositiveInt(c.production?.activationDelayBlocks)) problems.push('production.activationDelayBlocks must be > 0');
   if (!isPositiveInt(c.production?.pushDelayBlocks) || c.production.pushDelayBlocks > 0xffff) {
     problems.push('production.pushDelayBlocks must be 1..65535 blocks');

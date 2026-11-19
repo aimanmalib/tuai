@@ -5,7 +5,8 @@ import { assertLeaf, type Leaf } from '../leaf.ts';
 import type { MerkleProof } from '../merkle/proof.ts';
 import { encodeReceipt, findReceipt, receiptKey, type Receipt } from '../pool/encoding.ts';
 import { unlockerFor, type PoolContracts } from '../pool/contracts.ts';
-import type { PoolUtxos, ReceiptUtxo } from '../pool/utxos.ts';
+import { shardsOf, type PoolUtxos, type ReceiptUtxo } from '../pool/utxos.ts';
+import { pickShard } from '../pool/shards.ts';
 
 export interface ClaimOptions {
   contracts: PoolContracts;
@@ -65,9 +66,8 @@ export function planClaimCore(o: ClaimCoreOptions): ClaimCore {
   const claimed = match.kind === 'own' ? match.receipt.claimed : 0n;
   const payment = o.leaf.cumulative - claimed;
   if (payment <= 0n) throw new Error('nothing to claim: this leaf is already fully claimed');
-  const reward = o.pool.rewards.find((u) => (u.token?.amount ?? 0n) > payment);
+  const { state, reward } = pickShard(shardsOf(o.pool), o.pool.rewards, key, payment);
   if (!reward?.token) throw new Error('no reward UTXO holds more than the payment');
-  const state = o.pool.state;
   if (!state.token) throw new Error('pool state UTXO has no token');
 
   const claim = unlockerFor(pool, 'claim')(

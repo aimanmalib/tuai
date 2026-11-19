@@ -29,6 +29,8 @@ const DENSITY_OVERHEAD_BYTES = 41;
 const bytesOf = (tx: TransactionBuilder): number => tx.build().length / 2;
 /** Depth of the push and version 1 measurements (a tree of up to 512 leaves, as in the chipnet demonstration). */
 export const PUSH_DEPTH = 9;
+/** Shards of the sharded-pool measurement (ADR 0013). */
+export const SHARDED_POOL = 4;
 
 function poolInputUsage(tx: TransactionBuilder): PoolInputUsage {
   const m = tx.getVmResourceUsage()[0];
@@ -42,11 +44,11 @@ function poolInputUsage(tx: TransactionBuilder): PoolInputUsage {
   };
 }
 
-async function measureClaims(depth: number, push: PushParams | null = PUSH) {
+async function measureClaims(depth: number, push: PushParams | null = PUSH, shards = 1) {
   const claimant = testKey('size claimant');
   const first = leafFromAddress(claimant.address, 1_000n);
   const one = syntheticProof(first, depth, 2 ** depth - 1);
-  const f = await deployPool(stateFor(one.root), undefined, undefined, push);
+  const f = await deployPool(stateFor(one.root), undefined, undefined, push, SATS, shards);
   const firstTx = assembleClaim(claimPlan(f, await readPool(f.contracts), first, one.proof, claimant), f.provider);
   const firstClaimBytes = bytesOf(firstTx);
   const poolInput = poolInputUsage(firstTx);
@@ -150,7 +152,8 @@ export async function measureReport(): Promise<ClaimSizeReport> {
       'input and one change output, Schnorr signatures, proofs at the deepest index of each depth. Root gate: ' +
       'two ECDSA operator signatures for propose, no operator key for activate; one funding input and one change output each. ' +
       'Push: arm with one funding input and one change output; pushes without keeper inputs (the vault pays). ' +
-      'version1Claim: the same claims on the version 1 contracts (no push path) of the recorded chipnet pool.',
+      'version1Claim: the same claims on the version 1 contracts (no push path) of the recorded chipnet pool. ' +
+      'shardedClaim: the same claims on a pool deployed with several state NFT and reward token pairs (ADR 0013).',
     generatedBy: 'scripts/claim-sizes.ts',
     feeRateSatsPerByte: FEE_RATE,
     contractBytes: { ClaimPool: f.contracts.pool.bytesize, PoolVault: f.contracts.vault.bytesize, RootGate: f.contracts.gate.bytesize },
@@ -159,6 +162,7 @@ export async function measureReport(): Promise<ClaimSizeReport> {
     operator: await measureOperator(f),
     push: await measurePush(PUSH_DEPTH),
     version1Claim: await measureClaims(PUSH_DEPTH, null),
+    shardedClaim: { shards: SHARDED_POOL, ...(await measureClaims(PUSH_DEPTH, PUSH, SHARDED_POOL)) },
   };
 }
 

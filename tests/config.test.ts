@@ -28,6 +28,14 @@ describe('config/tuai.json', () => {
     expect(validateConfig(c).join()).toMatch(/maxDepth/);
   });
 
+  it('rejects a shard count outside 1..64', () => {
+    for (const shards of [0, 65, 1.5]) {
+      const c = clone();
+      c.pool.shards = shards;
+      expect(validateConfig(c).join()).toMatch(/pool\.shards/);
+    }
+  });
+
   it('rejects an invalid cost comparison setup', () => {
     const c = clone();
     c.cost.recipientCounts = [0];

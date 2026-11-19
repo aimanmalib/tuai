@@ -116,8 +116,11 @@ export function chainViewFrom(
   const ofPool = (u: ElectrumUtxo, capability: string) =>
     u.token_data?.category === record.poolCategory && u.token_data.nft?.capability === capability;
   const states = poolUtxos.filter((u) => ofPool(u, 'minting'));
-  if (states.length !== 1) throw new Error(`expected one pool state NFT, found ${states.length}`);
-  const active = decodeState((states[0] as ElectrumUtxo).token_data?.nft?.commitment ?? '');
+  if (states.length === 0) throw new Error('found no pool state NFT');
+  // A sharded pool holds one state NFT per shard; the newest epoch among them is the active root (ADR 0013).
+  const active = states
+    .map((u) => decodeState(u.token_data?.nft?.commitment ?? ''))
+    .reduce((best, s) => (s.epoch > best.epoch ? s : best));
   const gate = gateUtxos.find((u) => ofPool(u, 'mutable'));
   const gateState = gate ? decodeState(gate.token_data?.nft?.commitment ?? '') : undefined;
   const pending = gate && gateState && gateState.epoch > active.epoch ? { state: gateState, height: gate.height } : undefined;

@@ -41,6 +41,9 @@
   "tree": {
     "maxDepth": 24
   },
+  "pool": {
+    "shards": 1
+  },
   "operators": {
     "threshold": 2,
     "total": 3,

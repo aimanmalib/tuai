@@ -10,7 +10,7 @@ at 10,000 bytes.
 
 ## Measured
 
-Transaction sizes in bytes, measured on the CashScript mock network (BCH_2026_05 VM). Claims: one P2PKH funding input and one change output, Schnorr signatures, proofs at the deepest index of each depth. Root gate: two ECDSA operator signatures for propose, no operator key for activate; one funding input and one change output each. Push: arm with one funding input and one change output; pushes without keeper inputs (the vault pays). version1Claim: the same claims on the version 1 contracts (no push path) of the recorded chipnet pool.
+Transaction sizes in bytes, measured on the CashScript mock network (BCH_2026_05 VM). Claims: one P2PKH funding input and one change output, Schnorr signatures, proofs at the deepest index of each depth. Root gate: two ECDSA operator signatures for propose, no operator key for activate; one funding input and one change output each. Push: arm with one funding input and one change output; pushes without keeper inputs (the vault pays). version1Claim: the same claims on the version 1 contracts (no push path) of the recorded chipnet pool. shardedClaim: the same claims on a pool deployed with several state NFT and reward token pairs (ADR 0013).
 
 | Depth | Leaves | First claim (bytes) | Additional claim (bytes) | Input 0 unlocking (bytes) | Input 0 operation cost | Input 0 hash iterations |
 |---|---|---|---|---|---|---|
@@ -59,3 +59,10 @@ an additional claim 1,740 bytes; with the push path they are
 1,938 and 1,787 bytes
 (+47).
 Version 1 contract sizes: ClaimPool 563 bytes, PoolVault 39 bytes, RootGate 337 bytes.
+
+## Sharded pool
+
+A pool deployed with 4 state NFT and reward token pairs (ADR 0013) uses the same contracts,
+so a claim is the same size. At depth 9, a first claim is 1,938 bytes and an
+additional claim 1,787 bytes on the sharded pool, and
+1,938 and 1,787 bytes on a pool with one pair.

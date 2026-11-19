@@ -113,8 +113,10 @@ second chipnet pool of five leaves.
   claim collects every epoch since the last one.
 - **Scale.** `tree.maxDepth` is 24 (16,777,216 leaves). Each level adds one 32-byte sibling to a claim; the binding
   VM limit is the 10,000-byte unlocking bytecode, reached at depth 292 by linear extrapolation
-  ([`docs/DEPTH.md`](docs/DEPTH.md)). All claims spend the one state UTXO, so they are serialized (they can chain
-  within a block).
+  ([`docs/DEPTH.md`](docs/DEPTH.md)). A pool with one state NFT serializes claims (they can chain within a block);
+  `tuai deploy --shards K` splits it into K state NFT and reward token pairs with the same contracts, so K claims
+  built from one view of the chain confirm together and a claim stays the same size (ADR
+  [0013](docs/decisions/0013-sharded-pool.md), sizes in [`docs/DEPTH.md`](docs/DEPTH.md#sharded-pool)).
 - **Root authority.** 2 of 3 operator keys propose; the root becomes claimable after `delay` blocks (144 in
   production, about one day) and anyone can activate it. The delay is an audit window, not a veto.
 - **Receipt layout.** `key(32) || next(32) || claimed(8 LE)` with `key = sha256(lockingBytecode)`, kept in the vault
@@ -239,7 +241,7 @@ tuai epoch verify <epoch file>          # rebuild a root from its inputs
 tuai watch --epoch <file> [--fah daily_user_summary.txt]   # recompute, check links, compare with chain
 tuai watch --deployment deployments/chipnet   # every epoch's root and inputs hash on chain vs recomputed
 tuai token genesis --amount <units>     # test reward token held by the payer key
-tuai deploy [--vault-sats N]            # pool, vault, receipt list head and root gate in one transaction
+tuai deploy [--vault-sats N] [--shards K]   # pool, vault, receipt list head and root gate in one transaction
 tuai propose --epoch <file> [--operators 1,3]   # two of three operators
 tuai activate                           # anyone, once the pending root is old enough
 tuai claim <address> --epoch <file> [--payer <key>]   # pays the leaf's own address
@@ -260,7 +262,7 @@ contract's fund key sends each period's tokens to the pool vault, and the per-ep
 
 ## Configuration
 
-Every value that can change (networks, Electrum servers, timelock lengths, push delay, minimum and BCH limit, tree depth, operator keys, fee and dust
+Every value that can change (networks, Electrum servers, timelock lengths, push delay, minimum and BCH limit, tree depth, shards per new pool, operator keys, fee and dust
 values, sponsor API settings, mainnet spending limit) lives in [`config/tuai.json`](config/tuai.json). CLI text lives
 in [`lang/en.json`](lang/en.json) and [`lang/ms.json`](lang/ms.json).
 
@@ -268,7 +270,10 @@ in [`lang/en.json`](lang/en.json) and [`lang/ms.json`](lang/ms.json).
 
 - Claims are larger than a push output: about 1.9 kB for a first claim at depth 9. The contract was kept readable
   rather than hand-optimized; 20-byte receipt keys and a hand-written script are recorded options in ADR 0002.
-- All claims go through one state UTXO, so two claims in the same moment conflict and one must be rebuilt.
+- A pool with one shard (the recorded chipnet pools) sends every claim through one state UTXO, so two claims in the
+  same moment conflict and one must be rebuilt. Sharded pools remove that for claims on different shards, but two
+  first claims that share a predecessor receipt still conflict, and each epoch needs one activation per shard, each
+  a full delay after the previous one (ADR 0013). No sharded pool has run on chipnet.
 - Operator keys are fixed in the gate. Rotating them means a new deployment.
 - The CLI signs a proposal with two operator key files on one machine.
 - A signed link proves that the key of a method 1 address names a Folding@home user, not that the user controls that

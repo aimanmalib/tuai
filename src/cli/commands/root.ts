@@ -1,5 +1,6 @@
 import { hexToBinChecked } from '../../bytes.ts';
 import { readEpochFile } from '../../epoch/file.ts';
+import { shardsOf } from '../../pool/utxos.ts';
 import { buildActivate } from '../../tx/activate.ts';
 import { buildPropose } from '../../tx/propose.ts';
 import { flag, has, requireFlag, type ParsedArgs } from '../args.ts';
@@ -78,5 +79,7 @@ export async function activate(ctx: Context, a: ParsedArgs) {
     ownLockingBytecode: payer.lockingBytecode,
     ...(note ? { note } : {}),
   });
-  return { activated: stateJson(s.pending.pending), tx };
+  // A sharded pool (ADR 0013) activates one state NFT per transaction; run activate again for the rest.
+  const shardsLeft = shardsOf(s.pool).filter((x) => x.state.epoch < s.pending.pending.epoch).length - 1;
+  return { activated: stateJson(s.pending.pending), shardsLeft, tx };
 }

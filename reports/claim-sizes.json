@@ -1,5 +1,5 @@
 {
-  "description": "Transaction sizes in bytes, measured on the CashScript mock network (BCH_2026_05 VM). Claims: one P2PKH funding input and one change output, Schnorr signatures, proofs at the deepest index of each depth. Root gate: two ECDSA operator signatures for propose, no operator key for activate; one funding input and one change output each. Push: arm with one funding input and one change output; pushes without keeper inputs (the vault pays). version1Claim: the same claims on the version 1 contracts (no push path) of the recorded chipnet pool.",
+  "description": "Transaction sizes in bytes, measured on the CashScript mock network (BCH_2026_05 VM). Claims: one P2PKH funding input and one change output, Schnorr signatures, proofs at the deepest index of each depth. Root gate: two ECDSA operator signatures for propose, no operator key for activate; one funding input and one change output each. Push: arm with one funding input and one change output; pushes without keeper inputs (the vault pays). version1Claim: the same claims on the version 1 contracts (no push path) of the recorded chipnet pool. shardedClaim: the same claims on a pool deployed with several state NFT and reward token pairs (ADR 0013).",
   "generatedBy": "scripts/claim-sizes.ts",
   "feeRateSatsPerByte": 1,
   "contractBytes": {
@@ -120,6 +120,19 @@
       "maximumOperationCost": 751200,
       "hashDigestIterations": 30,
       "maximumHashDigestIterations": 469
+    }
+  },
+  "shardedClaim": {
+    "shards": 4,
+    "depth": 9,
+    "firstClaimBytes": 1938,
+    "additionalClaimBytes": 1787,
+    "poolInput": {
+      "unlockingBytes": 945,
+      "operationCost": 140255,
+      "maximumOperationCost": 788800,
+      "hashDigestIterations": 31,
+      "maximumHashDigestIterations": 493
     }
   }
 }

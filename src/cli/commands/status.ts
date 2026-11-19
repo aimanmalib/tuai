@@ -1,5 +1,5 @@
 import { binToHex } from '@bitauth/libauth';
-import { poolBalance } from '../../pool/utxos.ts';
+import { poolBalance, shardsOf } from '../../pool/utxos.ts';
 import { flag, type ParsedArgs } from '../args.ts';
 import { readLedger } from '../budget.ts';
 import { ledgerPath } from '../broadcast.ts';
@@ -23,6 +23,11 @@ export async function status(ctx: Context, a: ParsedArgs) {
       category: contracts.params.poolCategory,
       rewardCategory: contracts.params.rewardCategory,
       active: stateJson(s.pool.decodedState),
+      // ADR 0013: state NFT copies, and how many still hold an older epoch than the newest one (each needs an activation).
+      shards: {
+        total: shardsOf(s.pool).length,
+        behind: shardsOf(s.pool).filter((x) => x.state.epoch < s.pool.decodedState.epoch).length,
+      },
       pending: { ...stateJson(s.pending.pending), confirmedHeight: s.confirmed ?? null, blocksLeft: s.blocksLeft ?? null },
       height: s.height,
       activationDelay: contracts.params.activationDelay,

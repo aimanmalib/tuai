@@ -78,6 +78,10 @@ Three contracts share one **pool token category** (the txid of the deploy transa
   The recorded chipnet pool uses them: its `deployments/chipnet/pool.json` has no `push` field.
 - `PoolVault.spend` only requires input 0 to hold the pool category's minting NFT. That NFT never leaves `ClaimPool`,
   so the `ClaimPool` script at input 0 decides every vault spend.
+- A sharded pool (ADR 0013, `tuai deploy --shards K`) holds K state NFTs and K reward token UTXOs, all created by the
+  deploy transaction after the version 1 outputs; the contracts are unchanged. A claim spends one of each, chosen
+  from the first four bytes of its receipt key. Each shard is activated in its own transaction; the newest epoch
+  among the shards is the active root.
 - Each kept UTXO (state, pending root, reward tokens, receipts) keeps its exact satoshi value through every
   transaction.
 
