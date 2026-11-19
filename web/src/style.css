@@ -205,3 +205,13 @@ button.small { min-height: 2.25rem; padding: 0.25rem 0.75rem; font-size: 0.875re
 .qr { display: block; width: 100%; height: auto; }
 .qr-bg { fill: var(--panel); }
 .qr-dot { fill: var(--ink); }
+
+/* The page's own on-chain check under each transaction. */
+.chain-check { margin: 0.15rem 0; font-size: 0.85rem; color: var(--ink-soft); overflow-wrap: anywhere; }
+.chain-check[data-chain='confirmed'] { color: var(--stalk); font-weight: 600; }
+.chain-check[data-chain='confirmed']::before { content: '\2713\00a0'; }
+.chain-check[data-chain='unknown'],
+.chain-check[data-chain='error'] { color: var(--husk); }
+.tx-actions .explorer-link,
+.explorer-links .explorer-link { overflow-wrap: anywhere; }
+.explorer-links { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }

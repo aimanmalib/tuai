@@ -122,3 +122,8 @@ export function renderGate(target: HTMLElement, chain: ChainView, blocksLeft: nu
   target.replaceChildren(el('h2', {}, t('gate.heading')), ...lines);
   target.hidden = false;
 }
+
+/** One link per explorer, each named: "Open in <name>" from the given lang key. */
+export function explorerAnchors(links: readonly { name: string; url: string }[], key: string): HTMLElement[] {
+  return links.map((l) => el('a', { href: l.url, rel: 'noopener', target: '_blank', class: 'explorer-link' }, t(key, { name: l.name })));
+}

@@ -89,3 +89,20 @@ test('the relayer status names the network and says when it is running low', asy
   expect(Number.isInteger(s.warnClaimsLeft)).toBe(true);
   expect(s.low).toBe(s.claimsLeft! <= s.warnClaimsLeft!);
 });
+
+test('the activity page checks the recorded deploy transaction on chain itself and shows its block', async ({ page }) => {
+  test.setTimeout(120_000);
+  const res = await page.request.get('/epochs/chipnet/transactions.json');
+  const index = (await res.json()) as { runs: { run: string; transactions: { step: string; txid: string | null; height: number | null; error?: string }[] }[] };
+  const deploy = index.runs.flatMap((r) => r.transactions).find((t) => t.step === 'deploy' && t.txid !== null && t.error === undefined && t.height !== null);
+  expect(deploy, 'a mined deploy transaction in the served record').toBeDefined();
+  await page.goto('/#/activity');
+  const badge = page.locator(`.chain-check[data-txid="${deploy!.txid}"]`).first();
+  await expect(badge).toHaveAttribute('data-chain', 'confirmed', { timeout: 60_000 });
+  await expect(badge).toHaveText(new RegExp(`^Confirmed on chain, block ${deploy!.height} \\(checked by this page via \\S+\\)$`));
+  await expect(page.locator('.chain-check[data-chain="pending"]')).toHaveCount(0, { timeout: 60_000 });
+  if (process.env.SCREENSHOT_DIR) {
+    await badge.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-p3b-live-chain-${test.info().project.name}.png` });
+  }
+});

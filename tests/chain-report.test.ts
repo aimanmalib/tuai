@@ -10,12 +10,21 @@ const rows: PublicTx[] = [
 
 describe('chain report', () => {
   it('lists every attempt with its full txid, block and result', () => {
-    const t = renderTransactions(rows, 'https://x.example/tx/').split('\n');
+    const t = renderTransactions(rows, [{ name: 'x', txUrl: 'https://x.example/tx/' }]).split('\n');
     expect(t).toHaveLength(5);
     expect(t[2]).toBe(`| 1 | 2026-11-18 00:05:05 | deploy | [\`${TXID}\`](https://x.example/tx/${TXID}) | 858 | 858 | 336006 | accepted |`);
     expect(t[3]).toContain('| not mined |');
     expect(t[3]).toContain('refused: BIP68 \\| lock non-BIP68-final (code 64) |');
     expect(t[4]).toMatch(/\| - \| accepted \(leaf 0\) \|$/);
+  });
+
+  it('links the txid to the primary explorer and names the others after it', () => {
+    const two = [
+      { name: 'x', txUrl: 'https://x.example/tx/' },
+      { name: 'Second', txUrl: 'https://y.example/chipnet/tx/' },
+    ];
+    expect(renderTransactions(rows, two).split('\n')[2]).toContain(`| [\`${TXID}\`](https://x.example/tx/${TXID}) ([Second](https://y.example/chipnet/tx/${TXID})) |`);
+    expect(renderTransactions(rows, []).split('\n')[2]).toContain(`| \`${TXID}\` |`);
   });
 
   it('replaces only the marked block', () => {

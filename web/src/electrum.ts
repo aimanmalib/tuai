@@ -1,5 +1,6 @@
 // Minimal Electrum JSON-RPC client over WebSocket (protocol 1.5, Fulcrum). Read-only: no keys, no broadcasts.
 import type { ElectrumUtxo } from './model.ts';
+import { checkTransactions, type ChainCheck } from './chain-check.ts';
 
 type Pending = { resolve: (v: unknown) => void; reject: (e: Error) => void; timer: ReturnType<typeof setTimeout> };
 
@@ -122,6 +123,31 @@ export async function readHistories(
       addresses.map((a) => socket.request<{ tx_hash: string; height: number }[]>('blockchain.address.get_history', a)),
     );
     return new Map(addresses.map((a, i) => [a, lists[i] ?? []]));
+  } finally {
+    socket.close();
+  }
+}
+
+/**
+ * Checks each transaction on chain through one connection and reports every verdict; when the server cannot be reached
+ * or its tip cannot be read, every transaction is reported as not checked with that reason.
+ */
+export async function checkOnChain(
+  url: string,
+  timeoutMs: number,
+  txids: readonly string[],
+  concurrency: number,
+  onResult: (txid: string, check: ChainCheck) => void,
+): Promise<void> {
+  if (txids.length === 0) return;
+  const socket = new ElectrumSocket(url, timeoutMs);
+  try {
+    await socket.connect();
+    await socket.request('server.version', 'tuai-web', '1.5');
+    const tip = await socket.request<{ height: number }>('blockchain.headers.get_tip');
+    await checkTransactions((method, ...params) => socket.request<unknown>(method, ...params), tip.height, txids, concurrency, onResult);
+  } catch (e) {
+    for (const txid of new Set(txids)) onResult(txid, { kind: 'error', reason: (e as Error).message });
   } finally {
     socket.close();
   }

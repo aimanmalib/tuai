@@ -4,14 +4,15 @@ import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 import { collectEpochFiles } from './scripts/web-epochs.ts';
 import { buildTxIndex, txIndexFiles } from './scripts/tx-index.ts';
+import { explorersOf, type Explorer } from './src/explorers.ts';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const config = JSON.parse(readFileSync(`${root}/config/tuai.json`, 'utf8')) as {
   web: { networks: string[]; epochsPath: string; deploymentsDir: string };
-  networks: Record<string, { explorerTxUrl?: string }>;
+  networks: Record<string, { explorerTxUrl?: string; explorers?: Explorer[] }>;
 };
 const { networks, epochsPath, deploymentsDir } = config.web;
-const explorers = Object.fromEntries(Object.entries(config.networks).map(([n, c]) => [n, c.explorerTxUrl]));
+const explorers = Object.fromEntries(Object.entries(config.networks).map(([n, c]) => [n, explorersOf(c)]));
 
 /** Serves the committed deployment files and the activity index under the epochs path in dev, and writes them into the build. */
 function epochFiles(): Plugin {

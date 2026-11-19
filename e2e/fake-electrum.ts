@@ -35,6 +35,22 @@ export interface FakeChain {
   tip?: number;
   /** `blockchain.address.get_history` answers by address; an address not listed has no history. */
   history?: Record<string, { tx_hash: string; height: number }[]>;
+  /**
+   * Verbose `blockchain.transaction.get` answers by txid: a block height (confirmed), `mempool`, or `error` (the
+   * server fails the request). A txid not listed is unknown to the server.
+   */
+  transactions?: Record<string, number | 'mempool' | 'error'>;
+}
+
+const UNKNOWN_TX = "daemon error: DaemonError({'code': -5, 'message': 'No such mempool or blockchain transaction.'})";
+
+/** The server's answer to `blockchain.transaction.get` for one txid, as a result or an error message. */
+function txAnswer(chain: FakeChain, tip: number, txid: string): { result: unknown } | { error: string } {
+  const entry = chain.transactions?.[txid];
+  if (entry === undefined) return { error: UNKNOWN_TX };
+  if (entry === 'error') return { error: 'internal error' };
+  if (entry === 'mempool') return { result: { txid, hex: '' } };
+  return { result: { txid, hex: '', confirmations: tip - entry + 1 } };
 }
 
 const stateHex = (root: string, e: number) =>
@@ -65,6 +81,12 @@ export async function fakeElectrum(page: Page, chain: FakeChain = {}): Promise<v
   await page.routeWebSocket(config.networks.chipnet.electrum.wssUrl, (ws) => {
     ws.onMessage((raw) => {
       const msg = JSON.parse(String(raw)) as { id: number; method: string; params: unknown[] };
+      if (msg.method === 'blockchain.transaction.get') {
+        const a = txAnswer(chain, tip, String(msg.params[0]));
+        const body = 'error' in a ? { error: { code: 2, message: a.error } } : { result: a.result };
+        ws.send(JSON.stringify({ jsonrpc: '2.0', id: msg.id, ...body }));
+        return;
+      }
       const result =
         msg.method === 'server.version'
           ? ['Fake', '1.5']

@@ -3,6 +3,7 @@
  * The relayer does not write files: an operator checks each claim on chain with scripts/page-claims.ts, which uses
  * `checkPageClaim` here and keeps the result in deployments/<deployment>/page-claims.json.
  */
+import { markdownTxCell, type Explorer } from '../explorers.ts';
 import { binToHex } from '../bytes.ts';
 
 export interface ClaimOutput {
@@ -72,11 +73,11 @@ export function checkPageClaim(outputs: readonly ClaimOutput[], e: PageClaimExpe
 }
 
 /** Markdown for the "Chipnet claims from the page" section. */
-export function renderPageClaims(r: PageClaimsRecord, explorerTxUrl: string): string {
+export function renderPageClaims(r: PageClaimsRecord, explorers: readonly Explorer[]): string {
   const lines = ['| # | When (UTC) | Leaf address | Transaction | Bytes | Fee (sat) | Block | Tokens paid |', '|---|---|---|---|---|---|---|---|'];
   r.claims.forEach((c, i) => {
     lines.push(
-      `| ${i + 1} | ${c.utc.replace('T', ' ').slice(0, 19)} | \`${c.address}\` | [\`${c.txid}\`](${explorerTxUrl}${c.txid}) | ${c.bytes} | ${c.feeSats} | ${c.height ?? '-'} | ${c.paid} |`,
+      `| ${i + 1} | ${c.utc.replace('T', ' ').slice(0, 19)} | \`${c.address}\` | ${markdownTxCell(explorers, c.txid)} | ${c.bytes} | ${c.feeSats} | ${c.height ?? '-'} | ${c.paid} |`,
     );
   });
   if (r.refusals.length > 0) {

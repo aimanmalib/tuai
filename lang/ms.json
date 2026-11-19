@@ -92,7 +92,7 @@
     },
     "activity": {
       "heading": "Setiap transaksi di {network}",
-      "intro": "Setiap langkah demonstrasi seperti yang dihantar, mengikut tertib, termasuk yang ditolak nod. Pautan membuka transaksi dalam penjelajah blok.",
+      "intro": "Setiap langkah demonstrasi seperti yang dihantar, mengikut urutan, termasuk yang ditolak nod. Halaman ini sendiri bertanya kepada pelayan Electrum chipnet tentang setiap transaksi yang disenaraikan dan memaparkan jawapannya di bawahnya. Pautan membuka transaksi dalam penjelajah blok.",
       "loading": "Memuatkan rekod transaksi",
       "failed": "Rekod transaksi tidak dapat dimuatkan ({reason}).",
       "empty": "Belum ada transaksi direkodkan untuk {network}.",
@@ -126,9 +126,16 @@
       "block": "blok {height}",
       "unconfirmed": "belum dalam blok",
       "refused": "Ditolak nod",
-      "explorer": "Buka dalam penjelajah",
+      "explorer": "Buka dalam {name}",
       "copy": "Salin",
       "copied": "Disalin",
+      "chain": {
+        "checking": "Menyemak di rantaian",
+        "confirmed": "Disahkan di rantaian, blok {height} (disemak oleh halaman ini melalui {server})",
+        "mempool": "Belum masuk blok (disemak oleh halaman ini melalui {server})",
+        "unknown": "Tidak dapat menyemak: {server} tidak mengenali transaksi ini",
+        "failed": "Tidak dapat menyemak di rantaian melalui {server}: {reason}"
+      },
       "topup": {
         "heading": "Tambahan epoch {epoch}",
         "text": "{leaves} daun memperoleh {total} token secara kumulatif hingga epoch {epoch}, {added} lebih daripada epoch {previous}. Amaun yang sudah dituntut dibawa ke hadapan: setiap daun hanya boleh menuntut bezanya."
@@ -153,7 +160,7 @@
       "button": "Tuntut sekarang, yuran dibayar geganti demo (chipnet)",
       "working": "Membina dan menghantar tuntutan. Ini boleh mengambil masa sehingga seminit.",
       "done": "Tuntutan dihantar. Transaksi:",
-      "explorer": "Buka dalam penjelajah",
+      "explorer": "Buka dalam {name}",
       "again": "Cuba tuntut sekali lagi",
       "againText": "Alamat ini sudah menuntut semua yang diperolehnya setakat ini. Cuba tuntut jumlah yang sama kali kedua: kontrak menolaknya, dan jawapannya dipaparkan di sini.",
       "againWorking": "Menghantar tuntutan kedua untuk jumlah yang sama.",

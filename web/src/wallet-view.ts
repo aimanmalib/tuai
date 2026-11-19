@@ -1,5 +1,6 @@
 // "Claim with your own wallet" on an address card (docs/decisions/0012-wallet-claims.md). The relay prepares, this
 // page checks every input and output (wallet-check.ts), the wallet signs and broadcasts. Text only via textContent.
+import type { Explorer } from '../../src/explorers.ts';
 import { binToHex, hashTransactionUiOrder, hexToBin } from '@bitauth/libauth';
 import qrcode from 'qrcode-generator';
 import { t } from './i18n.ts';
@@ -18,7 +19,7 @@ export interface WalletViewOptions {
   scanAddresses: number;
   relayUrls: string[];
   timeoutMs: number;
-  explorerTxUrl: string | undefined;
+  explorers: readonly Explorer[];
   onSent: (answer: RelayAnswer) => void;
 }
 
@@ -124,7 +125,7 @@ export function renderWalletClaim(target: HTMLElement, o: WalletViewOptions): vo
         const signed = await session.sign(checked.request, checked.inputPaths, signal);
         const txid = binToHex(hashTransactionUiOrder(hexToBin(signed)));
         const answer: RelayAnswer = { code: 'claimed', txid };
-        showAnswer(out, answer, o.explorerTxUrl);
+        showAnswer(out, answer, o.explorers);
         o.onSent(answer);
       } catch (e) {
         say('error', signal.aborted ? t('walletClaim.cancelled') : t('walletClaim.failed', { message: (e as Error).message.slice(0, 200) }));

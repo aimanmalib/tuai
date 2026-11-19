@@ -1,6 +1,7 @@
 // "Claim now" and "Try to claim again" on an address card, through the chipnet demo relayer. Text only via textContent.
 import { t } from './i18n.ts';
-import { el } from './render.ts';
+import { el, explorerAnchors } from './render.ts';
+import { explorerLinks, type Explorer } from '../../src/explorers.ts';
 import { relayClaim, type RelayAnswer, type RelayStatus } from './relay.ts';
 
 export interface RelayViewOptions {
@@ -10,7 +11,7 @@ export interface RelayViewOptions {
   claimed: bigint;
   claimPath: string;
   timeoutMs: number;
-  explorerTxUrl: string | undefined;
+  explorers: readonly Explorer[];
   /** The outcome of the last action on this address, shown again after the card is read from the chain. */
   notice: RelayAnswer | undefined;
   /** Called after a claim was sent, to read the chain again. */
@@ -21,11 +22,15 @@ const KNOWN = new Set(['nothingToClaim', 'notInEpoch', 'epochMissing', 'hourFull
   'badRequest', 'tooLarge', 'guardRefused', 'feeTooHigh', 'nodeRefused', 'chainError', 'notClaimedYet', 'notRefusedLocally', 'acceptedAgain']);
 
 /** Renders the outcome of a relayer answer into `out`. */
-export function showAnswer(out: HTMLElement, a: RelayAnswer, explorerTxUrl: string | undefined): void {
+export function showAnswer(out: HTMLElement, a: RelayAnswer, explorers: readonly Explorer[]): void {
   if (a.code === 'claimed' && a.txid) {
-    const link = explorerTxUrl ? el('a', { href: `${explorerTxUrl}${a.txid}`, target: '_blank', rel: 'noopener' }, t('relay.explorer')) : false;
+    const links = explorerAnchors(explorerLinks(explorers, a.txid), 'relay.explorer');
     out.className = 'relay-out ok';
-    out.replaceChildren(el('p', {}, t('relay.done')), el('p', {}, el('code', { class: 'hash', id: 'relay-txid' }, a.txid)), link ? el('p', {}, link) : '');
+    out.replaceChildren(
+      el('p', {}, t('relay.done')),
+      el('p', {}, el('code', { class: 'hash', id: 'relay-txid' }, a.txid)),
+      links.length > 0 ? el('p', { class: 'explorer-links' }, ...links) : '',
+    );
     return;
   }
   if (a.code === 'refused') {
@@ -47,7 +52,7 @@ export function renderRelay(target: HTMLElement, o: RelayViewOptions): void {
   const again = o.claimable === 0n && o.claimed > 0n;
   if (o.claimable === 0n && !again) return;
   const out = el('div', { class: 'relay-out', id: 'relay-out', role: 'status', 'aria-live': 'polite' });
-  if (o.notice) showAnswer(out, o.notice, o.explorerTxUrl);
+  if (o.notice) showAnswer(out, o.notice, o.explorers);
   const parts: HTMLElement[] = [el('h3', { id: 'relay-h' }, t('relay.heading'))];
   if (!o.status.enabled) {
     if (again) return;
@@ -60,7 +65,7 @@ export function renderRelay(target: HTMLElement, o: RelayViewOptions): void {
       out.className = 'relay-out';
       out.replaceChildren(el('p', {}, t(again ? 'relay.againWorking' : 'relay.working')));
       void relayClaim(o.claimPath, o.address, again, o.timeoutMs).then((a) => {
-        showAnswer(out, a, o.explorerTxUrl);
+        showAnswer(out, a, o.explorers);
         if (a.code === 'claimed') o.onSent(a);
         else button.disabled = false;
       });

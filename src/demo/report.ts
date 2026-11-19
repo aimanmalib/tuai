@@ -1,3 +1,4 @@
+import { markdownTxCell, type Explorer } from '../explorers.ts';
 /** Public record of one network's demonstration transactions, written from the operator's run log. */
 export interface PublicTx {
   kind: string;
@@ -16,10 +17,10 @@ const MARK = (net: string, end = false) => `<!-- ${net}-transactions:${end ? 'en
 const cell = (s: string): string => s.replace(/\s+/g, ' ').replace(/\|/g, '\\|').trim();
 
 /** Markdown table of every attempt, refused ones included, in the order they were made. */
-export function renderTransactions(rows: readonly PublicTx[], explorerTxUrl: string): string {
+export function renderTransactions(rows: readonly PublicTx[], explorers: readonly Explorer[]): string {
   const lines = ['| # | When (UTC) | Step | Transaction | Bytes | Fee (sat) | Block | Result |', '|---|---|---|---|---|---|---|---|'];
   rows.forEach((r, i) => {
-    const tx = r.txid ? `[\`${r.txid}\`](${explorerTxUrl}${r.txid})` : 'not mined';
+    const tx = r.txid ? markdownTxCell(explorers, r.txid) : 'not mined';
     const result = r.error ? `refused: ${cell(r.error).slice(0, 200)}` : r.note ? `accepted (${cell(r.note)})` : 'accepted';
     const when = r.utc.replace('T', ' ').slice(0, 19);
     lines.push(`| ${i + 1} | ${when} | ${r.kind} | ${tx} | ${r.bytes} | ${r.feeSats} | ${r.height ?? '-'} | ${result} |`);

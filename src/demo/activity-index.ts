@@ -1,4 +1,5 @@
 // Shape of the public activity index (<epochsPath>/<network>/transactions.json), shared by the generator and the page.
+import type { ExplorerLink } from '../explorers.ts';
 
 export interface ActivityTx {
   /** Step without its epoch or counter, e.g. `claim-first`; the page labels it from lang. */
@@ -12,8 +13,8 @@ export interface ActivityTx {
   utc: string;
   note?: string;
   error?: string;
-  /** Explorer link for mined transactions; null for refused ones or when the network has no explorer configured. */
-  url: string | null;
+  /** One link per configured explorer for mined transactions, primary first; empty for refused ones or without explorers. */
+  links: ExplorerLink[];
 }
 
 export interface EpochTotal {

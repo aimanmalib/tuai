@@ -48,7 +48,7 @@ describe('checking a claim made from the page', () => {
         claims: [{ utc: '2026-11-18T22:00:00.000Z', address: 'bchtest:qx', txid: 'ef'.repeat(32), bytes: 1900, feeSats: 1900, height: 5, paid: '500' }],
         refusals: [{ utc: '2026-11-18T22:01:00.000Z', address: 'bchtest:qx', message: 'mandatory-script-verify-flag-failed `x`' }],
       },
-      'https://explorer.example/tx/',
+      [{ name: 'Explorer', txUrl: 'https://explorer.example/tx/' }],
     );
     expect(md).toContain(`| 1 | 2026-11-18 22:00:00 | \`bchtest:qx\` | [\`${'ef'.repeat(32)}\`](https://explorer.example/tx/${'ef'.repeat(32)}) | 1900 | 1900 | 5 | 500 |`);
     expect(md).toContain("- 2026-11-18 22:01:00 UTC, `bchtest:qx`: refused, `mandatory-script-verify-flag-failed 'x'`");

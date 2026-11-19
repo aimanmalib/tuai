@@ -1,6 +1,8 @@
 // DOM output for the activity page and the per-epoch history on an address result. Text only through textContent.
 import { getLocale, t } from './i18n.ts';
-import { el } from './render.ts';
+import { el, explorerAnchors } from './render.ts';
+import { explorerLinks, type Explorer } from '../../src/explorers.ts';
+import type { ChainCheck } from './chain-check.ts';
 import { formatUnits } from './model.ts';
 import { refusedCount, topUps, type ActivityIndex, type ActivityRun, type ActivityTx, type EpochEntry } from './activity.ts';
 
@@ -22,6 +24,32 @@ function copyButton(text: string): HTMLElement {
     );
   });
   return el('span', { class: 'copy-row' }, button, feedback);
+}
+
+/** Where the page's own on-chain check of a transaction is shown; filled by `showChainCheck`. */
+function chainSlot(txid: string): HTMLElement {
+  return el('p', { class: 'chain-check', 'data-chain': 'pending', 'data-txid': txid }, t('activity.chain.checking'));
+}
+
+/** Txids with an unfilled chain check slot inside `root`. */
+export const pendingChecks = (root: ParentNode): string[] =>
+  [...root.querySelectorAll<HTMLElement>('.chain-check[data-chain="pending"]')].map((e) => e.dataset.txid ?? '').filter(Boolean);
+
+/** Writes one verdict into every slot for that txid: a confirmation only from an answer the page checked itself. */
+export function showChainCheck(root: ParentNode, txid: string, check: ChainCheck, server: string): void {
+  const text =
+    check.kind === 'confirmed'
+      ? t('activity.chain.confirmed', { height: check.height, server })
+      : check.kind === 'mempool'
+        ? t('activity.chain.mempool', { server })
+        : check.kind === 'unknown'
+          ? t('activity.chain.unknown', { server })
+          : t('activity.chain.failed', { server, reason: check.reason });
+  for (const slot of root.querySelectorAll<HTMLElement>('.chain-check')) {
+    if (slot.dataset.txid !== txid) continue;
+    slot.dataset.chain = check.kind;
+    slot.textContent = text;
+  }
 }
 
 function txItem(tx: ActivityTx): HTMLElement {
@@ -49,12 +77,8 @@ function txItem(tx: ActivityTx): HTMLElement {
     head,
     tx.txid === null ? false : el('code', { class: 'hash' }, tx.txid),
     el('p', { class: 'tx-meta' }, meta.join(' · ')),
-    el(
-      'div',
-      { class: 'tx-actions' },
-      tx.url === null ? false : el('a', { href: tx.url, rel: 'noopener', target: '_blank' }, t('activity.explorer')),
-      tx.txid === null ? false : copyButton(tx.txid),
-    ),
+    tx.txid === null ? false : chainSlot(tx.txid),
+    el('div', { class: 'tx-actions' }, ...explorerAnchors(tx.links, 'activity.explorer'), tx.txid === null ? false : copyButton(tx.txid)),
   );
 }
 
@@ -103,27 +127,23 @@ export function renderActivity(target: HTMLElement, index: ActivityIndex, networ
 }
 
 /** Fills the "seen on chain" slot with unrecorded transactions, or says why the chain could not be read. */
-export function renderSeen(target: HTMLElement, items: { txid: string; height: number }[] | { error: string }, explorerTxUrl: string | undefined): void {
+export function renderSeen(target: HTMLElement, items: { txid: string; height: number }[] | { error: string }, explorers: readonly Explorer[]): void {
   const parts: HTMLElement[] = [el('h3', { id: 'seen-h' }, t('activity.seen.heading')), el('p', { class: 'note' }, t('activity.seen.text'))];
   if ('error' in items) parts.push(el('p', { class: 'warn', role: 'status' }, items.error));
   else if (items.length === 0) parts.push(el('p', { id: 'seen-none' }, t('activity.seen.none')));
-  else parts.push(el('ol', { class: 'txs', id: 'seen-list' }, ...items.map((s) => seenItem(s, explorerTxUrl))));
+  else parts.push(el('ol', { class: 'txs', id: 'seen-list' }, ...items.map((s) => seenItem(s, explorers))));
   target.replaceChildren(...parts);
 }
 
-function seenItem(s: { txid: string; height: number }, explorerTxUrl: string | undefined): HTMLElement {
+function seenItem(s: { txid: string; height: number }, explorers: readonly Explorer[]): HTMLElement {
   return el(
     'li',
     { class: 'tx' },
     el('div', { class: 'tx-head' }, el('span', { class: 'tx-step' }, t('activity.seen.item'))),
     el('code', { class: 'hash' }, s.txid),
     el('p', { class: 'tx-meta' }, s.height > 0 ? t('activity.block', { height: s.height }) : t('activity.unconfirmed')),
-    el(
-      'div',
-      { class: 'tx-actions' },
-      explorerTxUrl ? el('a', { href: `${explorerTxUrl}${s.txid}`, rel: 'noopener', target: '_blank' }, t('activity.explorer')) : false,
-      copyButton(s.txid),
-    ),
+    chainSlot(s.txid),
+    el('div', { class: 'tx-actions' }, ...explorerAnchors(explorerLinks(explorers, s.txid), 'activity.explorer'), copyButton(s.txid)),
   );
 }
 

@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { validateRelay, type RelayConfig } from './relay/config.ts';
 import { MAX_SHARDS } from './pool/shards.ts';
+import { explorerProblems, type Explorer } from './explorers.ts';
 
 export type NetworkName = 'mock' | 'chipnet' | 'mainnet';
 export const NETWORKS: readonly NetworkName[] = ['mock', 'chipnet', 'mainnet'];
@@ -15,8 +16,10 @@ export interface NetworkConfig {
   /** `hostname` for the CLI (TCP/TLS through CashScript); `wssUrl` for the claim page in a browser. */
   electrum?: { hostname: string; wssUrl?: string };
   rewardCategory?: string;
-  /** Block explorer page for a transaction; the txid is appended. */
+  /** Older single explorer, read when `explorers` is absent (src/explorers.ts). */
   explorerTxUrl?: string;
+  /** Block explorers, primary first; the txid is appended to each `txUrl`. */
+  explorers?: Explorer[];
   /**
    * Blocks the network's nodes require per unit of a block-count sequence lock (measured 10 on chipnet with
    * one-minute blocks, so a lock keeps its ten-minute meaning). Absent: 1.
@@ -77,6 +80,8 @@ export interface WebConfig {
   networks: NetworkName[];
   defaultNetwork: NetworkName;
   electrumTimeoutSeconds: number;
+  /** Transactions the activity page asks Electrum about at the same time when it checks each one on chain. */
+  chainCheckConcurrency: number;
   /** URL path the epoch files are served under: `<epochsPath>/<network>/epoch-<n>.json`. */
   epochsPath: string;
   /** Repository folder the served files are copied from. */
@@ -143,9 +148,7 @@ export function validateConfig(c: TuaiConfig): string[] {
     if (n.sequenceBlockScale !== undefined && !isPositiveInt(n.sequenceBlockScale)) {
       problems.push(`networks.${name}.sequenceBlockScale must be > 0`);
     }
-    if (n.explorerTxUrl !== undefined && !/^https:\/\/.+\/$/.test(n.explorerTxUrl)) {
-      problems.push(`networks.${name}.explorerTxUrl must be an https URL ending in /`);
-    }
+    problems.push(...explorerProblems(name, n));
     if (n.rewardCategory && !/^[0-9a-f]{64}$/.test(n.rewardCategory)) {
       problems.push(`networks.${name}.rewardCategory must be 32 bytes of hex`);
     }
@@ -203,6 +206,7 @@ function validateWeb(c: TuaiConfig): string[] {
     if (!/^wss:\/\//.test(c.networks?.[n]?.electrum?.wssUrl ?? '')) out.push(`networks.${n}.electrum.wssUrl must be a wss URL`);
   }
   if (!isPositiveInt(w.electrumTimeoutSeconds)) out.push('web.electrumTimeoutSeconds must be > 0');
+  if (!isPositiveInt(w.chainCheckConcurrency) || w.chainCheckConcurrency > 16) out.push('web.chainCheckConcurrency must be 1..16');
   if (!/^\/[a-z0-9-]+$/.test(w.epochsPath ?? '')) out.push('web.epochsPath must be one absolute path segment');
   if (w.defaultLocale !== 'en' && w.defaultLocale !== 'ms') out.push('web.defaultLocale must be en or ms');
   return out;

@@ -21,6 +21,12 @@
       "pushDelayBlocks": 3,
       "rewardCategory": "",
       "explorerTxUrl": "https://cbch.loping.net/tx/",
+      "explorers": [
+        {
+          "name": "cbch.loping.net",
+          "txUrl": "https://cbch.loping.net/tx/"
+        }
+      ],
       "sequenceBlockScale": 10
     },
     "mainnet": {
@@ -116,6 +122,7 @@
     ],
     "defaultNetwork": "chipnet",
     "electrumTimeoutSeconds": 20,
+    "chainCheckConcurrency": 4,
     "epochsPath": "/epochs",
     "deploymentsDir": "deployments",
     "defaultLocale": "en",
@@ -149,6 +156,7 @@
     "maxFeeSatsPerClaim": 4000,
     "maxBodyBytes": 1024,
     "electrumTimeoutSeconds": 20,
+    "chainCheckConcurrency": 4,
     "keyFileEnv": "TUAI_RELAY_KEY_FILE",
     "offEnv": "TUAI_RELAY_OFF",
     "keyRole": "relay-chipnet",

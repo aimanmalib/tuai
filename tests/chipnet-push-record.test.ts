@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { REPO_ROOT, loadConfig } from '../src/config.ts';
 import { verifyEpoch } from '../src/epoch/verify.ts';
+import { explorersOf } from '../src/explorers.ts';
 import { renderTransactions, type PublicTx } from '../src/demo/report.ts';
 
 const dir = resolve(REPO_ROOT, 'deployments/chipnet-push');
@@ -31,7 +32,7 @@ describe('committed chipnet operator push demonstration', () => {
 
   it('MEASURED.md shows the same table as transactions.json', () => {
     const doc = readFileSync(resolve(REPO_ROOT, 'docs/MEASURED.md'), 'utf8');
-    const url = loadConfig().networks.chipnet.explorerTxUrl ?? '';
+    const url = explorersOf(loadConfig().networks.chipnet);
     expect(doc).toContain(renderTransactions(record.transactions, url));
   });
 });

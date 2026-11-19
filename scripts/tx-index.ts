@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import type { PublicTx } from '../src/demo/report.ts';
 import type { ServedFile } from './web-epochs.ts';
 import type { PageClaimsRecord } from '../src/demo/page-claims.ts';
+import { explorerLinks, type Explorer } from '../src/explorers.ts';
 import { parseKind, type ActivityIndex, type ActivityRun, type ActivityTx, type EpochTotal } from '../src/demo/activity-index.ts';
 
 export { parseKind };
@@ -19,7 +20,7 @@ const CHECKED_CLAIMS = [
   { file: 'auto-claims.json', step: 'claim-auto' },
 ] as const;
 
-function checkedClaimTxs(dir: string, run: string, network: string, explorer: string | undefined, source: (typeof CHECKED_CLAIMS)[number]): ActivityTx[] {
+function checkedClaimTxs(dir: string, run: string, network: string, explorers: readonly Explorer[], source: (typeof CHECKED_CLAIMS)[number]): ActivityTx[] {
   const file = join(dir, source.file);
   if (!existsSync(file)) return [];
   const record = JSON.parse(readFileSync(file, 'utf8')) as PageClaimsRecord;
@@ -35,7 +36,7 @@ function checkedClaimTxs(dir: string, run: string, network: string, explorer: st
       height: c.height,
       utc: c.utc,
       note: c.address,
-      url: explorer ? `${explorer}${c.txid}` : null,
+      links: explorerLinks(explorers, c.txid),
     }),
   );
   const refusals = record.refusals.map(
@@ -50,7 +51,7 @@ function checkedClaimTxs(dir: string, run: string, network: string, explorer: st
       utc: r.utc,
       note: r.address,
       error: r.message.trim(),
-      url: null,
+      links: [],
     }),
   );
   return [...claims, ...refusals].sort((a, b) => a.utc.localeCompare(b.utc));
@@ -71,7 +72,7 @@ function epochTotals(dir: string): EpochTotal[] {
 
 /** One index per network found under the deployments folder; runs in folder-name order, transactions in recorded order,
  * followed by the checked claims made from the page and by auto-claim. */
-export function buildTxIndex(repoRoot: string, deploymentsDir: string, explorerTxUrl: Readonly<Record<string, string | undefined>>): ActivityIndex[] {
+export function buildTxIndex(repoRoot: string, deploymentsDir: string, explorers: Readonly<Record<string, readonly Explorer[]>>): ActivityIndex[] {
   const base = join(repoRoot, deploymentsDir);
   const byNetwork = new Map<string, ActivityRun[]>();
   for (const run of readdirSync(base).sort()) {
@@ -80,7 +81,7 @@ export function buildTxIndex(repoRoot: string, deploymentsDir: string, explorerT
     const record = JSON.parse(readFileSync(join(dir, 'transactions.json'), 'utf8')) as { network: string; transactions: PublicTx[] };
     const pool = JSON.parse(readFileSync(join(dir, 'pool.json'), 'utf8')) as { network: string; contracts: { pool: string } };
     if (record.network !== pool.network) throw new Error(`${run}: transactions.json is ${record.network}, pool.json is ${pool.network}`);
-    const explorer = explorerTxUrl[record.network];
+    const netExplorers = explorers[record.network] ?? [];
     const transactions = record.transactions.map((tx): ActivityTx => {
       const { step, epoch } = parseKind(tx.kind);
       const mined = tx.txid !== null && tx.error === undefined;
@@ -95,10 +96,10 @@ export function buildTxIndex(repoRoot: string, deploymentsDir: string, explorerT
         utc: tx.utc,
         ...(tx.note === undefined ? {} : { note: tx.note }),
         ...(tx.error === undefined ? {} : { error: tx.error.trim() }),
-        url: mined && explorer ? `${explorer}${tx.txid}` : null,
+        links: mined && tx.txid ? explorerLinks(netExplorers, tx.txid) : [],
       };
     });
-    for (const source of CHECKED_CLAIMS) transactions.push(...checkedClaimTxs(dir, run, record.network, explorer, source));
+    for (const source of CHECKED_CLAIMS) transactions.push(...checkedClaimTxs(dir, run, record.network, netExplorers, source));
     const runs = byNetwork.get(record.network) ?? [];
     runs.push({ run, pool: pool.contracts.pool, epochs: epochTotals(dir), transactions });
     byNetwork.set(record.network, runs);

@@ -15,6 +15,7 @@ import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { ElectrumNetworkProvider } from 'cashscript';
 import { decodeTransaction, hexToBin } from '@bitauth/libauth';
+import { explorersOf } from '../src/explorers.ts';
 import { REPO_ROOT, loadConfig } from '../src/config.ts';
 import { addressToLockingBytecode } from '../src/leaf.ts';
 import { replaceGenerated } from '../src/demo/report.ts';
@@ -23,7 +24,7 @@ import { checkPageClaim, renderPageClaims, type PageClaimsRecord } from '../src/
 const NET = 'chipnet';
 const config = loadConfig();
 const n = config.networks[NET];
-if (!n?.electrum || !n.explorerTxUrl) throw new Error(`${NET} has no Electrum server or explorer URL in the config`);
+if (!n?.electrum || explorersOf(n).length === 0) throw new Error(`${NET} has no Electrum server or explorer URL in the config`);
 const dir = resolve(REPO_ROOT, 'deployments', config.relay.deployment);
 const { positionals, values } = parseArgs({
   allowPositionals: true,
@@ -102,7 +103,7 @@ if (mode === 'claim') {
 for (const c of record.claims) c.height = await heightOf(c.txid);
 writeFileSync(recordPath, `${JSON.stringify(record, null, 1)}\n`);
 const measured = resolve(REPO_ROOT, 'docs', 'MEASURED.md');
-writeFileSync(measured, replaceGenerated(readFileSync(measured, 'utf8'), `${NET}-${values.kind}`, renderPageClaims(record, n.explorerTxUrl)));
+writeFileSync(measured, replaceGenerated(readFileSync(measured, 'utf8'), `${NET}-${values.kind}`, renderPageClaims(record, explorersOf(n))));
 console.log(`${record.claims.length} claims, ${record.refusals.length} refusals, tip ${tip}`);
 process.exit(0);
 

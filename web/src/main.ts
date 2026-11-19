@@ -13,6 +13,7 @@ import { renderRelay } from './relay-view.ts';
 import { addressToLockingBytecode, type CashAddressPrefix } from '../../src/leaf.ts';
 import { renderWalletClaim } from './wallet-view.ts';
 import { formatUnits } from './model.ts';
+import { explorersOf, type Explorer } from '../../src/explorers.ts';
 
 type NetworkKey = 'chipnet' | 'mainnet';
 const web = config.web;
@@ -26,7 +27,7 @@ const result = byId<HTMLElement>('result');
 const gate = byId<HTMLElement>('gate');
 
 function networkConfig(n: NetworkKey) {
-  return config.networks[n] as { addressPrefix: string; electrum: { wssUrl: string }; sequenceBlockScale?: number; explorerTxUrl?: string };
+  return config.networks[n] as { addressPrefix: string; electrum: { wssUrl: string }; sequenceBlockScale?: number; explorerTxUrl?: string; explorers?: Explorer[] };
 }
 
 function showStatus(text: string, kind: 'info' | 'error' = 'info'): void {
@@ -145,7 +146,7 @@ async function check(query: string, notice?: RelayAnswer): Promise<void> {
       claimed: found.claimed,
       claimPath: relayCfg.claimPath,
       timeoutMs: 120_000,
-      explorerTxUrl: net.explorerTxUrl,
+      explorers: explorersOf(net),
       notice,
       onSent: (answer) => void check(query, answer),
     });
@@ -170,7 +171,7 @@ async function check(query: string, notice?: RelayAnswer): Promise<void> {
       scanAddresses: walletCfg.scanAddresses,
       relayUrls: walletCfg.relayUrls,
       timeoutMs: 120_000,
-      explorerTxUrl: net.explorerTxUrl,
+      explorers: explorersOf(net),
       onSent: (answer) => void check(query, answer),
     });
   }
@@ -223,8 +224,9 @@ function route(): void {
   if (activity) {
     const key = select.value as NetworkKey;
     const net = networkConfig(key);
-    const target = { key, name: t(`network.${key}`), wssUrl: net.electrum.wssUrl, explorerTxUrl: net.explorerTxUrl };
-    void showActivity(byId('activity'), byId('activity-status'), web.epochsPath, target, web.electrumTimeoutSeconds * 1000, config.rewards.decimals);
+    const target = { key, name: t(`network.${key}`), wssUrl: net.electrum.wssUrl, explorers: explorersOf(net) };
+    const limits = { timeoutMs: web.electrumTimeoutSeconds * 1000, concurrency: web.chainCheckConcurrency };
+    void showActivity(byId('activity'), byId('activity-status'), web.epochsPath, target, limits, config.rewards.decimals);
   }
 }
 

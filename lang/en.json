@@ -92,7 +92,7 @@
     },
     "activity": {
       "heading": "Every transaction on {network}",
-      "intro": "Each step of the demonstration as it was sent, in order, including the ones the node refused. Links open the transaction in a block explorer.",
+      "intro": "Each step of the demonstration as it was sent, in order, including the ones the node refused. This page asks the chipnet Electrum server about every listed transaction itself and shows the answer under it. Links open the transaction in a block explorer.",
       "loading": "Loading the transaction record",
       "failed": "Could not load the transaction record ({reason}).",
       "empty": "No transactions are recorded for {network} yet.",
@@ -126,9 +126,16 @@
       "block": "block {height}",
       "unconfirmed": "not in a block",
       "refused": "Refused by the node",
-      "explorer": "Open in explorer",
+      "explorer": "Open in {name}",
       "copy": "Copy",
       "copied": "Copied",
+      "chain": {
+        "checking": "Checking on chain",
+        "confirmed": "Confirmed on chain, block {height} (checked by this page via {server})",
+        "mempool": "Not in a block yet (checked by this page via {server})",
+        "unknown": "Could not check: {server} does not know this transaction",
+        "failed": "Could not check on chain via {server}: {reason}"
+      },
       "topup": {
         "heading": "Epoch {epoch} top-up",
         "text": "{leaves} leaves earned {total} tokens in total by epoch {epoch}, {added} more than in epoch {previous}. Claimed amounts carry over: each leaf can claim only the difference."
@@ -153,7 +160,7 @@
       "button": "Claim now, fee paid by the demo relayer (chipnet)",
       "working": "Building and sending the claim. This can take up to a minute.",
       "done": "Claim sent. Transaction:",
-      "explorer": "Open in explorer",
+      "explorer": "Open in {name}",
       "again": "Try to claim again",
       "againText": "This address has claimed everything it earned so far. Try to claim the same amount a second time: the contract refuses it, and the answers are shown here.",
       "againWorking": "Sending a second claim for the same amount.",

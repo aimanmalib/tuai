@@ -9,7 +9,16 @@ import type { EpochFileView } from '../web/src/model.ts';
 const en = JSON.parse(readFileSync('lang/en.json', 'utf8')) as { web: { activity: { step: Record<string, string> } } };
 const ms = JSON.parse(readFileSync('lang/ms.json', 'utf8')) as { web: { activity: { step: Record<string, string> } } };
 const explorer = 'https://explorer.example/tx/';
-const indexes = buildTxIndex(process.cwd(), 'deployments', { chipnet: explorer });
+const second = 'https://second.example/chipnet/tx/';
+const explorers = [
+  { name: 'Explorer A', txUrl: explorer },
+  { name: 'Explorer B', txUrl: second },
+];
+const indexes = buildTxIndex(process.cwd(), 'deployments', { chipnet: explorers });
+const linksOf = (txid: string) => [
+  { name: 'Explorer A', url: `${explorer}${txid}` },
+  { name: 'Explorer B', url: `${second}${txid}` },
+];
 
 // Committed runs: every deployments/<run>/transactions.json, read here independently of the generator.
 const recorded = readdirSync('deployments')
@@ -50,23 +59,23 @@ describe('activity index', () => {
     for (const p of pageRecords) {
       const txs = indexes.find((i) => i.network === p.network)!.runs.find((r) => r.run === p.run)!.transactions;
       for (const c of p.claims) {
-        expect(txs.find((t) => t.txid === c.txid), c.txid).toMatchObject({ step: p.step, height: c.height, url: `${explorer}${c.txid}` });
+        expect(txs.find((t) => t.txid === c.txid), c.txid).toMatchObject({ step: p.step, height: c.height, links: linksOf(c.txid) });
       }
       const refused = txs.filter((t) => t.step === `${p.step}-refused`);
       expect(refused.map((t) => t.error)).toEqual(p.refusals.map((r) => r.message.trim()));
-      for (const t of refused) expect(t).toMatchObject({ txid: null, url: null });
+      for (const t of refused) expect(t).toMatchObject({ txid: null, links: [] });
     }
   });
 
-  it('links mined transactions to the explorer and gives refused ones no link', () => {
+  it('links mined transactions to every explorer, primary first, and gives refused ones no link', () => {
     const txs = indexes.flatMap((i) => i.runs.flatMap((r) => r.transactions));
     const refused = txs.filter((t) => t.error !== undefined);
     expect(refused.length).toBeGreaterThan(0);
-    for (const t of refused) expect(t.url).toBeNull();
-    for (const t of txs.filter((x) => x.error === undefined && x.txid !== null)) expect(t.url).toBe(`${explorer}${t.txid}`);
+    for (const t of refused) expect(t.links).toEqual([]);
+    for (const t of txs.filter((x) => x.error === undefined && x.txid !== null)) expect(t.links).toEqual(linksOf(t.txid!));
     // Without an explorer for the network, nothing is linked.
     const bare = buildTxIndex(process.cwd(), 'deployments', {});
-    expect(bare.flatMap((i) => i.runs.flatMap((r) => r.transactions)).every((t) => t.url === null)).toBe(true);
+    expect(bare.flatMap((i) => i.runs.flatMap((r) => r.transactions)).every((t) => t.links.length === 0)).toBe(true);
   });
 
   it('has a label for every recorded step in both languages', () => {

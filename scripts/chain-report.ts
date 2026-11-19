@@ -7,6 +7,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { ElectrumNetworkProvider } from 'cashscript';
+import { explorersOf } from '../src/explorers.ts';
 import { REPO_ROOT, loadConfig, type NetworkName } from '../src/config.ts';
 import { renderTransactions, replaceGenerated, type PublicTx } from '../src/demo/report.ts';
 import type { RunLog } from '../src/cli/runs.ts';
@@ -16,7 +17,7 @@ const net = (process.argv[2] ?? 'chipnet') as Exclude<NetworkName, 'mock'>;
 const name = deploymentName(net, process.argv[3]);
 const config = loadConfig();
 const n = config.networks[net];
-if (!n?.electrum || !n.explorerTxUrl) throw new Error(`${net} has no Electrum server or explorer URL in the config`);
+if (!n?.electrum || explorersOf(n).length === 0) throw new Error(`${net} has no Electrum server or explorer URL in the config`);
 const log = JSON.parse(readFileSync(resolve(REPO_ROOT, 'state', 'runs', `${name}.json`), 'utf8')) as RunLog;
 const provider = new ElectrumNetworkProvider(net, { hostname: n.electrum.hostname });
 const tip = await provider.getBlockHeight();
@@ -43,6 +44,6 @@ for (const t of log.txs) {
 const out = resolve(REPO_ROOT, 'deployments', name, 'transactions.json');
 writeFileSync(out, `${JSON.stringify({ network: net, ...(name === net ? {} : { deployment: name }), tipHeight: tip, transactions: rows }, null, 1)}\n`);
 const measured = resolve(REPO_ROOT, 'docs', 'MEASURED.md');
-writeFileSync(measured, replaceGenerated(readFileSync(measured, 'utf8'), name, renderTransactions(rows, n.explorerTxUrl)));
+writeFileSync(measured, replaceGenerated(readFileSync(measured, 'utf8'), name, renderTransactions(rows, explorersOf(n))));
 console.log(`${rows.length} rows, tip ${tip}, ${rows.filter((r) => r.height !== null).length} confirmed`);
 process.exit(0);

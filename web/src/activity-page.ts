@@ -1,15 +1,23 @@
-// The activity view: the published transaction record of one network, then what the pool contracts' history adds to it.
+// The activity view: the published transaction record of one network, then what the pool contracts' history adds to it,
+// then the page's own check of every listed transaction on chain.
 import { t } from './i18n.ts';
 import { getJson } from './fetch-json.ts';
-import { readHistories } from './electrum.ts';
+import { checkOnChain, readHistories } from './electrum.ts';
 import { unrecorded, type ActivityIndex } from './activity.ts';
-import { renderActivity, renderSeen } from './activity-view.ts';
+import { pendingChecks, renderActivity, renderSeen, showChainCheck } from './activity-view.ts';
+import type { Explorer } from '../../src/explorers.ts';
 
 export interface ActivityNetwork {
   key: string;
   name: string;
   wssUrl: string;
-  explorerTxUrl: string | undefined;
+  explorers: Explorer[];
+}
+
+export interface ActivityLimits {
+  timeoutMs: number;
+  /** Transactions asked about at the same time. */
+  concurrency: number;
 }
 
 /** Loads and renders the record, then reads the chain; each call replaces what the previous one drew. */
@@ -18,7 +26,7 @@ export async function showActivity(
   status: HTMLElement,
   epochsPath: string,
   net: ActivityNetwork,
-  timeoutMs: number,
+  limits: ActivityLimits,
   decimals: number,
 ): Promise<void> {
   status.className = 'status';
@@ -35,11 +43,16 @@ export async function showActivity(
   status.textContent = '';
   const seen = renderActivity(target, index, net.name, decimals);
   if (index.runs.length === 0) return;
+  const server = new URL(net.wssUrl).hostname;
+  const check = (txids: string[]) =>
+    checkOnChain(net.wssUrl, limits.timeoutMs, txids, limits.concurrency, (txid, verdict) => showChainCheck(target, txid, verdict, server));
+  const recorded = check(pendingChecks(target));
   try {
-    const histories = await readHistories(net.wssUrl, timeoutMs, index.runs.map((r) => r.pool));
-    renderSeen(seen, unrecorded(index, [...histories.values()].flat()), net.explorerTxUrl);
+    const histories = await readHistories(net.wssUrl, limits.timeoutMs, index.runs.map((r) => r.pool));
+    renderSeen(seen, unrecorded(index, [...histories.values()].flat()), net.explorers);
+    await Promise.all([recorded, check(pendingChecks(seen))]);
   } catch (e) {
-    const server = new URL(net.wssUrl).hostname;
-    renderSeen(seen, { error: t('activity.seen.failed', { server, reason: (e as Error).message }) }, net.explorerTxUrl);
+    renderSeen(seen, { error: t('activity.seen.failed', { server, reason: (e as Error).message }) }, net.explorers);
+    await recorded;
   }
 }
