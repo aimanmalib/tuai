@@ -19,6 +19,7 @@ import { explorersOf } from '../src/explorers.ts';
 import { REPO_ROOT, loadConfig } from '../src/config.ts';
 import { addressToLockingBytecode } from '../src/leaf.ts';
 import { replaceGenerated } from '../src/demo/report.ts';
+import { confirmedHeight, electrumHeightSource } from '../src/tx-height.ts';
 import { checkPageClaim, renderPageClaims, type PageClaimsRecord } from '../src/demo/page-claims.ts';
 
 const NET = 'chipnet';
@@ -54,10 +55,8 @@ async function rawTx(id: string) {
   return tx;
 }
 
-async function heightOf(id: string): Promise<number | null> {
-  const v = (await provider.performRequest('blockchain.transaction.get', id, true)) as { confirmations?: number };
-  return v.confirmations ? tip - v.confirmations + 1 : null;
-}
+const heights = electrumHeightSource(provider);
+const heightOf = (id: string): Promise<number | null> => confirmedHeight(heights, id);
 
 const utc = (): string => {
   if (!values.utc || Number.isNaN(Date.parse(values.utc))) throw new Error('--utc <ISO time> is required');

@@ -4,6 +4,7 @@ import { ElectrumNetworkProvider, MockNetworkProvider, SignatureTemplate, type N
 import { binToHex, encodeCashAddress, hash160, hexToBin, secp256k1 } from '@bitauth/libauth';
 import { NETWORKS, REPO_ROOT, loadConfig, type NetworkName, type TuaiConfig } from '../config.ts';
 import type { CashAddressPrefix } from '../leaf.ts';
+import { confirmedHeight, electrumHeightSource } from '../tx-height.ts';
 
 export interface ProjectKey {
   role: string;
@@ -58,11 +59,8 @@ export function parseNetwork(value: string | undefined): NetworkName {
 }
 
 function electrumHeight(provider: ElectrumNetworkProvider): (txid: string) => Promise<number | undefined> {
-  return async (txid) => {
-    const tx = (await provider.performRequest('blockchain.transaction.get', txid, true)) as { confirmations?: number };
-    if (!tx.confirmations) return undefined;
-    return (await provider.getBlockHeight()) - tx.confirmations + 1;
-  };
+  const src = electrumHeightSource(provider);
+  return async (txid) => (await confirmedHeight(src, txid)) ?? undefined;
 }
 
 export function deploymentName(network: NetworkName, run: string | undefined): string {

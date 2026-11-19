@@ -197,8 +197,8 @@ and list below are generated from `deployments/chipnet/page-claims.json`.
 <!-- chipnet-page-transactions:start -->
 | # | When (UTC) | Leaf address | Transaction | Bytes | Fee (sat) | Block | Tokens paid |
 |---|---|---|---|---|---|---|---|
-| 1 | 2026-11-18 21:45:50 | `bchtest:zz8fm0yp5j5as68vel8rvskv7xtz8xca8g90zrn4mm` | [`2b6a7acc0963b14c0a227014eca58bf0c9b931dd9c26f90d6ce808111d582a9f`](https://cbch.loping.net/tx/2b6a7acc0963b14c0a227014eca58bf0c9b931dd9c26f90d6ce808111d582a9f) | 1901 | 1901 | 337325 | 30400000000 |
-| 2 | 2026-11-18 23:51:01 | `bchtest:zzde36p2dz0f0vr2w7txyjwpkk6whkucjvyw2efm8l` | [`99e747919759e690c3f9e20d852202b976944519513ae629a8e33e7f924ebb66`](https://cbch.loping.net/tx/99e747919759e690c3f9e20d852202b976944519513ae629a8e33e7f924ebb66) | 1901 | 1901 | 337490 | 5100000000 |
+| 1 | 2026-11-18 21:45:50 | `bchtest:zz8fm0yp5j5as68vel8rvskv7xtz8xca8g90zrn4mm` | [`2b6a7acc0963b14c0a227014eca58bf0c9b931dd9c26f90d6ce808111d582a9f`](https://cbch.loping.net/tx/2b6a7acc0963b14c0a227014eca58bf0c9b931dd9c26f90d6ce808111d582a9f) | 1901 | 1901 | 337326 | 30400000000 |
+| 2 | 2026-11-18 23:51:01 | `bchtest:zzde36p2dz0f0vr2w7txyjwpkk6whkucjvyw2efm8l` | [`99e747919759e690c3f9e20d852202b976944519513ae629a8e33e7f924ebb66`](https://cbch.loping.net/tx/99e747919759e690c3f9e20d852202b976944519513ae629a8e33e7f924ebb66) | 1901 | 1901 | 337491 | 5100000000 |
 | 3 | 2026-11-19 13:10:16 | `bchtest:zztjtl2m2ru8c92g9x4e46x93mtsekzwfypf7xe6vn` | [`0aacf12f46f74331c71eeaf33fda3f685ed3e02d5c3713d6fc0d92ee188c289d`](https://cbch.loping.net/tx/0aacf12f46f74331c71eeaf33fda3f685ed3e02d5c3713d6fc0d92ee188c289d) | 1901 | 1901 | - | 7600000000 |
 | 4 | 2026-11-19 21:14:23 | `bchtest:zzgkjuxpfumnrt0np5qn3h3443kq490equ3w080ksd` | [`436da6e934211f6efcd047566bfcbb517e9b337b71038967eaacef2ad9b9ce19`](https://cbch.loping.net/tx/436da6e934211f6efcd047566bfcbb517e9b337b71038967eaacef2ad9b9ce19) | 1901 | 1901 | - | 30900000000 |
 
