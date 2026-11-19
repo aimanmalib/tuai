@@ -1,10 +1,12 @@
 # Public test workflow: install with the lockfile and run the full test suite (unit, contract and command line tests).
 # Contracts run on the CashScript mock network, so no secrets and no network services are needed.
 # The job is skipped while the repository is private, so it uses no runner minutes before publication.
+# workflow_dispatch lets the first run start by hand once the repository is public, without a new commit.
 name: Tuai tests
 on:
   push:
   pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:

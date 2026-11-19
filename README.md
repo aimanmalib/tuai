@@ -1,5 +1,7 @@
 # Tuai: pull-based reward claims for FoldingCash
 
+[![Tuai tests](https://github.com/aimanmalib/tuai/actions/workflows/test.yml/badge.svg)](https://github.com/aimanmalib/tuai/actions/workflows/test.yml)
+
 Entry for **BCH BLAZE 2026**, bounty "Trust-minimized, pull-based reward claims for FoldingCash".
 
 ## Links

@@ -74,7 +74,7 @@
     "linkMethod": 0
   },
   "budget": {
-    "mainnetMaxSats": 200000,
+    "mainnetMaxSats": 100000,
     "ledgerPath": "state/belanja.json"
   },
   "banner": {
