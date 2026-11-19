@@ -106,3 +106,25 @@ test('the activity page checks the recorded deploy transaction on chain itself a
     await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-p3b-live-chain-${test.info().project.name}.png` });
   }
 });
+
+test('the mainnet activity page lists the served mainnet record and checks the claim on chain', async ({ page }) => {
+  test.setTimeout(120_000);
+  const res = await page.request.get('/epochs/mainnet/transactions.json');
+  test.skip(res.status() === 404, 'no mainnet record is served');
+  const index = (await res.json()) as { runs: { transactions: { step: string; txid: string | null; height: number | null; error?: string }[] }[] };
+  const txs = index.runs.flatMap((r) => r.transactions);
+  const claim = txs.find((t) => t.step === 'claim-first' && t.txid !== null && t.height !== null);
+  expect(claim, 'a mined mainnet claim in the served record').toBeDefined();
+  await page.goto('/#/activity/mainnet');
+  await expect(page.locator('#activity-networks a[aria-current="true"]')).toHaveText('Mainnet');
+  await expect(page.locator('.run .txs > li')).toHaveCount(txs.length);
+  const badge = page.locator(`.chain-check[data-txid="${claim!.txid}"]`).first();
+  await expect(badge).toHaveAttribute('data-chain', 'confirmed', { timeout: 60_000 });
+  await expect(badge).toHaveText(new RegExp(`^Confirmed on chain, block ${claim!.height} \\(checked by this page via \\S+\\)$`));
+  const o = await page.evaluate(() => ({ s: document.documentElement.scrollWidth, c: document.documentElement.clientWidth }));
+  expect(o.s).toBeLessThanOrEqual(o.c);
+  if (process.env.SCREENSHOT_DIR) {
+    await badge.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-mn1-live-${test.info().project.name}.png` });
+  }
+});
