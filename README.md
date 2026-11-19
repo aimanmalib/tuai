@@ -314,7 +314,10 @@ in [`lang/en.json`](lang/en.json) and [`lang/ms.json`](lang/ms.json).
   so the demo delay of 3 took 30 blocks (ADR 0006).
 - The 300-leaf chipnet demonstration ran the version 1 contracts (kept in `src/contracts/artifacts/v1/`); the push
   path ran on a second chipnet pool of five leaves. Pushes open only between `pushDelay` blocks after activation and the next proposal.
-- The demonstration runs on chipnet only. The claim page claims through the chipnet demo relayer, through the
+- On mainnet one pull claim ran, with the project's own test token rather than a real reward token, on a 300-leaf
+  tree of five project demo keys and synthetic leaves (`docs/MEASURED.md`, "Mainnet claim with a test token"). Pushes,
+  top-ups and the relayer ran on chipnet only.
+- The claim page claims through the chipnet demo relayer, through the
   user's own WizardConnect wallet on chipnet, or shows the CLI command. No wallet claim from a real wallet is
   recorded yet; the wallet path is tested with an in-process fake wallet. The relayer claims when a user presses the button,
   or for leaves in an opt-in file the relayer operator holds once their threshold is reached (`tuai relay`); a

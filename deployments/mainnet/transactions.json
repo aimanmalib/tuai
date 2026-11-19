@@ -1,0 +1,57 @@
+{
+ "network": "mainnet",
+ "tipHeight": 978067,
+ "transactions": [
+  {
+   "kind": "token-genesis",
+   "txid": "04de28f7c4aa4608aea5fd059f51fe3a03837bd1e56f656dcf2b194a20050476",
+   "bytes": 262,
+   "feeSats": 262,
+   "utc": "2026-11-19T17:46:23.071Z",
+   "height": 978058
+  },
+  {
+   "kind": "prepare-genesis",
+   "txid": "6d9e686be23d001cf0a8dca8a52c48382e324177df6e8ae73a29c7e3891fe83d",
+   "bytes": 185,
+   "feeSats": 185,
+   "utc": "2026-11-19T17:46:45.656Z",
+   "height": 978058
+  },
+  {
+   "kind": "deploy",
+   "txid": "72b5087eb5df96ed3a991ed0e656dfe5f218c076cf05ec9d3181d687c8d91b25",
+   "bytes": 858,
+   "feeSats": 858,
+   "utc": "2026-11-19T17:46:48.554Z",
+   "height": 978058
+  },
+  {
+   "kind": "propose-epoch-1",
+   "txid": "ae439224c1b59b8d428ed7a0dde123a048563187d2de3f17ead40c25258da5b6",
+   "bytes": 1025,
+   "feeSats": 1029,
+   "utc": "2026-11-19T17:47:42.362Z",
+   "height": 978058,
+   "note": "operators 1,2"
+  },
+  {
+   "kind": "activate-epoch-1",
+   "txid": "ec70576c23d9a4e036513502b92b0ae3333c46eec0a29777b489a24c1cefb011",
+   "bytes": 1688,
+   "feeSats": 1688,
+   "utc": "2026-11-19T19:21:49.160Z",
+   "height": 978066,
+   "note": "pending mined at 978058, tip 978065"
+  },
+  {
+   "kind": "claim-first-epoch-1",
+   "txid": "120d69a5ce74746713ee0db362383eddfca2d7c4a290786cabbdfd30828ede32",
+   "bytes": 1952,
+   "feeSats": 1952,
+   "utc": "2026-11-19T19:24:21.454Z",
+   "height": 978066,
+   "note": "leaf 299"
+  }
+ ]
+}
