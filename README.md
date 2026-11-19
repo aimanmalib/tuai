@@ -2,7 +2,18 @@
 
 Entry for **BCH BLAZE 2026**, bounty "Trust-minimized, pull-based reward claims for FoldingCash".
 
-Claim page: <https://tuai.sasateguh.com> (chipnet demonstration). Slides: [`docs/deck.pdf`](docs/deck.pdf) (8 pages).
+## Links
+
+- Claim page (chipnet): <https://tuai.sasateguh.com>
+- Every chipnet transaction, with explorer links: <https://tuai.sasateguh.com/#/activity>
+- Proof endpoint: <https://tuai.sasateguh.com/epochs/chipnet/index.json>
+- Slides: [`docs/deck.pdf`](docs/deck.pdf) (8 pages)
+- Chipnet record with every txid: [`docs/MEASURED.md`](docs/MEASURED.md)
+- Format and transaction specification: [`docs/SPEC.md`](docs/SPEC.md)
+- Cost comparison with the current push model: [`docs/COST.md`](docs/COST.md)
+- Proof depth and VM limits: [`docs/DEPTH.md`](docs/DEPTH.md)
+- Integration guide for FoldingCash: [`docs/INTEGRATION.md`](docs/INTEGRATION.md)
+- Decisions and rejected alternatives: [`docs/decisions/`](docs/decisions/)
 
 ## Reviewer guide
 
@@ -95,7 +106,7 @@ Every optional and stretch item on the bounty page, built or not:
 | Simple claim UI or CLI (optional) | built, both | [`web/`](web/) (English and Malay), [`bin/tuai.ts`](bin/tuai.ts) | <https://tuai.sasateguh.com>; `e2e/`; `tests/cli-e2e.test.ts` |
 | Relayer that submits claims, paying only the user's address (optional) | built on chipnet, triggered by the user | [`src/relay/`](src/relay/), ADR [0009](docs/decisions/0009-chipnet-relayer.md) | page claim `2b6a7acc0963b14c0a227014eca58bf0c9b931dd9c26f90d6ce808111d582a9f`; `tests/relay.test.ts`, `tests/relay-http.test.ts`, `e2e/relay.spec.ts` |
 | Claim with the user's own wallet (usability) | built on chipnet, not yet run with a real wallet | [`src/relay/prepare.ts`](src/relay/prepare.ts) (unsigned claim from the wallet's coins), [`web/src/wallet-check.ts`](web/src/wallet-check.ts) (the page checks every input and output), [`web/src/wizardconnect.ts`](web/src/wizardconnect.ts), ADR [0012](docs/decisions/0012-wallet-claims.md) | `tests/wallet-claim.test.ts` (fake wallet signs, VM accepts; wrong key, redirected payment, skimmed change and foreign input refused) |
-| Auto-claim when a balance crosses a threshold the user chose (optional) | built on chipnet, one pass per run of `tuai relay --optins <file>` | [`src/relay/service.ts`](src/relay/service.ts) `autoClaim`, [`src/relay/optins.ts`](src/relay/optins.ts), ADR [0010](docs/decisions/0010-relayer-auto-claim.md) | auto-claim `4997b741bac51ce4dae947276b1d7820638d986b8213725f95361b11d834d788`, two leaves skipped below their thresholds ([MEASURED](docs/MEASURED.md#chipnet-auto-claims-by-threshold)); `tests/relay-auto.test.ts` |
+| Auto-claim when a balance crosses a threshold the user chose (optional) | built on chipnet, one pass per run of `tuai relay --optins <file>` | [`src/relay/service.ts`](src/relay/service.ts) `autoClaim`, [`src/relay/optins.ts`](src/relay/optins.ts), ADR [0010](docs/decisions/0010-relayer-auto-claim.md) | auto-claim `4997b741bac51ce4dae947276b1d7820638d986b8213725f95361b11d834d788`, two leaves skipped below their thresholds ([`docs/MEASURED.md`](docs/MEASURED.md#chipnet-auto-claims-by-threshold)); `tests/relay-auto.test.ts` |
 | Cumulative-only roots (stretch) | built | [`src/epoch/`](src/epoch/), `alreadyClaimed` in the receipt | top-up claim `3b891a54a58dab33e147e6cb723241d2b8385f161d7fc18a7ef12cd27fed3c36` paid only the epoch 2 difference |
 | Watcher with input snapshot hash published with the root (stretch) | built | inputs hash in the state NFT, [`src/watch/`](src/watch/), [Watcher](#watcher) | [`reports/watch-chipnet.json`](reports/watch-chipnet.json), [`docs/MEASURED.md`](docs/MEASURED.md#watcher) |
 | Independently verifiable links for compatibility users (stretch) | built, off chain | [`src/link/`](src/link/), `tuai link sign`/`tuai link verify`, `tuai watch --links`, [SPEC section 8](docs/SPEC.md#8-signed-compatibility-links), ADR [0011](docs/decisions/0011-signed-compatibility-links.md) | `tests/link.test.ts` (wallet signed message vector; other address, other name, tampered signature and other domain refused) |
