@@ -161,6 +161,13 @@
       "refusedLocal": "Semakan tempatan: {message}",
       "refusedNode": "Nod: {message}",
       "off": "Geganti demo tidak tersedia ({reason}). Gunakan arahan di bawah.",
+      "low": "Lebih kurang {n} tuntutan lagi sebelum syiling ujian geganti demo habis.",
+      "dry": {
+        "lowBalance": "Syiling ujian geganti demo sudah habis, jadi butang ini dimatikan buat masa ini.",
+        "off": "Geganti demo dimatikan, jadi butang ini dimatikan buat masa ini.",
+        "why": "Geganti hanyalah kemudahan untuk demo ini. Tuntutan anda tidak bergantung padanya: pool membayar alamat dalam daun anda, tidak kira siapa yang menghantar transaksi.",
+        "todo": "Tuntut dengan arahan di bawah, membayar yuran dari syiling ujian chipnet anda sendiri, atau cuba butang ini lagi kemudian."
+      },
       "reason": {
         "off": "dimatikan",
         "lowBalance": "syiling ujiannya sudah habis",

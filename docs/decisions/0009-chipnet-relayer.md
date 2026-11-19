@@ -37,8 +37,10 @@ pay the fee and dust for a claim without being able to change where the tokens g
 5. **Limits from config.** `maxClaimsPerHour` is global, because a client address seen behind the CDN and the proxy
    cannot be trusted without more infrastructure than a demo needs. One claim is planned and sent at a time
    (in-process queue), so two requests never spend the same pool or relayer outputs. Bodies over `maxBodyBytes`
-   are refused (413). Below `minBalanceSats` the status reports `lowBalance` and the page shows the CLI command
-   instead of the button.
+   are refused (413). Below `minBalanceSats` the status reports `lowBalance`; the page keeps the button in place but
+   switched off, says what happened (test coins used up), why it does not matter for the claim (the relayer is a
+   convenience; the pool pays the leaf whoever sends) and what to do (the CLI command shown below, or later). At or
+   below `warnClaimsLeft` claims left the status also reports `low: true`, and the page shows about how many are left.
 6. **Claim again.** For an already claimed leaf, `again: true` plans the double claim that `tuai demo double-claim`
    uses (the leaf's receipt is hidden, so a duplicate receipt is inserted). It is sent only if local evaluation
    refuses it; the page then shows both the local refusal and the node's refusal.

@@ -145,6 +145,7 @@
     "claimPath": "/api/relay/claim",
     "maxClaimsPerHour": 30,
     "minBalanceSats": 6000,
+    "warnClaimsLeft": 5,
     "maxFeeSatsPerClaim": 4000,
     "maxBodyBytes": 1024,
     "electrumTimeoutSeconds": 20,

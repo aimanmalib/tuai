@@ -95,6 +95,7 @@ export function createRelay(d: RelayDeps) {
   async function status(): Promise<RelayReply> {
     const { balance } = await funds();
     const reason = offReason(balance);
+    const claimsLeft = Number(balance / perClaim);
     return {
       status: 200,
       body: {
@@ -103,7 +104,9 @@ export function createRelay(d: RelayDeps) {
         ...(reason ? { reason } : {}),
         address: d.key.address,
         balanceSats: Number(balance),
-        claimsLeft: Number(balance / perClaim),
+        claimsLeft,
+        low: claimsLeft <= d.relay.warnClaimsLeft,
+        warnClaimsLeft: d.relay.warnClaimsLeft,
         claimsThisHour: limit.used(),
         maxClaimsPerHour: d.relay.maxClaimsPerHour,
         minBalanceSats: d.relay.minBalanceSats,

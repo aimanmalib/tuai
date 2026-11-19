@@ -161,6 +161,13 @@
       "refusedLocal": "Local check: {message}",
       "refusedNode": "Node: {message}",
       "off": "The demo relayer is not available ({reason}). Use the command below instead.",
+      "low": "About {n} claims left before the demo relayer runs out of test coins.",
+      "dry": {
+        "lowBalance": "The demo relayer has run out of test coins, so this button is off for now.",
+        "off": "The demo relayer is switched off, so this button is off for now.",
+        "why": "The relayer is only a convenience for this demo. Your claim does not depend on it: the pool pays the address in your leaf, whoever sends the transaction.",
+        "todo": "Claim with the command below, paying the fee from your own chipnet test coins, or try this button again later."
+      },
       "reason": {
         "off": "switched off",
         "lowBalance": "its test coins are used up",

@@ -51,7 +51,7 @@ export function renderRelay(target: HTMLElement, o: RelayViewOptions): void {
   const parts: HTMLElement[] = [el('h3', { id: 'relay-h' }, t('relay.heading'))];
   if (!o.status.enabled) {
     if (again) return;
-    parts.push(el('p', { class: 'note', id: 'relay-off' }, t('relay.off', { reason: t(`relay.reason.${o.status.reason ?? 'off'}`) })));
+    parts.push(...offParts(o.status));
   } else {
     const button = el('button', { type: 'button', class: again ? 'secondary' : 'primary', id: again ? 'relay-again' : 'relay-claim' },
       t(again ? 'relay.again' : 'relay.button')) as HTMLButtonElement;
@@ -65,8 +65,25 @@ export function renderRelay(target: HTMLElement, o: RelayViewOptions): void {
         else button.disabled = false;
       });
     });
-    parts.push(el('p', {}, t(again ? 'relay.againText' : 'relay.text')), el('div', { class: 'copy-row' }, button));
+    parts.push(el('p', {}, t(again ? 'relay.againText' : 'relay.text')));
+    if (!again && o.status.low === true && typeof o.status.claimsLeft === 'number') {
+      parts.push(el('p', { class: 'note', id: 'relay-low' }, t('relay.low', { n: o.status.claimsLeft })));
+    }
+    parts.push(el('div', { class: 'copy-row' }, button));
   }
   parts.push(out);
   target.append(el('section', { class: 'relay', 'aria-labelledby': 'relay-h' }, ...parts));
+}
+
+/** Without the relayer the button stays in place but switched off; a dry or switched-off relayer says what, why and what to do. */
+function offParts(status: RelayStatus): HTMLElement[] {
+  const reason = status.reason ?? 'off';
+  const dry = reason === 'lowBalance' || reason === 'off';
+  const text = dry
+    ? [el('p', { class: 'note', id: 'relay-off' }, t(`relay.dry.${reason}`)), el('p', { class: 'note' }, t('relay.dry.why')),
+        el('p', { class: 'note' }, t('relay.dry.todo'))]
+    : [el('p', { class: 'note', id: 'relay-off' }, t('relay.off', { reason: t(`relay.reason.${reason}`) }))];
+  const button = el('button', { type: 'button', class: 'primary', id: 'relay-claim', disabled: '', 'aria-describedby': 'relay-off' },
+    t('relay.button'));
+  return [...text, el('div', { class: 'copy-row' }, button)];
 }

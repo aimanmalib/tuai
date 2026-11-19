@@ -45,6 +45,7 @@ test('claims through the relayer and shows the transaction with an explorer link
   await checkAddress(page, leaf.address);
   const button = page.getByRole('button', { name: /Claim now, fee paid by the demo relayer/ });
   await expect(button).toBeVisible();
+  await expect(page.locator('#relay-low')).toHaveCount(0);
   await button.click();
   await expect(page.locator('#relay-txid')).toHaveText(TXID);
   await expect(page.locator('#relay-out a')).toHaveAttribute('href', `${config.networks.chipnet.explorerTxUrl}${TXID}`);
@@ -59,13 +60,49 @@ test('claims through the relayer and shows the transaction with an explorer link
   expect(errors).toEqual([]);
 });
 
-test('falls back to the CLI command when the relayer is off', async ({ page }) => {
+test('says about how many claims are left when the relayer reports low', async ({ page }) => {
   await fakeElectrum(page);
-  await fakeRelay(page, { network: 'chipnet', enabled: false, reason: 'lowBalance' }, { code: 'lowBalance' });
+  await fakeRelay(page, { network: 'chipnet', enabled: true, claimsLeft: 2, low: true, warnClaimsLeft: 5 }, { code: 'claimed', txid: TXID });
   await page.goto('/');
   await checkAddress(page, leaf.address);
-  await expect(page.locator('#relay-off')).toContainText('test coins are used up');
-  await expect(page.locator('#relay-claim')).toHaveCount(0);
+  await expect(page.locator('#relay-low')).toHaveText('About 2 claims left before the demo relayer runs out of test coins.');
+  await expect(page.locator('#relay-claim')).toBeEnabled();
+});
+
+test('keeps the button in place but off when the relayer is dry, and says what, why and what to do', async ({ page }) => {
+  const errors = watchConsole(page);
+  await fakeElectrum(page);
+  await fakeRelay(page, { network: 'chipnet', enabled: false, reason: 'lowBalance', claimsLeft: 0, low: true }, { code: 'lowBalance' });
+  await page.goto('/');
+  await page.setViewportSize({ width: 320, height: 720 });
+  await checkAddress(page, leaf.address);
+  await expect(page.locator('#relay-off')).toContainText('run out of test coins');
+  await expect(page.locator('section[aria-labelledby="relay-h"]')).toContainText('does not depend on it');
+  await expect(page.locator('section[aria-labelledby="relay-h"]')).toContainText('command below');
+  await expect(page.locator('#relay-claim')).toBeVisible();
+  await expect(page.locator('#relay-claim')).toBeDisabled();
+  await expect(page.locator('#relay-low')).toHaveCount(0);
+  await expect(page.locator('#claim-command')).toBeVisible();
+  await page.locator('#claim-command').scrollIntoViewIfNeeded();
+  await noHorizontalOverflow(page);
+  await page.getByRole('button', { name: /Bahasa Melayu|Malay/ }).click();
+  await expect(page.locator('#relay-off')).toContainText('Syiling ujian geganti demo sudah habis');
+  await expect(page.locator('#relay-claim')).toBeDisabled();
+  if (process.env.SCREENSHOT_DIR) {
+    await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-p3a-dry-320-${test.info().project.name}.png`, fullPage: true });
+  }
+  const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+  expect(axe.violations.map((v) => `${v.id}: ${v.nodes.length}`)).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
+test('names other reasons and keeps the button off when the relayer is switched off', async ({ page }) => {
+  await fakeElectrum(page);
+  await fakeRelay(page, { network: 'chipnet', enabled: false, reason: 'off' }, { code: 'off' });
+  await page.goto('/');
+  await checkAddress(page, leaf.address);
+  await expect(page.locator('#relay-off')).toContainText('switched off');
+  await expect(page.locator('#relay-claim')).toBeDisabled();
   await expect(page.locator('#claim-command')).toBeVisible();
 });
 

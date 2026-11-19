@@ -90,6 +90,7 @@ button.primary, button.secondary {
 button.primary { background: var(--ink); color: var(--panel); border: 1px solid var(--ink); }
 button.primary:hover { background: var(--stalk); border-color: var(--stalk); }
 button.secondary { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+button.primary:disabled, button.secondary:disabled { background: var(--ground); color: var(--ink-soft); border: 1px dashed var(--ink-soft); cursor: not-allowed; }
 
 .status { margin: 1rem 0; min-height: 1.5rem; color: var(--ink-soft); }
 .status.error { color: var(--husk); background: var(--husk-bg); padding: 0.75rem 1rem; border-radius: var(--radius-field); }

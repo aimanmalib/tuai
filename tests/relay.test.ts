@@ -91,6 +91,19 @@ describe('chipnet demo relayer', () => {
     expect(low.sends() + off.sends()).toBe(0);
   });
 
+  it('reports low at or below relay.warnClaimsLeft claims left, and stays low when dry', async () => {
+    const perClaim = BigInt(config.relay.maxFeeSatsPerClaim + config.fees.tokenOutputDustSats + config.fees.receiptDustSats);
+    const warn = 3;
+    const at = await setup({ relay: { warnClaimsLeft: warn }, fund: perClaim * BigInt(warn) });
+    expect((await at.relay.status()).body).toMatchObject({ enabled: true, claimsLeft: warn, low: true, warnClaimsLeft: warn });
+    const above = await setup({ relay: { warnClaimsLeft: warn }, fund: perClaim * BigInt(warn + 1) });
+    expect((await above.relay.status()).body).toMatchObject({ enabled: true, claimsLeft: warn + 1, low: false });
+    const dry = await setup({ relay: { warnClaimsLeft: warn }, fund: BigInt(config.relay.minBalanceSats - 1) });
+    expect((await dry.relay.status()).body).toMatchObject({ enabled: false, reason: 'lowBalance', low: true });
+    expect(validateRelay({ ...config.relay, warnClaimsLeft: -1 })).toContain('relay.warnClaimsLeft must be an integer >= 0');
+    expect(Number.isSafeInteger(config.relay.warnClaimsLeft)).toBe(true);
+  });
+
   it('answers nothing-to-claim without sending, and names addresses it cannot serve', async () => {
     const s = await setup();
     await s.relay.claim({ address: alice.address });

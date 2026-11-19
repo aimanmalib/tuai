@@ -6,6 +6,9 @@ export interface RelayStatus {
   reason?: string;
   balanceSats?: number;
   claimsLeft?: number;
+  /** Set by the relayer when claimsLeft is at or below relay.warnClaimsLeft. */
+  low?: boolean;
+  warnClaimsLeft?: number;
 }
 
 export interface RelayAnswer {

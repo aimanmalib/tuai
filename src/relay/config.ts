@@ -19,6 +19,8 @@ export interface RelayConfig {
   maxClaimsPerHour: number;
   /** Below this balance the button is switched off with a named reason. */
   minBalanceSats: number;
+  /** At or below this many claims left, status reports `low: true` and the page shows the count. */
+  warnClaimsLeft: number;
   /** A planned claim whose fee is higher is refused before it is sent. */
   maxFeeSatsPerClaim: number;
   maxBodyBytes: number;
@@ -71,6 +73,7 @@ export function validateRelay(r: RelayConfig | undefined): string[] {
   for (const k of ['statusPath', 'healthPath', 'claimPath'] as const) {
     if (!/^\/api\/relay\/[a-z]+$/.test(r[k] ?? '')) out.push(`relay.${k} must be under /api/relay/`);
   }
+  if (!Number.isSafeInteger(r.warnClaimsLeft) || r.warnClaimsLeft < 0) out.push('relay.warnClaimsLeft must be an integer >= 0');
   for (const k of ['maxClaimsPerHour', 'minBalanceSats', 'maxFeeSatsPerClaim', 'maxBodyBytes', 'electrumTimeoutSeconds'] as const) {
     if (!isPositiveInt(r[k])) out.push(`relay.${k} must be > 0`);
   }
