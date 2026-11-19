@@ -2,7 +2,7 @@
 
 Entry for **BCH BLAZE 2026**, bounty "Trust-minimized, pull-based reward claims for FoldingCash".
 
-Claim page: <https://tuai.sasateguh.com> (chipnet demonstration).
+Claim page: <https://tuai.sasateguh.com> (chipnet demonstration). Slides: [`docs/deck.pdf`](docs/deck.pdf) (8 pages).
 
 ## Reviewer guide
 
