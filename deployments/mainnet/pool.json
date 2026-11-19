@@ -1,0 +1,23 @@
+{
+ "network": "mainnet",
+ "poolCategory": "6d9e686be23d001cf0a8dca8a52c48382e324177df6e8ae73a29c7e3891fe83d",
+ "rewardCategory": "3556624f0b790e53823d0a71a8ccd1362d638bb606cce6ca70018cb2ed3f816a",
+ "maxDepth": 24,
+ "operatorKeys": [
+  "03f770611119f7fd2118b819507065ef05fd086119556b09405a00984bcd130997",
+  "03283e22752a9b3f3d05d7bd605c4d6b7726b96a7f4c9c655da8c729a6dfd8cc1f",
+  "02f380dfe43249939ad34f88de03f5b159e2f370660a1a86760b26dbff1f815141"
+ ],
+ "activationDelay": 6,
+ "push": {
+  "delay": 6,
+  "minimum": "10000000000",
+  "sats": 6000
+ },
+ "deployTxid": "72b5087eb5df96ed3a991ed0e656dfe5f218c076cf05ec9d3181d687c8d91b25",
+ "contracts": {
+  "pool": "bitcoincash:rdut2xyvcnzc3qja40jux48nas6ghvw264sk60fvhpve8z2rn6fh29nm38kn5",
+  "vault": "bitcoincash:rvfa3ssw85n2yvcap64f0fx5f2uxzz0dn3a625vvys7u5x4h7yx2xvggrlghz",
+  "gate": "bitcoincash:rdu3jtj7xqaccxat9jnqd06n9npds76c0nlsaa8qjxxrmeen7fvgj0v3gtl7j"
+ }
+}
