@@ -8,9 +8,11 @@ Entry for **BCH BLAZE 2026**, bounty "Trust-minimized, pull-based reward claims 
 
 - Claim page (chipnet): <https://tuai.sasateguh.com>
 - Every chipnet transaction, with explorer links: <https://tuai.sasateguh.com/#/activity>
+- The mainnet test-token run, checked on chain by the page: <https://tuai.sasateguh.com/#/activity/mainnet>
 - Proof endpoint: <https://tuai.sasateguh.com/epochs/chipnet/index.json>
 - Slides: [`docs/deck.pdf`](docs/deck.pdf) (8 pages)
-- Chipnet record with every txid: [`docs/MEASURED.md`](docs/MEASURED.md)
+- Chipnet and mainnet record with every txid: [`docs/MEASURED.md`](docs/MEASURED.md)
+- Screenshots of the live site: [`docs/MEASURED.md`](docs/MEASURED.md#screenshots) ([`docs/img/`](docs/img/))
 - Format and transaction specification: [`docs/SPEC.md`](docs/SPEC.md)
 - Cost comparison with the current push model: [`docs/COST.md`](docs/COST.md)
 - Proof depth and VM limits: [`docs/DEPTH.md`](docs/DEPTH.md)
@@ -23,7 +25,9 @@ A five-minute path through the working system, all on chipnet:
 
 1. Open <https://tuai.sasateguh.com/#/activity>. Every transaction of the chipnet runs is listed in order (deploy,
    propose, the early activations the node refused, activate, claims, the refused double claim, epoch 2, push), each
-   with its size, fee and an explorer link; refused ones show the node's message instead of a link.
+   with its size, fee and an explorer link; refused ones show the node's message instead of a link. The page also
+   asks an Electrum server itself for each transaction and shows "Confirmed on chain, block N" with the server it
+   asked, so the list does not depend on an explorer.
 2. Open <https://tuai.sasateguh.com> and press **Try a demo address**, which picks a leaf that still has tokens
    to claim (or paste any address from
    [`deployments/chipnet/epoch-2.json`](deployments/chipnet/epoch-2.json)). The page finds the leaf, rebuilds the
@@ -36,10 +40,21 @@ A five-minute path through the working system, all on chipnet:
    ([`docs/MEASURED.md`](docs/MEASURED.md#chipnet-claims-from-the-page)).
 4. Press **Try to claim again** on the same leaf. The second claim is refused by the contract and by the node, and
    the page shows both messages.
-5. In a clone: `npm ci && npm test` (offline), then
+5. Open <https://tuai.sasateguh.com/#/activity/mainnet>. The same contracts ran once on mainnet with the project's
+   own test token: deploy, a two-of-three proposal, activation after the delay, and one claim,
+   `120d69a5ce74746713ee0db362383eddfca2d7c4a290786cabbdfd30828ede32`, confirmed in block 978066
+   ([`docs/MEASURED.md`](docs/MEASURED.md#mainnet-claim-with-a-test-token)). Mainnet links go to two explorers.
+6. In a clone: `npm ci && npm test` (offline), then
    `npx tsx bin/tuai.ts epoch verify deployments/chipnet/epoch-2.json` to rebuild the published root from its inputs.
 
 When the relayer is empty, busy or switched off, the page says so and shows the CLI command instead of the button.
+
+| Claim now on the live page (WebKit, iPhone 13) | Activity page with the on-chain check |
+|---|---|
+| ![Claim now on the claim page, with the claim transaction](docs/img/claim-now.png) | ![Activity page entry for the deploy transaction with the on-chain check](docs/img/activity-chain-check.png) |
+
+Captions with the transaction shown and the capture time are in
+[`docs/MEASURED.md`](docs/MEASURED.md#screenshots).
 
 ## What it is
 
@@ -112,11 +127,11 @@ Every optional and stretch item on the bounty page, built or not:
 | Cumulative-only roots (stretch) | built | [`src/epoch/`](src/epoch/), `alreadyClaimed` in the receipt | top-up claim `3b891a54a58dab33e147e6cb723241d2b8385f161d7fc18a7ef12cd27fed3c36` paid only the epoch 2 difference |
 | Watcher with input snapshot hash published with the root (stretch) | built | inputs hash in the state NFT, [`src/watch/`](src/watch/), [Watcher](#watcher) | [`reports/watch-chipnet.json`](reports/watch-chipnet.json), [`docs/MEASURED.md`](docs/MEASURED.md#watcher) |
 | Independently verifiable links for compatibility users (stretch) | built, off chain | [`src/link/`](src/link/), `tuai link sign`/`tuai link verify`, `tuai watch --links`, [SPEC section 8](docs/SPEC.md#8-signed-compatibility-links), ADR [0011](docs/decisions/0011-signed-compatibility-links.md) | `tests/link.test.ts` (wallet signed message vector; other address, other name, tampered signature and other domain refused) |
-| Operator push path after a long timelock, with a minimum (stretch) | built | `RootGate.arm`, push branch of [`ClaimPool.claim`](contracts/ClaimPool.cash), [`src/tx/push.ts`](src/tx/push.ts), ADR [0008](docs/decisions/0008-operator-push.md) | second chipnet pool (`tuai --run push`): arm `a7087d2fd81c54eb5136b7de3836b2b67ba4efadc2b67d35b9d1de00d023dd32`, push `5fc63b2474f735cecd558e43b017c52d43a7120dd2b13f47fd5ed1c6481f42e0` paid from the vault's BCH; an early arm and a push below the minimum refused ([`docs/MEASURED.md`](docs/MEASURED.md#chipnet-operator-push)) |
+| Operator push path after a long timelock, with a minimum (stretch) | built | `RootGate.arm`, push branch of [`ClaimPool.claim`](contracts/ClaimPool.cash), [`src/tx/push.ts`](src/tx/push.ts), ADR [0008](docs/decisions/0008-operator-push.md) | on the 300-leaf tree (`tuai --run push-tree`): arm `1cd76219725bcce8c195285de642a2da149ea73b8161d8ce4c537ee8c4862931`, push to leaf 150 `b956eef69882b31323dac9b4f8181e38eadcb4015f9a8cfff44ec8ef53429c65` paid from the vault's BCH, a push below the minimum refused ([`docs/MEASURED.md`](docs/MEASURED.md#chipnet-operator-push-on-the-300-leaf-pool)); first on a five-leaf pool (`tuai --run push`): arm `a7087d2fd81c54eb5136b7de3836b2b67ba4efadc2b67d35b9d1de00d023dd32`, push `5fc63b2474f735cecd558e43b017c52d43a7120dd2b13f47fd5ed1c6481f42e0` paid from the vault's BCH; an early arm and a push below the minimum refused ([`docs/MEASURED.md`](docs/MEASURED.md#chipnet-operator-push)) |
 | Merkle depth and VM limit analysis (stretch) | built | [`docs/DEPTH.md`](docs/DEPTH.md), `npm run claim-sizes` | claim size per depth and the depth at which each VM limit binds |
 
-The 300-leaf chipnet pool runs the version 1 contracts, deployed before the push path; the push path ran on the
-second chipnet pool of five leaves.
+The 300-leaf chipnet pool of the claim demonstration runs the version 1 contracts, deployed before the push path;
+the push path ran on two later chipnet pools, one of five leaves and one with the same 300-leaf tree.
 
 ## Open questions answered
 
@@ -199,6 +214,9 @@ Other scripts: `npm run vectors` (test vectors), `npm run contracts` (compile `c
 `npm run claim-sizes` (sizes and `docs/DEPTH.md`), `npm run cost` (`docs/COST.md`), `bash scripts/gerbang-ujian.sh`
 (lint, typecheck, contract compile check, tests).
 
+### Tests
+
+`npm test` runs every unit, contract and CLI test offline, including the mock-network runs of the full flow.
 `.github/workflows/test.yml` runs the same `npm ci` and `npm test` on every push and pull request once the repository
 is public; the job is skipped while the repository is private.
 
@@ -313,7 +331,7 @@ in [`lang/en.json`](lang/en.json) and [`lang/ms.json`](lang/ms.json).
 - Chipnet nodes read a block-count sequence lock as ten one-minute blocks per unit at the time of the demonstration,
   so the demo delay of 3 took 30 blocks (ADR 0006).
 - The 300-leaf chipnet demonstration ran the version 1 contracts (kept in `src/contracts/artifacts/v1/`); the push
-  path ran on a second chipnet pool of five leaves. Pushes open only between `pushDelay` blocks after activation and the next proposal.
+  path ran on two later chipnet pools (five leaves, and the 300-leaf tree). Pushes open only between `pushDelay` blocks after activation and the next proposal.
 - On mainnet one pull claim ran, with the project's own test token rather than a real reward token, on a 300-leaf
   tree of five project demo keys and synthetic leaves (`docs/MEASURED.md`, "Mainnet claim with a test token"). Pushes,
   top-ups and the relayer ran on chipnet only.
