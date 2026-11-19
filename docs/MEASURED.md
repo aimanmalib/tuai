@@ -199,11 +199,13 @@ and list below are generated from `deployments/chipnet/page-claims.json`.
 |---|---|---|---|---|---|---|---|
 | 1 | 2026-11-18 21:45:50 | `bchtest:zz8fm0yp5j5as68vel8rvskv7xtz8xca8g90zrn4mm` | [`2b6a7acc0963b14c0a227014eca58bf0c9b931dd9c26f90d6ce808111d582a9f`](https://cbch.loping.net/tx/2b6a7acc0963b14c0a227014eca58bf0c9b931dd9c26f90d6ce808111d582a9f) | 1901 | 1901 | 337326 | 30400000000 |
 | 2 | 2026-11-18 23:51:01 | `bchtest:zzde36p2dz0f0vr2w7txyjwpkk6whkucjvyw2efm8l` | [`99e747919759e690c3f9e20d852202b976944519513ae629a8e33e7f924ebb66`](https://cbch.loping.net/tx/99e747919759e690c3f9e20d852202b976944519513ae629a8e33e7f924ebb66) | 1901 | 1901 | 337491 | 5100000000 |
+| 3 | 2026-11-19 13:10:16 | `bchtest:zztjtl2m2ru8c92g9x4e46x93mtsekzwfypf7xe6vn` | [`0aacf12f46f74331c71eeaf33fda3f685ed3e02d5c3713d6fc0d92ee188c289d`](https://cbch.loping.net/tx/0aacf12f46f74331c71eeaf33fda3f685ed3e02d5c3713d6fc0d92ee188c289d) | 1901 | 1901 | - | 7600000000 |
 
 "Try to claim again" on a claimed leaf, answered by the node and shown on the page:
 
 - 2026-11-18 21:46:05 UTC, `bchtest:zz8fm0yp5j5as68vel8rvskv7xtz8xca8g90zrn4mm`: refused, `Local check: ClaimPool.cash:75 Require statement failed at input 0 in contract ClaimPool.cash at line 75. Node: the transaction was rejected by network rules.`
 - 2026-11-18 23:51:16 UTC, `bchtest:zzde36p2dz0f0vr2w7txyjwpkk6whkucjvyw2efm8l`: refused, `Local check: ClaimPool.cash:75 Require statement failed at input 0 in contract ClaimPool.cash at line 75. Node: the transaction was rejected by network rules.`
+- 2026-11-19 13:10:26 UTC, `bchtest:zztjtl2m2ru8c92g9x4e46x93mtsekzwfypf7xe6vn`: refused, `Local check: ClaimPool.cash:75 Require statement failed at input 0 in contract ClaimPool.cash at line 75. Node: the transaction was rejected by network rules.`
 <!-- chipnet-page-transactions:end -->
 
 ## Chipnet auto-claims by threshold
@@ -231,3 +233,36 @@ recorded deploy transaction `6356165de951e6a7e4765151250eec97d853a368da5d1110686
 "Confirmed on chain, block 336009 (checked by this page via chipnet.bch.ninja)", the same block as the record. No
 listed transaction was left as "not in a block yet". The config lists one chipnet explorer: the other candidates
 checked on 2026-11-19 did not show chipnet transactions (docs/decisions/0014-explorers-and-chain-check.md).
+
+## Screenshots
+
+Captured from the live site `https://tuai.sasateguh.com` with Playwright on 2026-11-19 (`docs/img/`). Each caption
+names the transaction shown and the capture time in UTC.
+
+![Activity page entry for the deploy transaction with the on-chain check](img/activity-chain-check.png)
+
+The activity page asked a chipnet Electrum server for the recorded deploy transaction
+`6356165de951e6a7e4765151250eec97d853a368da5d11106865307a9ef40cec` and showed it confirmed in block 336009
+(Chromium, 820 px wide, captured 2026-11-19 13:09:51 UTC).
+
+![Arm and operator push on the 300-leaf pool, both confirmed on chain](img/push-300-leaf.png)
+
+The arm transaction `1cd76219725bcce8c195285de642a2da149ea73b8161d8ce4c537ee8c4862931` and the operator push to leaf
+150 `b956eef69882b31323dac9b4f8181e38eadcb4015f9a8cfff44ec8ef53429c65` on the 300-leaf pool, both checked by the page
+in block 338178 (Chromium, 820 px wide, captured 2026-11-19 13:09:53 UTC).
+
+![Claim now on the claim page, with the claim transaction](img/claim-now.png)
+
+"Claim now" for the demo leaf `bchtest:zztjtl2m2ru8c92g9x4e46x93mtsekzwfypf7xe6vn`, fee paid by the chipnet relayer,
+returned the claim transaction `0aacf12f46f74331c71eeaf33fda3f685ed3e02d5c3713d6fc0d92ee188c289d`, recorded above
+under "Chipnet claims from the page" (WebKit, iPhone 13, captured 2026-11-19 13:10:16 UTC).
+
+![Try to claim again refused by the contract and the node](img/claim-again-refused.png)
+
+"Try to claim again" for the same leaf right after that claim: the local contract check failed at ClaimPool.cash
+line 75 and the node rejected the transaction, so nothing was broadcast (WebKit, iPhone 13, captured 2026-11-19
+13:10:26 UTC).
+
+The configured chipnet explorer was opened once for the new claim at 2026-11-19 13:10:38 UTC and still did not show
+the transaction, so no explorer screenshot is included; the on-chain checks above come from the page's own Electrum
+query (docs/decisions/0014-explorers-and-chain-check.md).
