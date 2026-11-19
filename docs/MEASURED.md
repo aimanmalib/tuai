@@ -234,6 +234,17 @@ recorded deploy transaction `6356165de951e6a7e4765151250eec97d853a368da5d1110686
 listed transaction was left as "not in a block yet". The config lists one chipnet explorer: the other candidates
 checked on 2026-11-19 did not show chipnet transactions (docs/decisions/0014-explorers-and-chain-check.md).
 
+## Mainnet funding
+
+Funding: 0.00015183 BCH received from a shared test wallet, txid
+`3556624f0b790e53823d0a71a8ccd1362d638bb606cce6ca70018cb2ed3f816a`, for one mainnet claim with a test token.
+The payment went to the project mainnet payer `bitcoincash:qrvp50lpgnehckax483xlc4zxjut2f9a8gg2glqv8p` and was mined
+at 2026-11-19 17:02:59 UTC (block 978051, 7 confirmations when checked over Electrum `bch.imaginary.cash` at block
+978057). `tuai status --network mainnet` then reported a payer balance of 15183 sat. The amount was sized as the
+measured transaction sizes for prepare, token genesis, deploy without a vault top-up, propose, activate and one
+depth-9 first claim (12146 sat at 1 sat per byte plus dust outputs) with a 25 percent margin. It is below the
+mainnet spending limit of 100000 sat in `config/tuai.json`.
+
 ## Screenshots
 
 Captured from the live site `https://tuai.sasateguh.com` with Playwright on 2026-11-19 (`docs/img/`). Each caption
