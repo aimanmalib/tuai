@@ -185,5 +185,14 @@ The table is generated from `deployments/chipnet/auto-claims.json`.
 <!-- chipnet-auto-transactions:start -->
 | # | When (UTC) | Leaf address | Transaction | Bytes | Fee (sat) | Block | Tokens paid |
 |---|---|---|---|---|---|---|---|
-| 1 | 2026-11-19 01:06:03 | `bchtest:zp9pp55lnkj2p99hsvpaed95g2dx6e38xs5x0x0h7m` | [`4997b741bac51ce4dae947276b1d7820638d986b8213725f95361b11d834d788`](https://cbch.loping.net/tx/4997b741bac51ce4dae947276b1d7820638d986b8213725f95361b11d834d788) | 1748 | 1748 | - | 25000000000 |
+| 1 | 2026-11-19 01:06:03 | `bchtest:zp9pp55lnkj2p99hsvpaed95g2dx6e38xs5x0x0h7m` | [`4997b741bac51ce4dae947276b1d7820638d986b8213725f95361b11d834d788`](https://cbch.loping.net/tx/4997b741bac51ce4dae947276b1d7820638d986b8213725f95361b11d834d788) | 1748 | 1748 | 337555 | 25000000000 |
 <!-- chipnet-auto-transactions:end -->
+
+## Chain check on the live activity page
+
+2026-11-19 10:16 UTC, deploy tag `04be8a3-202611191014`: the post-deploy browser test (`e2e/live.spec.ts`, Chromium
+desktop and WebKit iPhone 13) opened the public activity page, which asked a chipnet Electrum server itself for the
+recorded deploy transaction `6356165de951e6a7e4765151250eec97d853a368da5d11106865307a9ef40cec` and showed
+"Confirmed on chain, block 336009 (checked by this page via chipnet.bch.ninja)", the same block as the record. No
+listed transaction was left as "not in a block yet". The config lists one chipnet explorer: the other candidates
+checked on 2026-11-19 did not show chipnet transactions (docs/decisions/0014-explorers-and-chain-check.md).
