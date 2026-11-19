@@ -41,9 +41,9 @@ export async function showActivity(
     return;
   }
   status.textContent = '';
-  const seen = renderActivity(target, index, net.name, decimals);
-  if (index.runs.length === 0) return;
   const server = new URL(net.wssUrl).hostname;
+  const seen = renderActivity(target, index, net.name, server, decimals);
+  if (index.runs.length === 0) return;
   const check = (txids: string[]) =>
     checkOnChain(net.wssUrl, limits.timeoutMs, txids, limits.concurrency, (txid, verdict) => showChainCheck(target, txid, verdict, server));
   const recorded = check(pendingChecks(target));

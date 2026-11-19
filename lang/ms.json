@@ -93,7 +93,7 @@
     "activity": {
       "heading": "Setiap transaksi di {network}",
       "networks": "Rangkaian",
-      "intro": "Setiap langkah demonstrasi seperti yang dihantar, mengikut urutan, termasuk yang ditolak nod. Halaman ini sendiri bertanya kepada pelayan Electrum chipnet tentang setiap transaksi yang disenaraikan dan memaparkan jawapannya di bawahnya. Pautan membuka transaksi dalam penjelajah blok.",
+      "intro": "Setiap langkah demonstrasi seperti yang dihantar, mengikut urutan, termasuk yang ditolak nod. Halaman ini sendiri bertanya kepada pelayan Electrum {server} tentang setiap transaksi yang disenaraikan dan memaparkan jawapannya di bawahnya. Pautan membuka transaksi dalam penjelajah blok.",
       "loading": "Memuatkan rekod transaksi",
       "failed": "Rekod transaksi tidak dapat dimuatkan ({reason}).",
       "empty": "Belum ada transaksi direkodkan untuk {network}.",

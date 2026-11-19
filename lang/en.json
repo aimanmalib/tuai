@@ -93,7 +93,7 @@
     "activity": {
       "heading": "Every transaction on {network}",
       "networks": "Network",
-      "intro": "Each step of the demonstration as it was sent, in order, including the ones the node refused. This page asks the chipnet Electrum server about every listed transaction itself and shows the answer under it. Links open the transaction in a block explorer.",
+      "intro": "Each step of the demonstration as it was sent, in order, including the ones the node refused. This page asks the Electrum server {server} about every listed transaction itself and shows the answer under it. Links open the transaction in a block explorer.",
       "loading": "Loading the transaction record",
       "failed": "Could not load the transaction record ({reason}).",
       "empty": "No transactions are recorded for {network} yet.",

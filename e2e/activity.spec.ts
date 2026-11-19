@@ -170,6 +170,9 @@ test('switches the record between networks from the activity page', async ({ pag
   await expect(links.last()).toHaveAttribute('aria-current', 'true');
   await expect(page.locator('.run .txs > li')).toHaveCount(mainnetTxs.length);
   await expect(page.locator('.run h3').first()).toContainText('Mainnet pool');
+  const intro = page.locator('p.intro', { hasText: 'Electrum' });
+  await expect(intro).toContainText(new URL(config.networks.mainnet.electrum.wssUrl).hostname);
+  await expect(intro).not.toContainText('chipnet');
   const firstMined = mainnetTxs.find((t) => t.txid !== null && t.error === undefined)!;
   await expect(page.locator('.run .tx:not(.refused) a').first()).toHaveAttribute('href', new RegExp(`/tx/${firstMined.txid}$`));
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));

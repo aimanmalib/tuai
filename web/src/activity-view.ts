@@ -114,12 +114,12 @@ function runSection(run: ActivityRun, decimals: number): HTMLElement {
   );
 }
 
-/** The recorded transactions of every run on one network, plus an empty slot for what the chain shows beyond them. */
-export function renderActivity(target: HTMLElement, index: ActivityIndex, networkName: string, decimals: number): HTMLElement {
+/** The recorded transactions of every run on one network (checked against the Electrum host `server`), plus an empty slot for what the chain shows beyond them. */
+export function renderActivity(target: HTMLElement, index: ActivityIndex, networkName: string, server: string, decimals: number): HTMLElement {
   const seen = el('section', { class: 'seen', id: 'seen', 'aria-labelledby': 'seen-h' });
   target.replaceChildren(
     el('h2', {}, t('activity.heading', { network: networkName })),
-    el('p', { class: 'intro' }, t('activity.intro')),
+    el('p', { class: 'intro' }, t('activity.intro', { server })),
     ...(index.runs.length === 0 ? [el('p', { class: 'note' }, t('activity.empty', { network: networkName }))] : index.runs.map((r) => runSection(r, decimals))),
     seen,
   );
