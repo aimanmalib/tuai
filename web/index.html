@@ -27,6 +27,80 @@
     <main>
       <h1 class="sr-only" data-i18n="title"></h1>
       <div id="view-claim">
+        <section id="hero" class="hero" aria-labelledby="hero-line">
+          <p id="hero-line" class="hero-line" data-i18n="hero.line"></p>
+          <figure class="hero-figure">
+            <svg id="push-pull" viewBox="0 0 320 132" role="img" aria-labelledby="push-pull-title" aria-describedby="push-pull-desc">
+              <title id="push-pull-title" data-i18n="hero.figure"></title>
+              <desc id="push-pull-desc" data-i18n="hero.figureDesc"></desc>
+              <line class="pp-split" x1="160" y1="4" x2="160" y2="128" />
+              <g class="pp-push">
+                <g class="pp-wires">
+            <line x1="80" y1="50" x2="16" y2="112" />
+            <line x1="80" y1="50" x2="34" y2="112" />
+            <line x1="80" y1="50" x2="52" y2="112" />
+            <line x1="80" y1="50" x2="70" y2="112" />
+            <line x1="80" y1="50" x2="90" y2="112" />
+            <line x1="80" y1="50" x2="108" y2="112" />
+            <line x1="80" y1="50" x2="126" y2="112" />
+            <line x1="80" y1="50" x2="144" y2="112" />
+                </g>
+                <rect class="pp-node" x="36" y="30" width="88" height="20" rx="4" />
+                <text class="pp-label" x="80" y="44" data-i18n="hero.pushOperator"></text>
+                <text class="pp-head" x="80" y="16" data-i18n="hero.push"></text>
+                <g class="pp-paid">
+            <circle cx="16" cy="118" r="6" style="--i:0" />
+            <circle cx="34" cy="118" r="6" style="--i:1" />
+            <circle cx="52" cy="118" r="6" style="--i:2" />
+            <circle cx="70" cy="118" r="6" style="--i:3" />
+            <circle cx="90" cy="118" r="6" style="--i:4" />
+            <circle cx="108" cy="118" r="6" style="--i:5" />
+            <circle cx="126" cy="118" r="6" style="--i:6" />
+            <circle cx="144" cy="118" r="6" style="--i:7" />
+                </g>
+              </g>
+              <g class="pp-pull">
+                <rect class="pp-node pp-root" x="186" y="30" width="108" height="20" rx="4" />
+                <text class="pp-label pp-root-label" x="240" y="44" data-i18n="hero.pullRoot"></text>
+                <text class="pp-head" x="240" y="16" data-i18n="hero.pull"></text>
+                <g class="pp-folders">
+            <circle cx="176" cy="118" r="6" />
+            <circle cx="194" cy="118" r="6" />
+            <circle cx="212" cy="118" r="6" />
+            <circle cx="230" cy="118" r="6" />
+            <circle cx="250" cy="118" r="6" />
+            <circle cx="268" cy="118" r="6" />
+            <circle cx="286" cy="118" r="6" />
+            <circle cx="304" cy="118" r="6" />
+                </g>
+                <g class="pp-claims">
+            <path d="M176 104 V76 M172 81 L176 76 L180 81" style="--i:0" />
+            <path d="M194 104 V76 M190 81 L194 76 L198 81" style="--i:1" />
+            <path d="M212 104 V76 M208 81 L212 76 L216 81" style="--i:2" />
+            <path d="M230 104 V76 M226 81 L230 76 L234 81" style="--i:3" />
+            <path d="M250 104 V76 M246 81 L250 76 L254 81" style="--i:4" />
+            <path d="M268 104 V76 M264 81 L268 76 L272 81" style="--i:5" />
+            <path d="M286 104 V76 M282 81 L286 76 L290 81" style="--i:6" />
+            <path d="M304 104 V76 M300 81 L304 76 L308 81" style="--i:7" />
+                </g>
+              </g>
+            </svg>
+            <figcaption class="hero-caption">
+              <span><strong data-i18n="hero.push"></strong> <span data-i18n="hero.pushCaption"></span></span>
+              <span><strong data-i18n="hero.pull"></strong> <span data-i18n="hero.pullCaption"></span></span>
+            </figcaption>
+          </figure>
+          <p class="hero-actions">
+            <button type="button" id="hero-try" class="primary" data-i18n="hero.try"></button>
+          </p>
+          <div class="hero-costs">
+            <ul>
+              <li id="hero-cost-push" class="cost-push"></li>
+              <li id="hero-cost-pull" class="cost-pull"></li>
+            </ul>
+            <p><a id="hero-costs-link" data-i18n="hero.costsLink"></a></p>
+          </div>
+        </section>
         <p class="intro" data-i18n="intro"></p>
         <form id="lookup" class="lookup" novalidate>
           <div class="field" id="network-field">

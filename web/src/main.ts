@@ -14,6 +14,7 @@ import { addressToLockingBytecode, type CashAddressPrefix } from '../../src/leaf
 import { renderWalletClaim } from './wallet-view.ts';
 import { formatUnits } from './model.ts';
 import { explorersOf, type Explorer } from '../../src/explorers.ts';
+import { HERO_COSTS, heroCostLines } from './hero.ts';
 
 type NetworkKey = 'chipnet' | 'mainnet';
 const web = config.web;
@@ -48,6 +49,9 @@ function renderStatic(): void {
   applyStatic(document);
   byId('banner-entry').textContent = t('bannerEntry', { event: config.banner.event, bounty: config.banner.bounty });
   byId('banner-prize').textContent = config.banner.prizeAddress;
+  const costs = heroCostLines(HERO_COSTS, t, getLocale() === 'ms' ? 'ms-MY' : 'en-US');
+  byId('hero-cost-push').textContent = costs.push;
+  byId('hero-cost-pull').textContent = costs.pull;
   const lang = byId<HTMLButtonElement>('lang');
   lang.textContent = t('langOther');
   lang.lang = getLocale() === 'en' ? 'ms' : 'en';
@@ -64,6 +68,7 @@ function setLinks(): void {
   byId<HTMLAnchorElement>('link-source').href = repo;
   byId<HTMLAnchorElement>('link-spec').href = `${repo}/blob/main/docs/SPEC.md`;
   byId<HTMLAnchorElement>('link-measured').href = `${repo}/blob/main/docs/MEASURED.md`;
+  byId<HTMLAnchorElement>('hero-costs-link').href = `${repo}/blob/main/docs/COST.md`;
 }
 
 let lastQuery: string | undefined;
@@ -204,6 +209,13 @@ async function pickDemo(): Promise<void> {
 }
 
 byId('demo-pick').addEventListener('click', () => void pickDemo());
+// The hero button runs the same demo pick, then brings the claim card (or whatever the check showed) into view.
+byId('hero-try').addEventListener('click', () => {
+  void pickDemo().then(() => {
+    const target = document.getElementById('relay-claim') ?? (result.hidden ? status : result);
+    target.scrollIntoView({ block: 'center' });
+  });
+});
 
 form.addEventListener('submit', (event) => {
   event.preventDefault();

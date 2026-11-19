@@ -247,6 +247,21 @@
         "chainError": "The chain server did not answer.",
         "unknown": "The server could not be reached."
       }
+    },
+    "hero": {
+      "line": "Folders claim their own FLDCH. The operator publishes one root instead of paying hundreds of outputs.",
+      "figure": "Push compared with pull",
+      "figureDesc": "On the left, one operator transaction pays an output to every folder. On the right, the operator publishes one root on chain and each folder claims their own share.",
+      "push": "Push",
+      "pull": "Pull",
+      "pushOperator": "Operator",
+      "pullRoot": "Root on chain",
+      "pushCaption": "One payout per folder, every epoch",
+      "pullCaption": "One root; each folder claims",
+      "costPush": "Push today: about {sats} sat per folder, every epoch, paid by the operator (average of {count} live distributions).",
+      "costPull": "Pull: {sats} sat per epoch for the operator, however many folders there are (measured propose and activate).",
+      "try": "Try a demo address",
+      "costsLink": "How these numbers are measured"
     }
   }
 }

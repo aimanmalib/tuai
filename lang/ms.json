@@ -247,6 +247,21 @@
         "chainError": "Pelayan rantaian tidak menjawab.",
         "unknown": "Pelayan tidak dapat dihubungi."
       }
+    },
+    "hero": {
+      "line": "Pelipat menuntut FLDCH mereka sendiri. Operator menerbitkan satu akar dan tidak perlu membayar ratusan output.",
+      "figure": "Tolak berbanding tarik",
+      "figureDesc": "Di kiri, satu transaksi operator membayar satu output kepada setiap pelipat. Di kanan, operator menerbitkan satu akar di rantaian dan setiap pelipat menuntut bahagian sendiri.",
+      "push": "Tolak",
+      "pull": "Tarik",
+      "pushOperator": "Operator",
+      "pullRoot": "Akar di rantaian",
+      "pushCaption": "Satu bayaran setiap pelipat, setiap epoch",
+      "pullCaption": "Satu akar; setiap pelipat menuntut",
+      "costPush": "Tolak hari ini: kira-kira {sats} sat setiap pelipat, setiap epoch, dibayar operator (purata {count} agihan sebenar).",
+      "costPull": "Tarik: {sats} sat setiap epoch untuk operator, berapa pun bilangan pelipat (propose dan activate diukur).",
+      "try": "Cuba alamat demo",
+      "costsLink": "Bagaimana angka ini diukur"
     }
   }
 }

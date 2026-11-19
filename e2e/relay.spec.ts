@@ -137,7 +137,7 @@ test('picks a demo address that still has tokens to claim', async ({ page }) => 
   await fakeElectrum(page, { claimed: epoch.leaves.slice(1).map((l) => ({ leaf: l, amount: BigInt(l.cumulative) })) });
   await fakeRelay(page, { network: 'chipnet', enabled: true }, { code: 'claimed', txid: TXID });
   await page.goto('/');
-  await page.getByRole('button', { name: /Try a demo address/ }).click();
+  await page.locator('#demo-pick').click();
   await expect(page.getByLabel(/Your address/)).toHaveValue(epoch.leaves[0]!.address);
   await expect(page.locator('#relay-claim')).toBeVisible();
 });

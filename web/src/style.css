@@ -218,3 +218,54 @@ button.small { min-height: 2.25rem; padding: 0.25rem 0.75rem; font-size: 0.875re
 .tx-actions .explorer-link,
 .explorer-links .explorer-link { overflow-wrap: anywhere; }
 .explorer-links { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
+
+/* Hero (KF17.1): one sentence, the push and pull drawing, two measured costs and the demo button. Animations move
+   transform and opacity only; no filters, which crash WebKit when animated. */
+.hero { margin: 1rem 0 1.5rem; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: 'line' 'figure' 'actions' 'costs'; }
+.hero-line { grid-area: line; }
+.hero-figure { grid-area: figure; }
+.hero-actions { grid-area: actions; }
+.hero-costs { grid-area: costs; }
+@media (min-width: 40rem) {
+  .hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); grid-template-areas: 'line figure' 'actions figure' 'costs figure'; gap: 0 1.25rem; align-items: start; }
+}
+.hero-line { margin: 0 0 0.75rem; font: 600 1.3rem/1.35 var(--serif); max-width: 36rem; }
+.hero-figure { margin: 0; padding: 0.75rem; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+#push-pull { display: block; width: 100%; height: auto; max-height: 11rem; --pp-cycle: 3.2s; }
+.pp-split { stroke: var(--line); stroke-dasharray: 3 4; }
+.pp-wires line { stroke: var(--grain); stroke-width: 1; opacity: 0.55; }
+.pp-node { fill: var(--ink); }
+.pp-root { fill: var(--stalk); }
+.pp-label { fill: var(--panel); font: 600 10px var(--sans); text-anchor: middle; }
+.pp-head { fill: var(--ink); font: 600 12px var(--sans); text-anchor: middle; letter-spacing: 0.04em; text-transform: uppercase; }
+.pp-paid circle { fill: var(--grain); stroke: var(--grain); }
+.pp-folders circle { fill: var(--panel); stroke: var(--stalk); stroke-width: 2; }
+.pp-claims path { fill: none; stroke: var(--stalk); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.hero-caption { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.25rem 1rem; margin-top: 0.5rem; font-size: 0.85rem; color: var(--ink-soft); }
+.hero-caption strong { color: var(--ink); }
+.hero-costs { margin-top: 0.75rem; font-size: 0.9rem; }
+.hero-costs ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; }
+.hero-costs p { margin: 0.4rem 0 0; }
+.hero-costs li { padding-left: 0.75rem; border-left: 3px solid var(--grain); overflow-wrap: anywhere; }
+.hero-costs .cost-pull { border-left-color: var(--stalk); }
+.hero-actions { margin: 0.75rem 0 0; }
+@keyframes pp-pay { 0%, 100% { opacity: 0.25; } 20%, 45% { opacity: 1; } }
+@keyframes pp-claim { 0%, 100% { opacity: 0; transform: translateY(8px); } 25%, 60% { opacity: 1; transform: translateY(0); } }
+.pp-paid circle { animation: pp-pay var(--pp-cycle) ease-in-out infinite; animation-delay: calc(var(--i) * 0.18s); }
+.pp-claims path { animation: pp-claim var(--pp-cycle) ease-out infinite; animation-delay: calc(var(--i) * 0.37s); }
+@media (max-width: 30rem) {
+  /* Narrow screens: a tighter banner and header so the hero button sits above the fold on a phone. */
+  .banner { font-size: 0.8rem; padding: 0.45rem 1rem; }
+  .top { padding-top: 1rem; }
+  .wordmark { font-size: 2rem; }
+  .tagline { font-size: 0.95rem; }
+  .hero { margin-top: 0.25rem; }
+  .hero-line { font-size: 1.05rem; margin-bottom: 0.5rem; }
+  .hero-figure { padding: 0.5rem; }
+  .hero-caption { font-size: 0.8rem; line-height: 1.35; }
+  .hero-actions { margin-top: 0.6rem; }
+  .hero-actions .primary { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pp-paid circle, .pp-claims path { animation: none; opacity: 1; transform: none; }
+}
