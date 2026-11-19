@@ -157,6 +157,19 @@ second chipnet pool of five leaves.
   a fee cap) as a second guard behind the contracts. It runs only on chipnet: the network is a constant in code and
   the config must list chipnet alone (ADR [0009](docs/decisions/0009-chipnet-relayer.md)).
 
+### Why leaving out a receipt does not pay twice
+
+Receipts live in the vault as one list sorted by key; they never sit in a claimant's wallet. A first claim must spend
+the receipt just before its own key, and the contract reads that receipt's real commitment: it pays only if
+`P.key < key < P.next`. Once a key is in the list, the receipt before it points at that key, so no receipt in the vault
+can pass the check for it again, and a receipt-shaped NFT of any other category is refused. The own receipt can only
+be spent by a claim that puts it back in the vault with the new cumulative amount, so it cannot be burned, moved out
+or reset to zero, and an activation may not carry any token input. Operators publish roots but never write a claimed
+amount: only a claim transaction does, so a new root that lists a leaf lower or unchanged pays it nothing.
+[`tests/receipt-omission.test.ts`](tests/receipt-omission.test.ts) runs each of these attempts on the CashScript VM,
+and on chipnet the node refused a duplicate first claim on the recorded pool and every "Try to claim again" from the
+page ([MEASURED](docs/MEASURED.md#chipnet), [claims from the page](docs/MEASURED.md#chipnet-claims-from-the-page)).
+
 ## Cost
 
 From [`docs/COST.md`](docs/COST.md) (generated from measured sizes and live mainnet distributions; price and time of

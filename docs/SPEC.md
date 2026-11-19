@@ -146,6 +146,15 @@ new receipt's dust; the submitter cannot change where the tokens go. Any reward-
 (the builder takes the largest one that covers the payment and leaves at least one unit), so tokens sent to the vault
 address after deploy are claimable too (`tests/vault-topup.test.ts`).
 
+Why leaving out a receipt does not pay twice: receipts stay in the vault as one sorted list, and a first claim must
+spend the receipt `P` just before `key` and pass `P.key < key < P.next` on that receipt's real commitment. Once `key`
+is in the list its predecessor points at it, so no receipt can pass the check for it again, and an NFT of another
+category is refused at input 2. The own receipt is spent only by a claim that recreates it in the vault with the new
+cumulative amount (no burn, move or reset), and an activation carries no token inputs. Only a claim writes `claimed`;
+a new root that lists a leaf lower or unchanged pays it nothing. Each attempt is a case in
+[`tests/receipt-omission.test.ts`](../tests/receipt-omission.test.ts); the chipnet refusals are in
+[MEASURED](MEASURED.md#chipnet).
+
 ### 5.5 Arm pushes (`src/tx/push.ts` `planArm`, `ClaimPool.activate()` + `RootGate.arm()`)
 
 Same layout as an activation. Input 1 (the pending-root NFT) has sequence = `pushDelay` blocks and must equal the
