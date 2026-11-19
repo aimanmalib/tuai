@@ -212,9 +212,25 @@ form.addEventListener('submit', (event) => {
 
 const views = { claim: byId('view-claim'), activity: byId('view-activity') };
 
-/** `#/activity` shows the transaction record; anything else shows the address check. */
+/** Links to each network's record on the activity page, the shown one marked; hidden with a single network. */
+function renderNetworkSwitch(shown: NetworkKey): void {
+  const nav = byId('activity-networks');
+  nav.hidden = web.networks.length < 2;
+  nav.replaceChildren(
+    ...web.networks.map((n) => {
+      const a = document.createElement('a');
+      a.href = `#/activity/${n}`;
+      a.textContent = t(`network.${n}`);
+      if (n === shown) a.setAttribute('aria-current', 'true');
+      return a;
+    }),
+  );
+}
+
+/** `#/activity` (or `#/activity/<network>`) shows the transaction record; anything else shows the address check. */
 function route(): void {
-  const activity = location.hash === '#/activity';
+  const match = /^#\/activity(?:\/([a-z]+))?$/.exec(location.hash);
+  const activity = match !== null;
   views.claim.hidden = activity;
   views.activity.hidden = !activity;
   for (const [id, on] of [['nav-claim', !activity], ['nav-activity', activity]] as const) {
@@ -222,7 +238,9 @@ function route(): void {
     else byId(id).removeAttribute('aria-current');
   }
   if (activity) {
-    const key = select.value as NetworkKey;
+    const asked = match[1];
+    const key = (asked !== undefined && (web.networks as string[]).includes(asked) ? asked : select.value) as NetworkKey;
+    renderNetworkSwitch(key);
     const net = networkConfig(key);
     const target = { key, name: t(`network.${key}`), wssUrl: net.electrum.wssUrl, explorers: explorersOf(net) };
     const limits = { timeoutMs: web.electrumTimeoutSeconds * 1000, concurrency: web.chainCheckConcurrency };

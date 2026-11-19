@@ -92,6 +92,7 @@
     },
     "activity": {
       "heading": "Every transaction on {network}",
+      "networks": "Network",
       "intro": "Each step of the demonstration as it was sent, in order, including the ones the node refused. This page asks the chipnet Electrum server about every listed transaction itself and shows the answer under it. Links open the transaction in a block explorer.",
       "loading": "Loading the transaction record",
       "failed": "Could not load the transaction record ({reason}).",
@@ -99,7 +100,8 @@
       "runs": {
         "chipnet": "Claim pool: claims and the epoch 2 top-up",
         "chipnet-push": "Second pool: operator push path",
-        "chipnet-push-tree": "Third pool: operator push on the 300-leaf tree"
+        "chipnet-push-tree": "Third pool: operator push on the 300-leaf tree",
+        "mainnet": "Mainnet pool: one claim with a test token"
       },
       "run": "Deployment {run}",
       "pool": "Pool contract",

@@ -147,3 +147,34 @@ test('fits a 320 px screen with the activity list scrolled to the end', async ({
   }
   expect(errors).toEqual([]);
 });
+
+// Mainnet runs, read from the repository like the chipnet ones above.
+const mainnetRuns = readdirSync('deployments')
+  .filter((r) => existsSync(`deployments/${r}/transactions.json`))
+  .map((r) => JSON.parse(readFileSync(`deployments/${r}/transactions.json`, 'utf8')) as { network: string; transactions: Tx[] })
+  .filter((r) => r.network === 'mainnet');
+
+test('switches the record between networks from the activity page', async ({ page }) => {
+  test.skip(mainnetRuns.length === 0, 'no mainnet run is recorded');
+  const mainnetTxs = mainnetRuns.flatMap((r) => r.transactions);
+  await page.routeWebSocket(/.*/, (ws) => ws.close());
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto('/#/activity');
+  const links = page.locator('#activity-networks a');
+  await expect(links).toHaveText(['Chipnet (test network)', 'Mainnet']);
+  await expect(links.first()).toHaveAttribute('aria-current', 'true');
+  await expect(page.locator('.run .txs > li')).toHaveCount(all.length);
+  await links.last().click();
+  await expect(page).toHaveURL(/#\/activity\/mainnet$/);
+  await expect(page.locator('#nav-activity')).toHaveAttribute('aria-current', 'page');
+  await expect(links.last()).toHaveAttribute('aria-current', 'true');
+  await expect(page.locator('.run .txs > li')).toHaveCount(mainnetTxs.length);
+  await expect(page.locator('.run h3').first()).toContainText('Mainnet pool');
+  const firstMined = mainnetTxs.find((t) => t.txid !== null && t.error === undefined)!;
+  await expect(page.locator('.run .tx:not(.refused) a').first()).toHaveAttribute('href', new RegExp(`/tx/${firstMined.txid}$`));
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await noHorizontalOverflow(page);
+  if (process.env.SCREENSHOT_DIR) await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-mn1-activity-${test.info().project.name}.png` });
+  await links.first().click();
+  await expect(page.locator('.run .txs > li')).toHaveCount(all.length);
+});

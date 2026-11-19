@@ -153,6 +153,9 @@ h3 { font: 600 1.25rem/1.25 var(--serif); margin: 2rem 0 0.75rem; }
 }
 .views a:hover { color: var(--ink); }
 .views a[aria-current='page'] { color: var(--ink); border-bottom-color: var(--grain); }
+/* Network switch on the activity page: the same links, inside the page column. */
+.views.net-switch { padding: 0; margin: 0 0 0.5rem; }
+.views a[aria-current='true'] { color: var(--ink); border-bottom-color: var(--grain); }
 
 /* Activity: one section per deployment run, one card per transaction in the order it was sent. */
 .activity { margin-top: 1rem; }

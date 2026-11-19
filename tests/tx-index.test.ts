@@ -14,7 +14,7 @@ const explorers = [
   { name: 'Explorer A', txUrl: explorer },
   { name: 'Explorer B', txUrl: second },
 ];
-const indexes = buildTxIndex(process.cwd(), 'deployments', { chipnet: explorers });
+const indexes = buildTxIndex(process.cwd(), 'deployments', { chipnet: explorers, mainnet: explorers });
 const linksOf = (txid: string) => [
   { name: 'Explorer A', url: `${explorer}${txid}` },
   { name: 'Explorer B', url: `${second}${txid}` },

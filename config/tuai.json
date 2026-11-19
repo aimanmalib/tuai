@@ -37,7 +37,17 @@
       },
       "activationDelayBlocks": 6,
       "pushDelayBlocks": 6,
-      "rewardCategory": ""
+      "rewardCategory": "",
+      "explorers": [
+        {
+          "name": "bchexplorer.info",
+          "txUrl": "https://bchexplorer.info/tx/"
+        },
+        {
+          "name": "3xpl.com",
+          "txUrl": "https://3xpl.com/bitcoin-cash/transaction/"
+        }
+      ]
     }
   },
   "production": {
@@ -118,7 +128,8 @@
   },
   "web": {
     "networks": [
-      "chipnet"
+      "chipnet",
+      "mainnet"
     ],
     "defaultNetwork": "chipnet",
     "electrumTimeoutSeconds": 20,
