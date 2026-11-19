@@ -77,3 +77,15 @@ test('the activity page lists every transaction in the served record, and sample
   }
   expect(errors).toEqual([]);
 });
+
+test('the relayer status names the network and says when it is running low', async ({ page }) => {
+  const res = await page.request.get('/api/relay/status');
+  expect(res.status()).toBe(200);
+  const s = (await res.json()) as { network: string; reason?: string; claimsLeft?: number; low?: boolean; warnClaimsLeft?: number };
+  expect(s.network).toBe('chipnet');
+  // Switched off on the host: nginx answers for it, and there is no balance to judge.
+  if (s.reason === 'off' && s.claimsLeft === undefined) return;
+  expect(typeof s.low).toBe('boolean');
+  expect(Number.isInteger(s.warnClaimsLeft)).toBe(true);
+  expect(s.low).toBe(s.claimsLeft! <= s.warnClaimsLeft!);
+});
