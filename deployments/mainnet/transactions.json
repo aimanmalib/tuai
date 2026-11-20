@@ -1,6 +1,6 @@
 {
  "network": "mainnet",
- "tipHeight": 978067,
+ "tipHeight": 978157,
  "transactions": [
   {
    "kind": "token-genesis",
@@ -52,6 +52,33 @@
    "utc": "2026-11-19T19:24:21.454Z",
    "height": 978066,
    "note": "leaf 299"
+  },
+  {
+   "kind": "claim-first-epoch-1",
+   "txid": "d32279084202c4b8f878b9899e8bdef357d5eaf7bbc6bb87f31fcd551aba30cb",
+   "bytes": 1950,
+   "feeSats": 1950,
+   "utc": "2026-11-20T10:08:42.373Z",
+   "height": 978157,
+   "note": "leaf 0"
+  },
+  {
+   "kind": "claim-first-epoch-1",
+   "txid": "dd2877b22fd047840853a18643910b80cc8c8d736b808663f3ff039d5718d650",
+   "bytes": 1950,
+   "feeSats": 1950,
+   "utc": "2026-11-20T10:09:02.517Z",
+   "height": 978157,
+   "note": "leaf 1"
+  },
+  {
+   "kind": "claim-first-epoch-1",
+   "txid": "e800734247db1e4a644e923a331a9a75405cd1e5fd3f9b203d00b06e3fba0e87",
+   "bytes": 2093,
+   "feeSats": 2093,
+   "utc": "2026-11-20T10:09:36.161Z",
+   "height": 978157,
+   "note": "leaf 150"
   }
  ]
 }

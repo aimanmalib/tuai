@@ -44,8 +44,9 @@ A five-minute path through the working system, all on chipnet:
 4. Press **Try to claim again** on the same leaf. The second claim is refused by the contract and by the node, and
    the page shows both messages.
 5. Open <https://tuai.sasateguh.com/#/activity/mainnet>. The same contracts ran once on mainnet with the project's
-   own test token: deploy, a two-of-three proposal, activation after the delay, and one claim,
-   `120d69a5ce74746713ee0db362383eddfca2d7c4a290786cabbdfd30828ede32`, confirmed in block 978066
+   own test token: deploy, a two-of-three proposal, activation after the delay, and four claims by project demo
+   keys, the first `120d69a5ce74746713ee0db362383eddfca2d7c4a290786cabbdfd30828ede32` in block 978066 and three more in
+   block 978157
    ([`docs/MEASURED.md`](docs/MEASURED.md#mainnet-claim-with-a-test-token)). Mainnet links go to two explorers.
 6. In a clone: `npm ci && npm test` (offline), then
    `npx tsx bin/tuai.ts epoch verify deployments/chipnet/epoch-2.json` to rebuild the published root from its inputs.
@@ -335,7 +336,7 @@ in [`lang/en.json`](lang/en.json) and [`lang/ms.json`](lang/ms.json).
   so the demo delay of 3 took 30 blocks (ADR 0006).
 - The 300-leaf chipnet demonstration ran the version 1 contracts (kept in `src/contracts/artifacts/v1/`); the push
   path ran on two later chipnet pools (five leaves, and the 300-leaf tree). Pushes open only between `pushDelay` blocks after activation and the next proposal.
-- On mainnet one pull claim ran, with the project's own test token rather than a real reward token, on a 300-leaf
+- On mainnet four pull claims ran, with the project's own test token rather than a real reward token, on a 300-leaf
   tree of five project demo keys and synthetic leaves (`docs/MEASURED.md`, "Mainnet claim with a test token"). Pushes,
   top-ups and the relayer ran on chipnet only.
 - The claim page claims through the chipnet demo relayer, through the

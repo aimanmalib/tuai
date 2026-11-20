@@ -1,4 +1,4 @@
-// The committed mainnet record: one claim with the project's own test token, within the configured spending limit.
+// The committed mainnet record: claims by the project's demo keys with its own test token, within the configured spending limit.
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -25,12 +25,23 @@ describe('committed mainnet claim with a test token', () => {
     expect(pool.rewardCategory).toMatch(/^[0-9a-f]{64}$/);
   });
 
-  it('records the token genesis, deploy, activation and exactly one first claim, each in a block', () => {
+  it('records the token genesis, deploy, activation and the first claims, each in a block', () => {
     const mined = record.transactions.filter((t) => t.txid !== null && t.height !== null && t.height > 0);
     for (const k of ['token-genesis', 'deploy', 'propose-epoch-1', 'activate-epoch-1', 'claim-first-epoch-1']) {
       expect(mined.map((t) => t.kind)).toContain(k);
     }
-    expect(record.transactions.filter((t) => t.kind.startsWith('claim-'))).toHaveLength(1);
+    const claims = record.transactions.filter((t) => t.kind.startsWith('claim-'));
+    expect(claims.length).toBeGreaterThanOrEqual(1);
+    for (const c of claims) expect(mined).toContain(c);
+  });
+
+  it('paid only leaves held by the project demo keys, each leaf once', () => {
+    const leaves = record.transactions
+      .filter((t) => t.kind.startsWith('claim-'))
+      .map((t) => Number(/^leaf (\d+)$/.exec(t.note ?? '')?.[1]));
+    expect(leaves.length).toBeLessThanOrEqual(config.demo.keyIndices.length);
+    expect(new Set(leaves).size).toBe(leaves.length);
+    for (const leaf of leaves) expect(config.demo.keyIndices).toContain(leaf);
   });
 
   it('spent less than the configured mainnet limit in fees and outputs', () => {
