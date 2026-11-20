@@ -44,10 +44,12 @@ async function sources(ctx: Context, a: ParsedArgs): Promise<{ list: InputSource
     list.push({ bytes: response.bytes, request: { path: response.path, query: response.query } });
     fromCache.push(response.fromCache);
   }
+  // `--file` next to `--source api` appends local allocations after the API responses (for example a wallet leaf).
+  for (const f of flags(a, 'file')) list.push({ bytes: readFileSync(f) });
   return { list, fromCache };
 }
 
-/** `epoch build --source api [--real] | --source fixture ...`: adds new allocations to the previous epoch and writes the next epoch file. */
+/** `epoch build --source api [--real] [--file extra] | --source fixture ...`: adds new allocations to the previous epoch and writes the next epoch file. */
 export async function epochBuild(ctx: Context, a: ParsedArgs) {
   const previousPath = flag(a, 'previous');
   const nextEpoch = previousPath ? readEpochFile(previousPath).epoch + 1 : 1;

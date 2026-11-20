@@ -117,6 +117,8 @@ export interface DemoConfig {
   tokenSupplyWhole: number;
   /** BCH sent to a second project key so it can pay for someone else's claim. */
   otherPayerFundingSats: number;
+  /** Leaf amount for an outside wallet's own address (a third-party wallet claim on chipnet), in whole tokens. */
+  walletLeafWhole: number;
 }
 
 /** Inputs of the push-versus-pull cost comparison (docs/COST.md). */
@@ -269,7 +271,7 @@ function validateDemo(d: DemoConfig | undefined): string[] {
   if (!Array.isArray(d.keyIndices) || d.keyIndices.some((i) => !Number.isInteger(i) || i < 0 || i >= d.leafCount)) {
     problems.push('demo.keyIndices must be leaf indices below demo.leafCount');
   }
-  for (const k of ['keyAmountWhole', 'syntheticMaxWhole', 'topUpWhole', 'tokenSupplyWhole', 'otherPayerFundingSats'] as const) {
+  for (const k of ['keyAmountWhole', 'syntheticMaxWhole', 'topUpWhole', 'tokenSupplyWhole', 'otherPayerFundingSats', 'walletLeafWhole'] as const) {
     if (!isPositiveInt(d[k])) problems.push(`demo.${k} must be > 0`);
   }
   return problems;

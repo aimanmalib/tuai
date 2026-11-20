@@ -194,4 +194,35 @@ describe('real epoch query', () => {
     expect(file.leaves.every((l) => l.method === 2)).toBe(true);
     expect(file.leaves.find((l) => l.lockingBytecode === script('both'))?.cumulative).toBe('200000000');
   });
+
+  it('adds a wallet leaf file after the API responses (--file with --source api), one leaf at the configured amount', async () => {
+    const fakeFetch = (async () =>
+      new Response(JSON.stringify({ success: true, distro: [{ amount: 1, bitcoinAddress: legacy('api') }] }), { status: 200 })) as unknown as typeof fetch;
+    let clock = Date.parse('2026-11-20T12:00:00Z');
+    fixture = cliFixture({ fetch: fakeFetch, now: () => new Date(clock) });
+    const net = ['--network', 'mock'];
+    const plain = lockingBytecodeToAddress(hexToBin(script('wallet')), 'bchtest', false);
+    const walletFile = join(fixture.dir, 'wallet.json');
+    const w = await fixture.run('demo', 'allocations', '--round', 'wallet', '--address', plain, '--out', walletFile, ...net);
+    expect(w.code, w.text).toBe(0);
+    const units = String(BigInt(loadConfig().demo.walletLeafWhole) * 10n ** 8n);
+    expect(w.json).toMatchObject({ allocations: 1, total: units });
+    const wrongNet = lockingBytecodeToAddress(hexToBin(script('wallet')), 'bitcoincash', false);
+    expect((await fixture.run('demo', 'allocations', '--round', 'wallet', '--address', wrongNet, '--out', walletFile, ...net)).code).toBe(1);
+
+    const out = join(fixture.dir, 'epoch-mixed.json');
+    const args = ['epoch', 'build', ...net, '--source', 'api', '--real', '--file', walletFile, '--out', out];
+    expect((await fixture.run(...args)).text).toMatch(/retry after/);
+    clock += 61_000;
+    const built = await fixture.run(...args);
+    expect(built.code, built.text).toBe(0);
+    const file = JSON.parse(readFileSync(out, 'utf8')) as {
+      leaves: Array<{ method: number; lockingBytecode: string; cumulative: string }>;
+      manifest: { inputs: Array<{ kind: string; request?: unknown }> };
+    };
+    expect(file.manifest.inputs.map((i) => [i.kind, Boolean(i.request)])).toEqual([['distro', true], ['distro', true], ['allocations', false]]);
+    const leaf = file.leaves.find((l) => l.lockingBytecode === script('wallet'));
+    expect(leaf).toMatchObject({ method: 0, cumulative: units });
+    expect(verifyEpoch(out).ok).toBe(true);
+  });
 });

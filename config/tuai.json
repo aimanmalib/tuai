@@ -136,7 +136,8 @@
     "syntheticMaxWhole": 500,
     "topUpWhole": 250,
     "tokenSupplyWhole": 1000000,
-    "otherPayerFundingSats": 20000
+    "otherPayerFundingSats": 20000,
+    "walletLeafWhole": 1000
   },
   "web": {
     "networks": [

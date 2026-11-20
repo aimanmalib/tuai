@@ -4,7 +4,7 @@ import { TransactionBuilder } from 'cashscript';
 import { binToHex } from '@bitauth/libauth';
 import { hexToBinChecked } from '../../bytes.ts';
 import { demoLayout, syntheticAmount } from '../../demo/layout.ts';
-import { lockingBytecodeToAddress } from '../../leaf.ts';
+import { addressToLockingBytecode, lockingBytecodeToAddress } from '../../leaf.ts';
 import { withoutOwnReceipt } from '../../pool/hide-receipt.ts';
 import { assertRelayNetwork } from '../../relay/config.ts';
 import { assembleClaim } from '../../tx/claim.ts';
@@ -18,14 +18,16 @@ import { plainUtxos, selectFunding } from '../wallet.ts';
 const demoRoles = (ctx: Context): string[] => ctx.config.demo.keyIndices.map((_, i) => `demo-${i + 1}`);
 
 /**
- * `demo allocations --round 1|2 --out <file>`: the demonstration tree's allocations. Round 1 places the project demo
- * keys at their configured indices among keyless synthetic leaves; round 2 adds a top-up to every demo key.
+ * `demo allocations --round 1|2|wallet --out <file>`: the demonstration tree's allocations. Round 1 places the project
+ * demo keys at their configured indices among keyless synthetic leaves; round 2 adds a top-up to every demo key;
+ * `wallet --address <a>` gives one outside wallet address its own leaf (a third-party wallet claim, chipnet only).
  */
 export function demoAllocations(ctx: Context, a: ParsedArgs) {
   const d = ctx.config.demo;
-  const round = Number(requireFlag(a, 'round'));
-  if (round !== 1 && round !== 2) throw new Error('--round must be 1 or 2');
   const unit = 10n ** BigInt(ctx.config.rewards.decimals);
+  if (flag(a, 'round') === 'wallet') return walletAllocation(ctx, a, BigInt(d.walletLeafWhole) * unit);
+  const round = Number(requireFlag(a, 'round'));
+  if (round !== 1 && round !== 2) throw new Error('--round must be 1, 2 or wallet');
   const keys = demoRoles(ctx).map((r) => binToHex(loadKey(ctx, r).lockingBytecode));
   const isKey = new Set(keys);
   const rows =
@@ -36,11 +38,26 @@ export function demoAllocations(ctx: Context, a: ParsedArgs) {
           amount: isKey.has(k) ? BigInt(d.keyAmountWhole) * unit : syntheticAmount(k, BigInt(d.syntheticMaxWhole), unit),
         }));
   const allocations = rows.map((r) => ({ address: lockingBytecodeToAddress(hexToBinChecked(r.lockingBytecode), ctx.prefix), amount: r.amount.toString() }));
+  const out = writeAllocations(a, allocations);
+  const total = rows.reduce((s, r) => s + r.amount, 0n);
+  return { out, round, allocations: allocations.length, demoKeys: keys.length, total: total.toString() };
+}
+
+function writeAllocations(a: ParsedArgs, allocations: Array<{ address: string; amount: string }>): string {
   const out = resolve(requireFlag(a, 'out'));
   mkdirSync(dirname(out), { recursive: true });
   writeFileSync(out, `${JSON.stringify({ allocations }, null, 1)}\n`);
-  const total = rows.reduce((s, r) => s + r.amount, 0n);
-  return { out, round, allocations: allocations.length, demoKeys: keys.length, total: total.toString() };
+  return out;
+}
+
+function walletAllocation(ctx: Context, a: ParsedArgs, amount: bigint) {
+  if (ctx.network !== 'chipnet' && ctx.network !== 'mock') throw new Error('a wallet leaf is for chipnet only');
+  const given = requireFlag(a, 'address');
+  if (!given.toLowerCase().startsWith(`${ctx.prefix}:`)) throw new Error(`--address must be a ${ctx.prefix}: address`);
+  // Round trip through the locking bytecode: checks the address and writes it in canonical (token-aware) form.
+  const address = lockingBytecodeToAddress(addressToLockingBytecode(given), ctx.prefix);
+  const out = writeAllocations(a, [{ address, amount: amount.toString() }]);
+  return { out, round: 'wallet', allocations: 1, address, total: amount.toString() };
 }
 
 /** `fund <role> --sats N`: sends plain BCH from the payer to another project key (never to an outside address); the relayer key on chipnet only. */
