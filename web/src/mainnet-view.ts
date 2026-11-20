@@ -12,6 +12,9 @@ export interface MainnetCard {
   redraw(): void;
 }
 
+/** The activity view of the mainnet record (see the router in main.ts). */
+export const MAINNET_ACTIVITY_HASH = '#/activity/mainnet';
+
 type Answer = { ok: true; summary: MainnetSummary } | { ok: false; reason: string };
 
 function draw(root: HTMLElement, answer: Answer | undefined, locale: string): void {
@@ -47,6 +50,7 @@ function draw(root: HTMLElement, answer: Answer | undefined, locale: string): vo
 /** Shows the card and reads the mainnet record; `explorers` are the configured mainnet explorers. */
 export function startMainnetCard(root: HTMLElement, epochsPath: string, explorers: readonly Explorer[], locale: () => string): MainnetCard {
   let answer: Answer | undefined;
+  root.querySelector<HTMLAnchorElement>('#mainnet-activity')!.href = MAINNET_ACTIVITY_HASH;
   root.hidden = false;
   draw(root, answer, locale());
   getJson<ActivityIndex>(`${epochsPath}/mainnet/transactions.json`).then(
