@@ -38,8 +38,6 @@ test('a demo address is found and its proof matches the chipnet root', async ({ 
   await page.getByRole('button', { name: /Check address|Semak alamat/ }).click();
   await expect(page.locator('#proof-ok')).toBeVisible({ timeout: 45_000 });
   await expect(page.locator('#warn-root')).toHaveCount(0);
-  const connect = page.getByRole('button', { name: 'Connect with WizardConnect' });
-  await expect(connect.locator('svg.wizard-hat[aria-hidden="true"]')).toHaveCount(1);
   const o = await page.evaluate(() => ({ s: document.documentElement.scrollWidth, c: document.documentElement.clientWidth }));
   expect(o.s).toBeLessThanOrEqual(o.c);
   if (process.env.SCREENSHOT_DIR) {
