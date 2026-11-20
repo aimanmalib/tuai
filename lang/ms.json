@@ -285,6 +285,18 @@
       "tipMissing": "Ketinggian blok tidak dibaca",
       "checked": "disemak {time}"
     },
+    "mainnet": {
+      "heading": "Juga di mainnet (token ujian)",
+      "loading": "Membaca rekod mainnet",
+      "failed": "Rekod mainnet tidak tersedia ({reason}).",
+      "count": "tuntutan diterima di mainnet, {refused} ditolak",
+      "none": "Belum ada tuntutan mainnet direkodkan.",
+      "latest": "Tuntutan terkini: {where}, {time}",
+      "block": "blok {height}",
+      "unmined": "belum dalam blok semasa direkodkan",
+      "note": "Kontrak yang sama seperti di chipnet, membayar token ujian yang dibuat untuk demo ini, bukan token ganjaran sebenar.",
+      "activity": "Lihat setiap transaksi mainnet"
+    },
     "video": {
       "heading": "Video demo",
       "label": "Video demo: tuntutan dari halaman ini di chipnet, ulangan yang ditolak, dan tuntutan token ujian mainnet",

@@ -48,7 +48,8 @@ export interface Stats {
   tip: number | null;
 }
 
-const isClaim = (step: string) => step.includes('claim');
+/** Whether a recorded step is a claim (first, top-up, from the page, by the relayer); refusals are told apart by `error`. */
+export const isClaim = (step: string) => step.includes('claim');
 
 /** The run of the index that recorded the pool shown, or the first run when the pool is unknown. */
 function runOf(index: ActivityIndex, pool: string | undefined) {

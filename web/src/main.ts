@@ -19,6 +19,7 @@ import { loadStats } from './stats-load.ts';
 import { startStats } from './stats-view.ts';
 import { refreshMs } from './stats.ts';
 import { isVideoHash, mountVideo } from './video-view.ts';
+import { startMainnetCard } from './mainnet-view.ts';
 
 type NetworkKey = 'chipnet' | 'mainnet';
 const web = config.web;
@@ -250,6 +251,11 @@ const stats = startStats(
 );
 select.addEventListener('change', () => stats.refresh());
 
+// The mainnet card reads the published mainnet record once; it stays hidden when mainnet is not a configured network.
+const mainnetCard = (web.networks as string[]).includes('mainnet')
+  ? startMainnetCard(byId('mainnet'), web.epochsPath, explorersOf(networkConfig('mainnet')), localeTag)
+  : undefined;
+
 /** Links to each network's record on the activity page, the shown one marked; hidden with a single network. */
 function renderNetworkSwitch(shown: NetworkKey): void {
   const nav = byId('activity-networks');
@@ -294,6 +300,7 @@ byId('lang').addEventListener('click', () => {
   renderStatic();
   byId('stats-network').textContent = t(`network.${select.value}`);
   stats.redraw();
+  mainnetCard?.redraw();
   if (!views.activity.hidden) route();
   else if (lastQuery !== undefined) void check(lastQuery);
 });

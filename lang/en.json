@@ -285,6 +285,18 @@
       "tipMissing": "Block height not read",
       "checked": "checked {time}"
     },
+    "mainnet": {
+      "heading": "Also on mainnet (test token)",
+      "loading": "Reading the mainnet record",
+      "failed": "The mainnet record is not available ({reason}).",
+      "count": "claims accepted on mainnet, {refused} refused",
+      "none": "No mainnet claim is recorded yet.",
+      "latest": "Latest claim: {where}, {time}",
+      "block": "block {height}",
+      "unmined": "not in a block when recorded",
+      "note": "The same contracts as on chipnet, paying a test token made for this demo, not a real reward token.",
+      "activity": "See every mainnet transaction"
+    },
     "video": {
       "heading": "Demo video",
       "label": "Demo video: a claim from this page on chipnet, a refused repeat, and the mainnet test-token claim",
