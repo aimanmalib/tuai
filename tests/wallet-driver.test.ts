@@ -6,6 +6,7 @@ import {
 } from '../src/wallet-driver.ts';
 
 // The public BIP39 test phrase; never a real wallet's.
+const NAME = 'TUAI_W3_MNEMONIC';
 const PHRASE = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
 const ADDR = 'bchtest:qr7fzmep8g7h7ymfxy74lgc0v950j3r2959lhtxxsl';
 const claim = (o: Partial<WalletClaim> = {}): WalletClaim => ({
@@ -38,12 +39,12 @@ describe('log filter', () => {
 
 describe('.env value', () => {
   it('is read with or without quotes and added once, never replaced', () => {
-    expect(readEnvValue('A=1\nTUAI_W3_MNEMONIC="x y z"\n', 'TUAI_W3_MNEMONIC')).toBe('x y z');
-    expect(readEnvValue('TUAI_W3_MNEMONIC=\n', 'TUAI_W3_MNEMONIC')).toBeUndefined();
-    const text = withEnvValue('A=1\nTUAI_W3_MNEMONIC=', 'TUAI_W3_MNEMONIC', PHRASE);
-    expect(text).toBe(`A=1\nTUAI_W3_MNEMONIC="${PHRASE}"\n`);
-    expect(readEnvValue(text, 'TUAI_W3_MNEMONIC')).toBe(PHRASE);
-    expect(() => withEnvValue(text, 'TUAI_W3_MNEMONIC', 'other words here')).toThrow(/never replaced/);
+    expect(readEnvValue(`A=1\n${NAME}="x y z"\n`, NAME)).toBe('x y z');
+    expect(readEnvValue(`${NAME}=\n`, NAME)).toBeUndefined();
+    const text = withEnvValue(`A=1\n${NAME}=`, NAME, PHRASE);
+    expect(text.split('\n')).toEqual(['A=1', `${NAME}="${PHRASE}"`, '']);
+    expect(readEnvValue(text, NAME)).toBe(PHRASE);
+    expect(() => withEnvValue(text, NAME, 'other words here')).toThrow(/never replaced/);
   });
 });
 
