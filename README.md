@@ -13,7 +13,7 @@ New project, first commit after the 14 November start: the first commit of this 
 - The mainnet test-token run, checked on chain by the page: <https://tuai.sasateguh.com/#/activity/mainnet>
 - Demo video (68 s, silent): [`docs/video/tuai-demo.mp4`](docs/video/tuai-demo.mp4), also played on the claim page: <https://tuai.sasateguh.com/#demo-video>
 - Proof endpoint: <https://tuai.sasateguh.com/epochs/chipnet/index.json>
-- Slides: [`docs/deck.pdf`](docs/deck.pdf) (8 pages)
+- Slides: <https://tuai.sasateguh.com/deck/tuai-blaze-2026.pdf>, also [`docs/deck.pdf`](docs/deck.pdf) (8 pages)
 - Chipnet and mainnet record with every txid: [`docs/MEASURED.md`](docs/MEASURED.md)
 - Screenshots of the live site: [`docs/MEASURED.md`](docs/MEASURED.md#screenshots) ([`docs/img/`](docs/img/))
 - Format and transaction specification: [`docs/SPEC.md`](docs/SPEC.md)
@@ -24,31 +24,36 @@ New project, first commit after the 14 November start: the first commit of this 
 
 ## Reviewer guide
 
-A five-minute path through the working system, all on chipnet:
+A five-minute path through the working system, on chipnet and then mainnet:
 
-1. Open <https://tuai.sasateguh.com/#/activity>. Every transaction of the chipnet runs is listed in order (deploy,
+1. Open <https://tuai.sasateguh.com>. The top of the page says in one sentence what Tuai does and draws push next to
+   pull with the cost of each. Below it, a strip of live numbers the page reads itself from the published files, a
+   chipnet Electrum server and the relayer (leaves in the active epoch, recorded claims, sat held by the pool, cost per
+   claim, refused repeat claims, the latest block), refreshed without a button; then a card for the mainnet run and the
+   demo video.
+2. Open <https://tuai.sasateguh.com/#/activity>. Every transaction of the chipnet runs is listed in order (deploy,
    propose, the early activations the node refused, activate, claims, the refused double claim, epoch 2, push), each
    with its size, fee and an explorer link; refused ones show the node's message instead of a link. The page also
    asks an Electrum server itself for each transaction and shows "Confirmed on chain, block N" with the server it
    asked, so the list does not depend on an explorer.
-2. Open <https://tuai.sasateguh.com> and press **Try a demo address**, which picks a leaf that still has tokens
+3. Open <https://tuai.sasateguh.com> and press **Try a demo address**, which picks a leaf that still has tokens
    to claim (or paste any address from
    [`deployments/chipnet/epoch-2.json`](deployments/chipnet/epoch-2.json)). The page finds the leaf, rebuilds the
    Merkle root in the browser and compares it with the root the pool holds on chain, then shows the cumulative,
    claimed and claimable amounts from the vault receipt.
-3. Press **Claim now**. A chipnet relayer pays the fee and dust; the contract still pays the tokens only to the
+4. Press **Claim now**. A chipnet relayer pays the fee and dust; the contract still pays the tokens only to the
    leaf's address. The page shows the txid with an explorer link, and the claim then appears on the activity page.
    The first claim made this way, checked on chain, is
    `2b6a7acc0963b14c0a227014eca58bf0c9b931dd9c26f90d6ce808111d582a9f`
    ([`docs/MEASURED.md`](docs/MEASURED.md#chipnet-claims-from-the-page)).
-4. Press **Try to claim again** on the same leaf. The second claim is refused by the contract and by the node, and
+5. Press **Try to claim again** on the same leaf. The second claim is refused by the contract and by the node, and
    the page shows both messages.
-5. Open <https://tuai.sasateguh.com/#/activity/mainnet>. The same contracts ran once on mainnet with the project's
+6. Open <https://tuai.sasateguh.com/#/activity/mainnet>. The same contracts ran once on mainnet with the project's
    own test token: deploy, a two-of-three proposal, activation after the delay, and four claims by project demo
    keys, the first `120d69a5ce74746713ee0db362383eddfca2d7c4a290786cabbdfd30828ede32` in block 978066 and three more in
    block 978157
    ([`docs/MEASURED.md`](docs/MEASURED.md#mainnet-claim-with-a-test-token)). Mainnet links go to two explorers.
-6. In a clone: `npm ci && npm test` (offline), then
+7. In a clone: `npm ci && npm test` (offline), then
    `npx tsx bin/tuai.ts epoch verify deployments/chipnet/epoch-2.json` to rebuild the published root from its inputs.
 
 When the relayer is empty, busy or switched off, the page says so and shows the CLI command instead of the button.

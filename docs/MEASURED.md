@@ -355,8 +355,15 @@ query (docs/decisions/0014-explorers-and-chain-check.md).
 
 ![Home page on an iPhone: the hero with the push and pull drawing and the demo button](img/home-iphone.png)
 
-The home page above the fold: one sentence, the push and pull drawing and "Try a demo address" (WebKit, iPhone 13,
-captured 2026-11-20 04:37:48 UTC, right after deploy tag `24ba3b7-202611200434`).
+The home page above the fold: the entry banner with the slides, source, video and first-commit links, one sentence, the
+push and pull drawing and "Try a demo address" (WebKit, iPhone 13, captured 2026-11-20 11:02:28 UTC, right after deploy
+tag `0d8c940-202611201058`).
+
+![Home page card for the mainnet test-token run](img/home-mainnet-iphone.png)
+
+The mainnet card on the home page, read from the published mainnet record: 4 claims accepted on mainnet, 0 refused, the
+latest in block 978157, `e800734247db1e4a644e923a331a9a75405cd1e5fd3f9b203d00b06e3fba0e87`, with links to two explorers
+(WebKit, iPhone 13, captured 2026-11-20 11:02:54 UTC, same deploy).
 
 ![Live numbers read from chipnet, and the demo video](img/home-stats-video.png)
 
