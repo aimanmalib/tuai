@@ -8,6 +8,9 @@ import { el } from './render.ts';
 import { showAnswer } from './relay-view.ts';
 import type { RelayAnswer } from './relay.ts';
 import { checkPrepared, type CheckContext, type PreparedJson, type WalletAddress } from './wallet-check.ts';
+import { watchBalance, type BalanceWatch } from './wallet-balance-view.ts';
+import { wizardHat } from './wizard-hat.ts';
+import type { WalletSession } from './wizardconnect.ts';
 
 export interface WalletViewOptions {
   address: string;
@@ -20,7 +23,19 @@ export interface WalletViewOptions {
   relayUrls: string[];
   timeoutMs: number;
   explorers: readonly Explorer[];
+  /** Where the balance chip goes while a wallet is connected (outside the card, so a redraw keeps it). */
+  balance: { slot: HTMLElement; electrumUrl: string; timeoutMs: number; decimals: number; everyMs: number };
   onSent: (answer: RelayAnswer) => void;
+}
+
+/** The one open wallet session, kept after a claim so the balance chip can follow it until Disconnect. */
+let open: { session: WalletSession; balance: BalanceWatch | undefined } | undefined;
+
+function closeOpen(): void {
+  const o = open;
+  open = undefined;
+  o?.balance?.stop();
+  o?.session.close();
 }
 
 const SVG = 'http://www.w3.org/2000/svg';
@@ -70,10 +85,30 @@ async function prepare(path: string, body: unknown, timeoutMs: number): Promise<
   }
 }
 
+/** The pairing code as a button: pressing it copies the link, like the Copy button below it. */
+function pairing(uri: string, qrUri: string, cancel: HTMLElement): Node[] {
+  const copied = el('span', { class: 'chip-note', id: 'wallet-copied', role: 'status' });
+  const copyButton = el('button', { type: 'button', class: 'small' }, t('walletClaim.copy'));
+  const copy = () =>
+    void navigator.clipboard?.writeText(uri).then(() => {
+      copyButton.textContent = t('walletClaim.copied');
+      copied.textContent = t('walletClaim.copied');
+    });
+  copyButton.addEventListener('click', copy);
+  const qr = el('button', { type: 'button', class: 'qr-box', id: 'wallet-qr', title: t('walletClaim.qrCopy') }, qrSvg(qrUri));
+  qr.addEventListener('click', copy);
+  return [
+    el('p', {}, t('walletClaim.scan')),
+    qr,
+    copied,
+    el('p', { class: 'copy-row' }, el('a', { href: uri, id: 'wallet-open' }, t('walletClaim.open')), copyButton, cancel),
+  ];
+}
+
 /** Appends the wallet claim section; only called while the leaf has tokens to claim. */
 export function renderWalletClaim(target: HTMLElement, o: WalletViewOptions): void {
   const out = el('div', { class: 'relay-out', id: 'wallet-out', role: 'status', 'aria-live': 'polite' });
-  const start = el('button', { type: 'button', class: 'secondary', id: 'wallet-connect' }, t('walletClaim.button')) as HTMLButtonElement;
+  const start = el('button', { type: 'button', class: 'secondary wallet-connect', id: 'wallet-connect' }, wizardHat(), t('walletClaim.button')) as HTMLButtonElement;
   const say = (cls: string, ...lines: (Node | string)[]) => {
     out.className = `relay-out ${cls}`;
     out.replaceChildren(...lines.map((l) => (typeof l === 'string' ? el('p', {}, l) : l)));
@@ -81,6 +116,7 @@ export function renderWalletClaim(target: HTMLElement, o: WalletViewOptions): vo
   let abort: AbortController | undefined;
 
   start.addEventListener('click', () => {
+    closeOpen();
     start.disabled = true;
     abort = new AbortController();
     const signal = abort.signal;
@@ -88,26 +124,27 @@ export function renderWalletClaim(target: HTMLElement, o: WalletViewOptions): vo
     cancel.addEventListener('click', () => abort?.abort());
     say('', t('walletClaim.loading'));
     void (async () => {
-      let session: Awaited<ReturnType<typeof import('./wizardconnect.ts').connectWallet>> | undefined;
+      let session: WalletSession | undefined;
+      let keep = false;
       try {
         const { connectWallet } = await import('./wizardconnect.ts');
         session = await connectWallet({
           dappName: t('walletClaim.dappName'),
           relayUrls: o.relayUrls,
           signal,
-          onUri: (uri, qrUri) => {
-            const copy = el('button', { type: 'button', class: 'small' }, t('walletClaim.copy'));
-            copy.addEventListener('click', () => void navigator.clipboard?.writeText(uri).then(() => (copy.textContent = t('walletClaim.copied'))));
-            say(
-              '',
-              el('p', {}, t('walletClaim.scan')),
-              el('div', { class: 'qr-box' }, qrSvg(qrUri)),
-              el('p', { class: 'copy-row' }, el('a', { href: uri, id: 'wallet-open' }, t('walletClaim.open')), copy, cancel),
-            );
-          },
+          onUri: (uri, qrUri) => say('', ...pairing(uri, qrUri, cancel)),
         });
         say('', t('walletClaim.preparing', { wallet: session.name || t('walletClaim.theWallet') }), cancel);
         const wallet: WalletAddress[] = session.addresses(o.scanAddresses, o.prefix);
+        const mine: NonNullable<typeof open> = { session, balance: undefined };
+        open = mine;
+        mine.balance = watchBalance(o.balance.slot, {
+          ...o.balance,
+          addresses: wallet.map((w) => w.address),
+          rewardCategory: o.check.rewardCategory,
+          onDisconnect: () => open === mine && closeOpen(),
+        });
+        session.onClose(() => open === mine && closeOpen());
         const change = wallet.find((w) => w.path === 'change') ?? wallet[0];
         if (!change) throw new Error(t('walletClaim.noKeys'));
         const p = await prepare(o.preparePath, { address: o.address, change: change.address, wallet: wallet.map((w) => w.address) }, o.timeoutMs);
@@ -126,11 +163,17 @@ export function renderWalletClaim(target: HTMLElement, o: WalletViewOptions): vo
         const txid = binToHex(hashTransactionUiOrder(hexToBin(signed)));
         const answer: RelayAnswer = { code: 'claimed', txid };
         showAnswer(out, answer, o.explorers);
+        keep = true;
+        mine.balance.refresh();
         o.onSent(answer);
       } catch (e) {
         say('error', signal.aborted ? t('walletClaim.cancelled') : t('walletClaim.failed', { message: (e as Error).message.slice(0, 200) }));
       } finally {
-        session?.close();
+        // After a sent claim the session stays open for the balance chip; otherwise it ends here.
+        if (!keep) {
+          if (open?.session === session) closeOpen();
+          else session?.close();
+        }
         start.disabled = false;
       }
     })();

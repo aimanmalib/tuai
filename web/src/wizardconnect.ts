@@ -13,6 +13,8 @@ export interface WalletSession {
   sign(request: WalletSignRequest, inputPaths: [number, string, number][], signal: AbortSignal): Promise<string>;
   name: string;
   close(): void;
+  /** Called once when the wallet ends the session. */
+  onClose(listener: () => void): void;
 }
 
 const PATHS = [
@@ -46,6 +48,7 @@ export function connectWallet(o: { dappName: string; relayUrls: string[]; onUri:
       resolve({
         name: mgr.walletName ?? '',
         close,
+        onClose: (listener) => mgr.on('disconnect', () => listener()),
         addresses(count, prefix) {
           const out: WalletAddress[] = [];
           for (const [path, child] of PATHS) {

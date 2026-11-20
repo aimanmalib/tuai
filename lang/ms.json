@@ -216,7 +216,7 @@
     "walletClaim": {
       "heading": "Tuntut dengan dompet anda sendiri",
       "text": "Sambungkan dompet WizardConnect di chipnet. Pelayan ini menyediakan tuntutan, halaman ini menyemak setiap input dan output, dan dompet anda menandatangani serta membayar yuran dan dust. Kontrak tetap menghantar token hanya ke alamat dalam daun.",
-      "button": "Sambung dompet (WizardConnect)",
+      "button": "Sambung dengan WizardConnect",
       "loading": "Memuatkan sambungan dompet.",
       "scan": "Imbas kod ini dengan dompet WizardConnect, atau buka pautan pada peranti yang ada dompet itu.",
       "qrLabel": "Kod pasangan WizardConnect",
@@ -251,7 +251,14 @@
         "spendTooHigh": "Tuntutan akan menelan kos dompet melebihi had.",
         "chainError": "Pelayan rantaian tidak menjawab.",
         "unknown": "Pelayan tidak dapat dihubungi."
-      }
+      },
+      "qrCopy": "Salin pautan pasangan",
+      "disconnect": "Putuskan",
+      "balanceHeading": "Dompet bersambung:",
+      "balance": "{bch} BCH",
+      "balanceToken": "{amount} token ganjaran ujian",
+      "balanceChecked": "Disemak {time}",
+      "balanceFailed": "Baki tidak dapat dibaca semula: {reason}"
     },
     "hero": {
       "line": "Pelipat menuntut FLDCH mereka sendiri. Operator menerbitkan satu akar dan tidak perlu membayar ratusan output.",

@@ -85,6 +85,8 @@ export interface WebConfig {
   chainCheckConcurrency: number;
   /** Seconds between reads of the live numbers strip on the Home view (5 to 60). */
   statsRefreshSeconds: number;
+  /** Seconds between reads of a connected wallet's balance chip (3 to 60). */
+  walletBalanceRefreshSeconds: number;
   /** URL path the epoch files are served under: `<epochsPath>/<network>/epoch-<n>.json`. */
   epochsPath: string;
   /** Repository folder the served files are copied from. */
@@ -211,6 +213,8 @@ function validateWeb(c: TuaiConfig): string[] {
   if (!isPositiveInt(w.electrumTimeoutSeconds)) out.push('web.electrumTimeoutSeconds must be > 0');
   if (!isPositiveInt(w.chainCheckConcurrency) || w.chainCheckConcurrency > 16) out.push('web.chainCheckConcurrency must be 1..16');
   if (!isPositiveInt(w.statsRefreshSeconds) || w.statsRefreshSeconds < 5 || w.statsRefreshSeconds > 60) out.push('web.statsRefreshSeconds must be 5..60');
+  const wb = w.walletBalanceRefreshSeconds;
+  if (!isPositiveInt(wb) || wb < 3 || wb > 60) out.push('web.walletBalanceRefreshSeconds must be 3..60');
   if (!/^\/[a-z0-9-]+$/.test(w.epochsPath ?? '')) out.push('web.epochsPath must be one absolute path segment');
   if (w.defaultLocale !== 'en' && w.defaultLocale !== 'ms') out.push('web.defaultLocale must be en or ms');
   return out;

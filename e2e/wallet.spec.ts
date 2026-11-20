@@ -27,7 +27,7 @@ test('shows a pairing code for a wallet, fits a narrow screen, and cancels witho
   await page.goto('/');
   await page.getByLabel(/Your address|Alamat anda/).fill(leaf.address);
   await page.getByRole('button', { name: /Check address|Semak alamat/ }).click();
-  const connect = page.getByRole('button', { name: 'Connect a wallet (WizardConnect)' });
+  const connect = page.getByRole('button', { name: 'Connect with WizardConnect' });
   await connect.scrollIntoViewIfNeeded();
   await connect.click();
   await expect(page.getByRole('img', { name: 'WizardConnect pairing code' })).toBeVisible();

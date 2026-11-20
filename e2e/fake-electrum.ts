@@ -9,6 +9,7 @@ export const config = JSON.parse(readFileSync('config/tuai.json', 'utf8')) as {
 };
 export const record = JSON.parse(readFileSync('deployments/chipnet/pool.json', 'utf8')) as {
   poolCategory: string;
+  rewardCategory: string;
   contracts: { pool: string; vault: string; gate: string };
 };
 export interface Leaf {
@@ -41,6 +42,8 @@ export interface FakeChain {
    * server fails the request). A txid not listed is unknown to the server.
    */
   transactions?: Record<string, number | 'mempool' | 'error'>;
+  /** Extra `listunspent` answers by address (a wallet's coins); read on every request, so a test can change them. */
+  unspent?: Record<string, unknown[]>;
 }
 
 const UNKNOWN_TX = "daemon error: DaemonError({'code': -5, 'message': 'No such mempool or blockchain transaction.'})";
@@ -94,7 +97,7 @@ export async function fakeElectrum(page: Page, chain: FakeChain = {}): Promise<v
           : msg.method === 'blockchain.headers.get_tip'
             ? { height: chain.tip ?? tip, hex: '' }
             : msg.method === 'blockchain.address.listunspent'
-              ? (unspent[String(msg.params[0])] ?? [])
+              ? (chain.unspent?.[String(msg.params[0])] ?? unspent[String(msg.params[0])] ?? [])
               : msg.method === 'blockchain.address.get_history'
                 ? (chain.history?.[String(msg.params[0])] ?? [])
                 : null;

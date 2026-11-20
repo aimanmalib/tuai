@@ -43,3 +43,21 @@ Three parts, each with one job:
   control; the page states it plainly when no coins are found.
 - A user with a mainnet-only wallet gets "no chipnet coins found". Mainnet wallet claims would need a mainnet
   prepare service, which this demo does not run.
+
+## Addendum: connect button, pairing code and balance chip
+
+- The connect button reads "Connect with WizardConnect" next to a small wizard hat icon. The npm packages ship no
+  logo asset, so the icon is drawn for this page (`web/src/wizard-hat.ts`) and hidden from assistive technology;
+  the button text carries the name.
+- The pairing code is itself a button: pressing it copies the pairing link and says "Copied". The Copy button below
+  the code stays for users who do not expect a code to be pressable.
+- While a wallet is connected, a balance chip above the result card (`web/src/wallet-balance-view.ts`, numbers in `wallet-balance.ts`) shows the BCH and
+  the reward tokens held by the addresses this page derived from the wallet's keys. It reads them in the browser
+  with `blockchain.address.listunspent` (the same Electrum call the page already uses for contract addresses),
+  counts each coin once even when an address is derived twice, and reads again every
+  `web.walletBalanceRefreshSeconds` while the tab is visible.
+- After a claim was sent the session stays open, so the chip shows the result without a click; it closes on
+  Disconnect, when the wallet ends the session, or when a new wallet connection starts. A claim that did not go out
+  ends the session as before.
+- `e2e/wallet-balance.spec.ts` answers the lazily loaded wallet module with a stub session, so the tests contact no
+  Nostr relay.

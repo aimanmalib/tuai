@@ -204,7 +204,25 @@ button.small { min-height: 2.25rem; padding: 0.25rem 0.75rem; font-size: 0.875re
 .demo-pick .hint { flex: 1 1 16rem; margin: 0; }
 
 /* Wallet claim (ADR 0012): the pairing code stays readable on a 320 px screen. */
-.qr-box { margin: 0.5rem 0; max-width: min(16rem, 100%); }
+.qr-box {
+  display: block; width: 100%; margin: 0.5rem 0; padding: 0; max-width: min(16rem, 100%);
+  background: none; border: 1px solid var(--line); border-radius: var(--radius-field); cursor: copy;
+}
+.wallet-connect { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
+.wizard-hat { width: 1.5rem; height: 1.5rem; flex: none; }
+.hat-cone, .hat-brim { fill: var(--ink); }
+.hat-band { fill: var(--grain); }
+.hat-star { fill: var(--grain-bg); }
+button:disabled .hat-cone, button:disabled .hat-brim { fill: var(--ink-soft); }
+.balance-chip {
+  margin: 1rem 0 0; padding: 0.5rem 0.75rem; border: 1px solid var(--stalk); border-radius: var(--radius-field);
+  background: var(--panel); overflow-wrap: anywhere;
+}
+.balance-chip[hidden] { display: none; }
+.chip-line { margin: 0.2rem 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.75rem; }
+.chip-line strong { font-weight: 600; flex-basis: 100%; }
+.chip-num { font-variant-numeric: tabular-nums; }
+.chip-note { font-size: 0.875rem; color: var(--ink-soft); }
 .qr { display: block; width: 100%; height: auto; }
 .qr-bg { fill: var(--panel); }
 .qr-dot { fill: var(--ink); }

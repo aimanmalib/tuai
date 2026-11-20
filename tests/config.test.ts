@@ -30,6 +30,15 @@ describe('config/tuai.json', () => {
     }
   });
 
+  it('keeps the wallet balance refresh inside 3..60 seconds', () => {
+    for (const seconds of [2, 61, 4.5, 0]) {
+      const c = clone();
+      c.web.walletBalanceRefreshSeconds = seconds;
+      expect(validateConfig(c).join()).toMatch(/web\.walletBalanceRefreshSeconds/);
+    }
+    expect(validateConfig(clone()).join()).not.toMatch(/walletBalanceRefreshSeconds/);
+  });
+
   it('rejects a tree deeper than 32 levels', () => {
     const c = clone();
     c.tree.maxDepth = 33;

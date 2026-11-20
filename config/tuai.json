@@ -139,6 +139,7 @@
     "electrumTimeoutSeconds": 20,
     "chainCheckConcurrency": 4,
     "statsRefreshSeconds": 15,
+    "walletBalanceRefreshSeconds": 10,
     "epochsPath": "/epochs",
     "deploymentsDir": "deployments",
     "defaultLocale": "en",

@@ -31,6 +31,7 @@ const input = byId<HTMLInputElement>('address');
 const select = byId<HTMLSelectElement>('network');
 const status = byId<HTMLElement>('status');
 const result = byId<HTMLElement>('result');
+const walletBalanceSlot = byId<HTMLElement>('wallet-balance');
 const gate = byId<HTMLElement>('gate');
 
 function networkConfig(n: NetworkKey) {
@@ -188,6 +189,13 @@ async function check(query: string, notice?: RelayAnswer): Promise<void> {
       relayUrls: walletCfg.relayUrls,
       timeoutMs: 120_000,
       explorers: explorersOf(net),
+      balance: {
+        slot: walletBalanceSlot,
+        electrumUrl: net.electrum.wssUrl,
+        timeoutMs: web.electrumTimeoutSeconds * 1000,
+        decimals: config.rewards.decimals,
+        everyMs: web.walletBalanceRefreshSeconds * 1000,
+      },
       onSent: (answer) => void check(query, answer),
     });
   }

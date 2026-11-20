@@ -216,7 +216,7 @@
     "walletClaim": {
       "heading": "Claim with your own wallet",
       "text": "Connect a WizardConnect wallet on chipnet. This server prepares the claim, this page checks every input and output, and your wallet signs and pays the fee and dust. The contract still sends the tokens only to the address in the leaf.",
-      "button": "Connect a wallet (WizardConnect)",
+      "button": "Connect with WizardConnect",
       "loading": "Loading the wallet connection.",
       "scan": "Scan this code with a WizardConnect wallet, or open the link on the device that has the wallet.",
       "qrLabel": "WizardConnect pairing code",
@@ -251,7 +251,14 @@
         "spendTooHigh": "The claim would cost the wallet more than the limit.",
         "chainError": "The chain server did not answer.",
         "unknown": "The server could not be reached."
-      }
+      },
+      "qrCopy": "Copy the pairing link",
+      "disconnect": "Disconnect",
+      "balanceHeading": "Connected wallet:",
+      "balance": "{bch} BCH",
+      "balanceToken": "{amount} test reward tokens",
+      "balanceChecked": "Checked {time}",
+      "balanceFailed": "Could not read the balance again: {reason}"
     },
     "hero": {
       "line": "Folders claim their own FLDCH. The operator publishes one root instead of paying hundreds of outputs.",
