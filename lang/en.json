@@ -262,6 +262,28 @@
       "costPull": "Pull: {sats} sat per epoch for the operator, however many folders there are (measured propose and activate).",
       "try": "Try a demo address",
       "costsLink": "How these numbers are measured"
+    },
+    "stats": {
+      "heading": "Live numbers",
+      "leaves": "Leaves in the active epoch",
+      "claims": "Claims recorded",
+      "held": "Held by the pool",
+      "cost": "Cost per claim",
+      "sats": "{sats} sat",
+      "leavesNote": "Epoch {epoch}, read from the published file",
+      "claimsNote": "Claim transactions in the published record",
+      "claimsOnChain": "{count} addresses hold a claim receipt on chain now",
+      "heldNote": "{tokens} test tokens left to claim",
+      "costRecorded": "Average fee of {count} recorded claims",
+      "costEstimated": "Estimate: measured claim size times the fee rate",
+      "missing": "Not available: {reason}",
+      "noData": "no data",
+      "refused": "{count} repeat claims refused",
+      "relayLeft": "Demo relayer can pay for about {count} more claims",
+      "relayOff": "Demo relayer unavailable ({reason})",
+      "tip": "Block {height}",
+      "tipMissing": "Block height not read",
+      "checked": "checked {time}"
     }
   }
 }

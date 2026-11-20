@@ -262,6 +262,28 @@
       "costPull": "Tarik: {sats} sat setiap epoch untuk operator, berapa pun bilangan pelipat (propose dan activate diukur).",
       "try": "Cuba alamat demo",
       "costsLink": "Bagaimana angka ini diukur"
+    },
+    "stats": {
+      "heading": "Angka semasa",
+      "leaves": "Daun dalam epoch aktif",
+      "claims": "Tuntutan direkod",
+      "held": "Dipegang oleh pool",
+      "cost": "Kos setiap tuntutan",
+      "sats": "{sats} sat",
+      "leavesNote": "Epoch {epoch}, dibaca dari fail yang diterbitkan",
+      "claimsNote": "Transaksi tuntutan dalam rekod yang diterbitkan",
+      "claimsOnChain": "{count} alamat memegang resit tuntutan di rantaian sekarang",
+      "heldNote": "{tokens} token ujian belum dituntut",
+      "costRecorded": "Purata yuran {count} tuntutan yang direkod",
+      "costEstimated": "Anggaran: saiz tuntutan diukur darab kadar yuran",
+      "missing": "Tiada: {reason}",
+      "noData": "tiada data",
+      "refused": "{count} tuntutan berulang ditolak",
+      "relayLeft": "Relayer demo boleh membayar kira-kira {count} tuntutan lagi",
+      "relayOff": "Relayer demo tidak tersedia ({reason})",
+      "tip": "Blok {height}",
+      "tipMissing": "Ketinggian blok tidak dibaca",
+      "checked": "disemak {time}"
     }
   }
 }

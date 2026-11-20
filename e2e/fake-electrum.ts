@@ -32,6 +32,7 @@ export interface FakeChain {
   pendingHeight?: number;
   /** Claimed amounts by leaf. */
   claimed?: { leaf: Leaf; amount: bigint }[];
+  /** Chain tip; read again on every `get_tip`, so a test can move it while the page is open. */
   tip?: number;
   /** `blockchain.address.get_history` answers by address; an address not listed has no history. */
   history?: Record<string, { tx_hash: string; height: number }[]>;
@@ -91,7 +92,7 @@ export async function fakeElectrum(page: Page, chain: FakeChain = {}): Promise<v
         msg.method === 'server.version'
           ? ['Fake', '1.5']
           : msg.method === 'blockchain.headers.get_tip'
-            ? { height: tip, hex: '' }
+            ? { height: chain.tip ?? tip, hex: '' }
             : msg.method === 'blockchain.address.listunspent'
               ? (unspent[String(msg.params[0])] ?? [])
               : msg.method === 'blockchain.address.get_history'

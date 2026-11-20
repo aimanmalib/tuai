@@ -22,6 +22,14 @@ describe('config/tuai.json', () => {
     expect(validateConfig(c).join()).toMatch(/operators.threshold/);
   });
 
+  it('keeps the live numbers refresh inside 5..60 seconds', () => {
+    for (const seconds of [4, 61, 7.5, 0]) {
+      const c = clone();
+      c.web.statsRefreshSeconds = seconds;
+      expect(validateConfig(c).join()).toMatch(/web\.statsRefreshSeconds/);
+    }
+  });
+
   it('rejects a tree deeper than 32 levels', () => {
     const c = clone();
     c.tree.maxDepth = 33;

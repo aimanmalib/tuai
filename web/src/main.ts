@@ -15,6 +15,9 @@ import { renderWalletClaim } from './wallet-view.ts';
 import { formatUnits } from './model.ts';
 import { explorersOf, type Explorer } from '../../src/explorers.ts';
 import { HERO_COSTS, heroCostLines } from './hero.ts';
+import { loadStats } from './stats-load.ts';
+import { startStats } from './stats-view.ts';
+import { refreshMs } from './stats.ts';
 
 type NetworkKey = 'chipnet' | 'mainnet';
 const web = config.web;
@@ -49,7 +52,7 @@ function renderStatic(): void {
   applyStatic(document);
   byId('banner-entry').textContent = t('bannerEntry', { event: config.banner.event, bounty: config.banner.bounty });
   byId('banner-prize').textContent = config.banner.prizeAddress;
-  const costs = heroCostLines(HERO_COSTS, t, getLocale() === 'ms' ? 'ms-MY' : 'en-US');
+  const costs = heroCostLines(HERO_COSTS, t, localeTag());
   byId('hero-cost-push').textContent = costs.push;
   byId('hero-cost-pull').textContent = costs.pull;
   const lang = byId<HTMLButtonElement>('lang');
@@ -223,6 +226,28 @@ form.addEventListener('submit', (event) => {
 });
 
 const views = { claim: byId('view-claim'), activity: byId('view-activity') };
+const localeTag = () => (getLocale() === 'ms' ? 'ms-MY' : 'en-US');
+
+// The live numbers strip follows the network chosen in the form and reads again on its own timer.
+const stats = startStats(
+  byId('stats'),
+  refreshMs(web.statsRefreshSeconds),
+  () => {
+    const network = select.value as NetworkKey;
+    byId('stats-network').textContent = t(`network.${network}`);
+    return loadStats({
+      network,
+      epochsPath: web.epochsPath,
+      wssUrl: networkConfig(network).electrum.wssUrl,
+      timeoutMs: web.electrumTimeoutSeconds * 1000,
+      relayPath: relayOn(network) ? relayCfg.statusPath : undefined,
+      satsPerByte: config.fees.satsPerByte,
+    });
+  },
+  () => ({ locale: localeTag(), decimals: config.rewards.decimals }),
+  () => !views.claim.hidden,
+);
+select.addEventListener('change', () => stats.refresh());
 
 /** Links to each network's record on the activity page, the shown one marked; hidden with a single network. */
 function renderNetworkSwitch(shown: NetworkKey): void {
@@ -249,6 +274,7 @@ function route(): void {
     if (on) byId(id).setAttribute('aria-current', 'page');
     else byId(id).removeAttribute('aria-current');
   }
+  if (!activity) stats.refresh();
   if (activity) {
     const asked = match[1];
     const key = (asked !== undefined && (web.networks as string[]).includes(asked) ? asked : select.value) as NetworkKey;
@@ -264,6 +290,8 @@ byId('lang').addEventListener('click', () => {
   setLocale(getLocale() === 'en' ? 'ms' : 'en');
   localStorage.setItem(web.localeStorageKey, getLocale());
   renderStatic();
+  byId('stats-network').textContent = t(`network.${select.value}`);
+  stats.redraw();
   if (!views.activity.hidden) route();
   else if (lastQuery !== undefined) void check(lastQuery);
 });

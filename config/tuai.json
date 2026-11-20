@@ -134,6 +134,7 @@
     "defaultNetwork": "chipnet",
     "electrumTimeoutSeconds": 20,
     "chainCheckConcurrency": 4,
+    "statsRefreshSeconds": 15,
     "epochsPath": "/epochs",
     "deploymentsDir": "deployments",
     "defaultLocale": "en",
