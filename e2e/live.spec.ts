@@ -128,3 +128,33 @@ test('the mainnet activity page lists the served mainnet record and checks the c
     await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-mn1-live-${test.info().project.name}.png` });
   }
 });
+
+test('the home page shows the hero, live numbers read from chipnet and the demo video files', async ({ page }) => {
+  test.setTimeout(120_000);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/');
+  for (const id of ['hero-line', 'push-pull', 'hero-try']) await expect(page.locator(`#${id}`)).toBeInViewport({ ratio: 1 });
+  for (const name of ['leaves', 'claims', 'held', 'cost']) {
+    await expect(page.locator(`#stat-${name} .stat-value`)).toHaveText(/\d/, { timeout: 60_000 });
+  }
+  await expect(page.locator('#stats-line')).toContainText(/\d/);
+  const poster = (await page.locator('#video-player').getAttribute('poster')) ?? '';
+  const src = (await page.locator('#video-download').getAttribute('href')) ?? '';
+  expect(src).toMatch(/^\/assets\/tuai-demo-[\w-]+\.mp4$/);
+  const ranged = await page.request.get(src, { headers: { Range: 'bytes=0-99' } });
+  expect(ranged.status()).toBe(206);
+  expect(ranged.headers()['content-type']).toContain('video/mp4');
+  expect((await ranged.body()).length).toBe(100);
+  expect((await page.request.get(poster)).headers()['content-type']).toContain('image/jpeg');
+  const o = await page.evaluate(() => ({ s: document.documentElement.scrollWidth, c: document.documentElement.clientWidth }));
+  expect(o.s).toBeLessThanOrEqual(o.c);
+  expect(errors).toEqual([]);
+  if (process.env.SCREENSHOT_DIR) {
+    const shot = `${process.env.SCREENSHOT_DIR}/tuai-p5d1-home-${test.info().project.name}`;
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.screenshot({ path: `${shot}.png` });
+    await page.locator('#demo-video').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${shot}-video.png` });
+  }
+});
