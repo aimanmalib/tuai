@@ -38,6 +38,8 @@ test('a demo address is found and its proof matches the chipnet root', async ({ 
   await page.getByRole('button', { name: /Check address|Semak alamat/ }).click();
   await expect(page.locator('#proof-ok')).toBeVisible({ timeout: 45_000 });
   await expect(page.locator('#warn-root')).toHaveCount(0);
+  const connect = page.getByRole('button', { name: 'Connect with WizardConnect' });
+  await expect(connect.locator('svg.wizard-hat[aria-hidden="true"]')).toHaveCount(1);
   const o = await page.evaluate(() => ({ s: document.documentElement.scrollWidth, c: document.documentElement.clientWidth }));
   expect(o.s).toBeLessThanOrEqual(o.c);
   if (process.env.SCREENSHOT_DIR) {
@@ -168,4 +170,23 @@ test('the banner serves the slides as a PDF and links the first commit of the re
   expect(pdf.headers()['content-type']).toContain('application/pdf');
   expect((await pdf.body()).subarray(0, 5).toString()).toBe('%PDF-');
   await expect(page.locator('#banner-note')).toHaveAttribute('href', /\/commit\/[0-9a-f]{40}$/);
+});
+
+test('the home page mainnet card counts the claims in the served mainnet record and names the newest one', async ({ page }) => {
+  test.setTimeout(60_000);
+  const res = await page.request.get('/epochs/mainnet/transactions.json');
+  test.skip(res.status() === 404, 'no mainnet record is served');
+  const index = (await res.json()) as { runs: { transactions: { step: string; txid: string | null; height: number | null; error?: string }[] }[] };
+  const claims = index.runs.flatMap((r) => r.transactions).filter((t) => t.step.includes('claim') && t.error === undefined && t.txid !== null);
+  const newest = claims.reduce((a, b) => ((b.height ?? Infinity) > (a.height ?? Infinity) ? b : a));
+  await page.goto('/');
+  await expect(page.locator('#mainnet-count .mainnet-number')).toHaveText(String(claims.length), { timeout: 30_000 });
+  const shown = (await page.locator('#mainnet-latest code').getAttribute('title')) ?? '';
+  expect(claims.filter((t) => t.height === newest.height).map((t) => t.txid)).toContain(shown);
+  const o = await page.evaluate(() => ({ s: document.documentElement.scrollWidth, c: document.documentElement.clientWidth }));
+  expect(o.s).toBeLessThanOrEqual(o.c);
+  if (process.env.SCREENSHOT_DIR) {
+    await page.locator('#mainnet').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-p5d2-mainnet-${test.info().project.name}.png` });
+  }
 });
