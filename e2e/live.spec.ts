@@ -73,7 +73,7 @@ test('the activity page lists every transaction in the served record, and sample
   const o = await page.evaluate(() => ({ s: document.documentElement.scrollWidth, c: document.documentElement.clientWidth }));
   expect(o.s).toBeLessThanOrEqual(o.c);
   if (process.env.SCREENSHOT_DIR) {
-    await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-r2-live-activity-${test.info().project.name}.png`, fullPage: true });
+    await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-r2-live-activity-${test.info().project.name}.png` });
   }
   expect(errors).toEqual([]);
 });
