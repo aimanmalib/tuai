@@ -112,7 +112,7 @@ Electrum and each size checked against the network's. Machine-readable copy:
 | 24 | 2026-11-18 01:09:03 | claim-additional-epoch-2 | [`9c0edf1cbb7803e643b50c9bfd3ba9eac50b217b39686cfd84cc5ae6c6720164`](https://cbch.loping.net/tx/9c0edf1cbb7803e643b50c9bfd3ba9eac50b217b39686cfd84cc5ae6c6720164) | 1750 | 1750 | 336076 | accepted (leaf 299) |
 | 25 | 2026-11-18 21:12:16 | fund-relay-chipnet | [`58ca9a8181e68dfdfec161853e745b850c4ea56d26052264337599c7ab36552e`](https://cbch.loping.net/tx/58ca9a8181e68dfdfec161853e745b850c4ea56d26052264337599c7ab36552e) | 219 | 219 | 337267 | accepted |
 | 26 | 2026-11-20 14:44:38 | propose-epoch-3 | [`abbc9a133c387990b9403591200528d0db445a5aed18a3a9a879954467784fe1`](https://cbch.loping.net/tx/abbc9a133c387990b9403591200528d0db445a5aed18a3a9a879954467784fe1) | 861 | 864 | 339745 | accepted (operators 1,2) |
-| 27 | 2026-11-20 15:21:54 | activate-epoch-3 | [`5068fd149578789262fe14f82b8a7875577dd9d0a930fafecd91c23ccb6811b5`](https://cbch.loping.net/tx/5068fd149578789262fe14f82b8a7875577dd9d0a930fafecd91c23ccb6811b5) | 1473 | 1473 | - | accepted (pending mined at 339745, tip 339780) |
+| 27 | 2026-11-20 15:21:54 | activate-epoch-3 | [`5068fd149578789262fe14f82b8a7875577dd9d0a930fafecd91c23ccb6811b5`](https://cbch.loping.net/tx/5068fd149578789262fe14f82b8a7875577dd9d0a930fafecd91c23ccb6811b5) | 1473 | 1473 | 339803 | accepted (pending mined at 339745, tip 339780) |
 <!-- chipnet-transactions:end -->
 
 ## Real distribution epoch (chipnet)
@@ -141,6 +141,11 @@ Run on 2026-11-20 with the committed CLI on the chipnet pool that the claim page
   (2026-11-20 14:44:38 UTC, block 339745). Activated after the delay by
   `5068fd149578789262fe14f82b8a7875577dd9d0a930fafecd91c23ccb6811b5` (2026-11-20 15:21:54 UTC). The pool's token
   balance already covered the new amounts, so no top-up was sent. Block heights are in the [Chipnet](#chipnet) table.
+- **Failure on the way.** The activation stayed unconfirmed for 28 minutes (blocks 339782 to 339800) because it
+  spends the pool state after two page claims from 2026-11-19 (`0aacf12f46f74331c71eeaf33fda3f685ed3e02d5c3713d6fc0d92ee188c289d`,
+  `436da6e934211f6efcd047566bfcbb517e9b337b71038967eaacef2ad9b9ce19`) that were still unconfirmed: they sat only in the
+  mempool of Electrum `chipnet.bch.ninja`, and `chipnet.imaginary.cash` did not know them. Sending the same three
+  signed transactions to `chipnet.imaginary.cash` at 15:46 UTC was accepted, and all three were mined in block 339803.
 - **Watcher.** `npx tsx bin/tuai.ts watch --network chipnet --epoch deployments/chipnet/epoch-3.json --fah
   daily_user_summary.txt.bz2 --json` with the Folding@home file identified under [Watcher](#watcher) (SHA-256
   `135703b69c1d9f01c1afa705f86231f38ad495adb1d470d962724385eb3f3c64`): legacy BTC leaves 68 of 68 carry their address
@@ -236,8 +241,8 @@ and list below are generated from `deployments/chipnet/page-claims.json`.
 |---|---|---|---|---|---|---|---|
 | 1 | 2026-11-18 21:45:50 | `bchtest:zz8fm0yp5j5as68vel8rvskv7xtz8xca8g90zrn4mm` | [`2b6a7acc0963b14c0a227014eca58bf0c9b931dd9c26f90d6ce808111d582a9f`](https://cbch.loping.net/tx/2b6a7acc0963b14c0a227014eca58bf0c9b931dd9c26f90d6ce808111d582a9f) | 1901 | 1901 | 337326 | 30400000000 |
 | 2 | 2026-11-18 23:51:01 | `bchtest:zzde36p2dz0f0vr2w7txyjwpkk6whkucjvyw2efm8l` | [`99e747919759e690c3f9e20d852202b976944519513ae629a8e33e7f924ebb66`](https://cbch.loping.net/tx/99e747919759e690c3f9e20d852202b976944519513ae629a8e33e7f924ebb66) | 1901 | 1901 | 337491 | 5100000000 |
-| 3 | 2026-11-19 13:10:16 | `bchtest:zztjtl2m2ru8c92g9x4e46x93mtsekzwfypf7xe6vn` | [`0aacf12f46f74331c71eeaf33fda3f685ed3e02d5c3713d6fc0d92ee188c289d`](https://cbch.loping.net/tx/0aacf12f46f74331c71eeaf33fda3f685ed3e02d5c3713d6fc0d92ee188c289d) | 1901 | 1901 | - | 7600000000 |
-| 4 | 2026-11-19 21:14:23 | `bchtest:zzgkjuxpfumnrt0np5qn3h3443kq490equ3w080ksd` | [`436da6e934211f6efcd047566bfcbb517e9b337b71038967eaacef2ad9b9ce19`](https://cbch.loping.net/tx/436da6e934211f6efcd047566bfcbb517e9b337b71038967eaacef2ad9b9ce19) | 1901 | 1901 | - | 30900000000 |
+| 3 | 2026-11-19 13:10:16 | `bchtest:zztjtl2m2ru8c92g9x4e46x93mtsekzwfypf7xe6vn` | [`0aacf12f46f74331c71eeaf33fda3f685ed3e02d5c3713d6fc0d92ee188c289d`](https://cbch.loping.net/tx/0aacf12f46f74331c71eeaf33fda3f685ed3e02d5c3713d6fc0d92ee188c289d) | 1901 | 1901 | 339803 | 7600000000 |
+| 4 | 2026-11-19 21:14:23 | `bchtest:zzgkjuxpfumnrt0np5qn3h3443kq490equ3w080ksd` | [`436da6e934211f6efcd047566bfcbb517e9b337b71038967eaacef2ad9b9ce19`](https://cbch.loping.net/tx/436da6e934211f6efcd047566bfcbb517e9b337b71038967eaacef2ad9b9ce19) | 1901 | 1901 | 339803 | 30900000000 |
 
 "Try to claim again" on a claimed leaf, answered by the node and shown on the page:
 

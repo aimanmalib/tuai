@@ -25,7 +25,7 @@
    "txid": "0aacf12f46f74331c71eeaf33fda3f685ed3e02d5c3713d6fc0d92ee188c289d",
    "bytes": 1901,
    "feeSats": 1901,
-   "height": null,
+   "height": 339803,
    "paid": "7600000000"
   },
   {
@@ -34,7 +34,7 @@
    "txid": "436da6e934211f6efcd047566bfcbb517e9b337b71038967eaacef2ad9b9ce19",
    "bytes": 1901,
    "feeSats": 1901,
-   "height": null,
+   "height": 339803,
    "paid": "30900000000"
   }
  ],

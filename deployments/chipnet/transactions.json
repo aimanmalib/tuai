@@ -1,6 +1,6 @@
 {
  "network": "chipnet",
- "tipHeight": 339788,
+ "tipHeight": 339803,
  "transactions": [
   {
    "kind": "prepare-genesis",
@@ -241,7 +241,7 @@
    "bytes": 1473,
    "feeSats": 1473,
    "utc": "2026-11-20T15:21:54.097Z",
-   "height": null,
+   "height": 339803,
    "note": "pending mined at 339745, tip 339780"
   }
  ]
