@@ -31,7 +31,7 @@ describe('leaf encoding', () => {
     const base = { method: LinkMethod.fahName, cumulative: 1n, lockingBytecode: P2PKH };
     expect(() => encodeLeaf({ ...base, cumulative: -1n })).toThrow(/range/);
     expect(() => encodeLeaf({ ...base, cumulative: 1n << 63n })).toThrow(/range/);
-    expect(() => encodeLeaf({ ...base, method: 2 as LinkMethod })).toThrow(/method/);
+    expect(() => encodeLeaf({ ...base, method: 3 as LinkMethod })).toThrow(/method/);
     expect(() => encodeLeaf({ ...base, lockingBytecode: new Uint8Array(0) })).toThrow(/locking bytecode/);
     expect(() => encodeLeaf({ ...base, lockingBytecode: new Uint8Array(202) })).toThrow(/locking bytecode/);
     expect(binToHex(encodeLeaf({ ...base, cumulative: (1n << 63n) - 1n })).slice(4, 20)).toBe('ffffffffffffff7f');

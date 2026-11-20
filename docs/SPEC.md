@@ -14,7 +14,8 @@ leafHash = sha256(leaf)
 ```
 
 - `method` records how the address was linked to a Folding@home identity: `0` = the address appears in the
-  Folding@home user name (checkable from the public daily user summary), `1` = FoldingCash's own address mapping.
+  Folding@home user name (checkable from the public daily user summary), `1` = FoldingCash's own address mapping,
+  `2` = a legacy BTC P2PKH address in the Folding@home user name, paid to the same hash160 script (section 9).
   Other values are refused by the library (`src/leaf.ts`).
 - `cumulative` is everything the recipient has earned since the first epoch, in base token units, at most `2^63 - 1`
   so the contract reads it as a positive script number.
@@ -220,3 +221,34 @@ signature only), `tuai link verify --name <n> --address <a> --signature <s>`, an
 each method 1 leaf as verified (with the names signed for it) or unverified; a link whose signature fails is a finding
 and makes the command exit 1. An unverified leaf is not an error: it means the mapping is taken on FoldingCash's word,
 as before.
+
+## 9. Legacy BTC leaves (method 2)
+
+Many Folding@home users who earn FoldingCash rewards still carry an old Bitcoin address (`1...`) in their user name
+instead of a CashTokens address. The sponsor's distribution endpoint returns them when all user types are requested
+(`includeFoldingUserTypes=15`) as entries with `bitcoinAddress` set and no `cashTokensAddress`.
+
+- Encoding: the address is decoded as Base58Check. Only version `0x00` (P2PKH) is accepted. The leaf's locking
+  bytecode is `76a914 <hash160> 88ac`, the same bytes the address locks on BTC, which on BCH is spent by the same key.
+  No mapping database is involved. `src/leaf-legacy.ts`.
+- Refused, by name, never skipped: a bad checksum (`checksum`), a P2SH address `3...` (`p2sh`, its redeem script is
+  not known and may not be spendable on BCH), a bech32 address `bc1...` (`bech32`), any other version byte
+  (`version`) and anything that is not Base58 (`format`). One refused entry stops the build and the error lists every
+  refused entry with its position (`DistroEntriesError`, `src/epoch/inputs.ts`). An entry with neither address is
+  refused the same way.
+- A recipient seen in several inputs (for example two monthly windows) is one leaf whose cumulative amount is the sum.
+  A script that was a method 0 leaf cannot become a method 2 leaf later: the build refuses a method change
+  (section 3), so the same hash in CashAddr and Base58 form must be resolved by the operator, not merged silently.
+- Watcher: `tuai watch --epoch <file> --fah <daily_user_summary.txt[.bz2]>` turns each method 2 leaf back into its
+  `1...` address and looks for it as a whole Folding@home name or as one `_` separated part of a name (the common
+  forms are `<name>_<address>`, `<name>_ALL_<address>` and `<name>_FLDC_<address>`). The CashAddr form of the same hash
+  does not count. Output: `links.legacy = { checked, found, missing[] }`; each missing leaf is a finding and the
+  command exits 1.
+- What this does not prove, as for method 0: that the person who holds the BTC key is the person who folds under that
+  name. It proves only that the paid script is the one the public name points to, so anyone can check the leaf
+  without asking FoldingCash.
+
+Building a demonstration epoch from real sponsor data: `tuai epoch build --source api --real` sends one request per
+window in `sponsorApi.realEpoch` (all user types) through the same cached, rate limited client as `--source api`. The
+production query (`sponsorApi.includeFoldingUserTypes`) is not changed. A rate limited run stops with a retry time;
+running it again after that fetches only the window that is not cached yet. Decision record: ADR 0015.

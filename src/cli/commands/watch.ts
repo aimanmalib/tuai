@@ -1,10 +1,11 @@
-import { readFileSync } from 'node:fs';
 import { binToHex } from '@bitauth/libauth';
 import { readEpochFile } from '../../epoch/file.ts';
 import { verifyEpoch } from '../../epoch/verify.ts';
 import { readPending, readPool } from '../../pool/utxos.ts';
 import { watchDeployment } from '../../watch/chain-roots.ts';
-import { addressesInFahSummary, checkLinks } from '../../watch/fah.ts';
+import { addFahLine, addLegacyFahLine, checkLinks } from '../../watch/fah.ts';
+import { eachFahLine } from '../../watch/fah-file.ts';
+import { t } from '../../i18n.ts';
 import { checkCompatLinks, readLinksFile } from '../../link/check.ts';
 import { flag, requireFlag, type ParsedArgs } from '../args.ts';
 import type { Context } from '../context.ts';
@@ -15,8 +16,9 @@ import { readRunLog } from '../runs.ts';
  * `watch --deployment <dir>`: recomputes every epoch file of a recorded deployment and compares its root and inputs
  * hash with the state NFT its propose and activate transactions carry on chain.
  *
- * `watch --epoch <file> [--fah <daily_user_summary.txt>] [--links <links.json>]`: recomputes the epoch, checks method 0
- * leaves against public Folding@home names and method 1 leaves against signed links (unverified leaves are reported,
+ * `watch --epoch <file> [--fah <daily_user_summary.txt[.bz2]>] [--links <links.json>]`: recomputes the epoch, checks
+ * method 0 and method 2 (legacy BTC) leaves against public Folding@home names and method 1 leaves against signed links
+ * (unverified leaves are reported,
  * invalid links are findings), and when a pool is deployed compares the file with the active and pending roots.
  */
 export async function watch(ctx: Context, a: ParsedArgs) {
@@ -30,9 +32,20 @@ export async function watch(ctx: Context, a: ParsedArgs) {
   const findings = [...verify.problems];
   const fahPath = flag(a, 'fah');
   let links = null;
+  let legacySummary = null;
   if (fahPath) {
-    links = checkLinks(readEpochFile(path), addressesInFahSummary(readFileSync(fahPath, 'utf8')));
+    const cash = new Map<string, string[]>();
+    const legacy = new Map<string, string[]>();
+    await eachFahLine(fahPath, (line) => {
+      addFahLine(cash, line);
+      addLegacyFahLine(legacy, line);
+    });
+    links = checkLinks(readEpochFile(path), cash, legacy);
     for (const u of links.unlinked) findings.push(`leaf ${u.index} (${u.address ?? 'no address'}) is not linked in any Folding@home name`);
+    for (const u of links.legacy.missing) {
+      findings.push(`leaf ${u.index} (${u.address ?? 'not P2PKH'}) legacy BTC address is not in any Folding@home name`);
+    }
+    legacySummary = t('cli.watchLegacy', { found: links.legacy.found, checked: links.legacy.checked });
   }
   const linksPath = flag(a, 'links');
   let compat = null;
@@ -53,5 +66,5 @@ export async function watch(ctx: Context, a: ParsedArgs) {
       if (!chain.matched) findings.push(`epoch ${file.epoch} on chain commits to a different root or inputs hash than this file`);
     }
   }
-  return { ok: findings.length === 0, epoch: verify.epoch, root: verify.root, leaves: verify.leaves, links, compat, chain, findings };
+  return { ok: findings.length === 0, epoch: verify.epoch, root: verify.root, leaves: verify.leaves, links, legacySummary, compat, chain, findings };
 }

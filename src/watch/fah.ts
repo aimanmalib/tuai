@@ -1,5 +1,6 @@
 import { binToHex } from '@bitauth/libauth';
 import { addressToLockingBytecode, LinkMethod } from '../leaf.ts';
+import { LegacyBtcAddressError, legacyBtcToLockingBytecode, lockingBytecodeToLegacyBtc } from '../leaf-legacy.ts';
 import type { EpochFile } from '../epoch/file.ts';
 
 /**
@@ -25,6 +26,31 @@ export function addFahLine(found: Map<string, string[]>, line: string): void {
   }
 }
 
+/**
+ * Legacy BTC links (method 2): a `1...` address that is the whole name or any `_` separated part of it, as in
+ * `{name}_ALL_{address}`. Indexed by the P2PKH locking bytecode (hex) the leaf pays. Kept apart from CashAddr links
+ * so a method 2 leaf is only confirmed by its Base58 form.
+ */
+export function addLegacyFahLine(found: Map<string, string[]>, line: string): void {
+  const name = line.split('\t')[0]?.trim();
+  if (!name || !line.includes('\t') || name === 'name' || !name.includes('1')) return;
+  for (const part of new Set([name, ...name.split('_')])) {
+    if (part[0] !== '1' || part.length < 25 || part.length > 35) continue;
+    try {
+      const bytecode = legacyBtcToLockingBytecode(part);
+      found.set(bytecode, [...(found.get(bytecode) ?? []), name]);
+    } catch (e) {
+      if (!(e instanceof LegacyBtcAddressError)) throw e;
+    }
+  }
+}
+
+export function legacyAddressesInFahSummary(text: string): Map<string, string[]> {
+  const found = new Map<string, string[]>();
+  for (const line of text.split(/\r?\n/)) addLegacyFahLine(found, line);
+  return found;
+}
+
 function tryAddress(candidate: string): string | undefined {
   if (candidate.length < 34 || candidate.length > 120) return undefined;
   try {
@@ -41,12 +67,22 @@ export interface LinkReport {
   unlinked: Array<{ index: number; address: string | null }>;
   /** Leaves linked by FoldingCash's own mapping (method 1); public stats cannot confirm them. */
   mappingOnly: number;
+  /** Method 2 leaves: how many were checked, how many carry their `1...` address in a name, and which do not. */
+  legacy: { checked: number; found: number; missing: Array<{ index: number; address: string | null }> };
 }
 
-export function checkLinks(epoch: EpochFile, fahAddresses: ReadonlyMap<string, string[]>): LinkReport {
-  const report: LinkReport = { linked: 0, unlinked: [], mappingOnly: 0 };
+export function checkLinks(
+  epoch: EpochFile,
+  fahAddresses: ReadonlyMap<string, string[]>,
+  legacyAddresses: ReadonlyMap<string, string[]> = new Map(),
+): LinkReport {
+  const report: LinkReport = { linked: 0, unlinked: [], mappingOnly: 0, legacy: { checked: 0, found: 0, missing: [] } };
   for (const leaf of epoch.leaves) {
-    if (leaf.method !== LinkMethod.fahName) {
+    if (leaf.method === LinkMethod.legacyBtcName) {
+      report.legacy.checked += 1;
+      if (legacyAddresses.has(leaf.lockingBytecode)) report.legacy.found += 1;
+      else report.legacy.missing.push({ index: leaf.index, address: lockingBytecodeToLegacyBtc(leaf.lockingBytecode) ?? null });
+    } else if (leaf.method !== LinkMethod.fahName) {
       report.mappingOnly += 1;
     } else if (fahAddresses.has(leaf.lockingBytecode)) {
       report.linked += 1;

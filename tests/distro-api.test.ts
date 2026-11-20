@@ -79,7 +79,7 @@ describe('sponsor distribution API', () => {
     expect(bare).not.toContain(':');
     const [fromBare] = toAllocations({ distro: [{ amount: 1, cashTokensAddress: bare }] }, 0);
     expect(fromBare?.lockingBytecode).toBe(allocations[0]?.lockingBytecode);
-    expect(() => toAllocations({ distro: [{ amount: 1, cashTokensAddress: null }] }, 0)).toThrow(/no CashTokens address/);
+    expect(() => toAllocations({ distro: [{ amount: 1, cashTokensAddress: null }] }, 0)).toThrow(/no CashTokens or legacy BTC address/);
     expect(() => toAllocations({ success: false, distro: [] }, 0)).toThrow(/reports failure/);
   });
 });

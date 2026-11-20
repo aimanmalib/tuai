@@ -2,10 +2,8 @@
 // public Folding@home daily user summary once, replays the measured push distributions as an off-chain epoch and
 // checks every replay leaf's method 0 link. Raw data stays in untracked state; the tracked report holds aggregates.
 // Usage: npx tsx scripts/watch-report.ts
-import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { createInterface } from 'node:readline';
 import { ElectrumNetworkProvider, Network } from 'cashscript';
 import { sha256Hex } from '../src/epoch/canonical.ts';
 import { buildEpoch } from '../src/epoch/build.ts';
@@ -13,6 +11,7 @@ import { REPO_ROOT, loadConfig, type NetworkName } from '../src/config.ts';
 import type { PushDistributionReport } from '../src/cost/report.ts';
 import { watchDeployment } from '../src/watch/chain-roots.ts';
 import { addFahLine, checkLinks } from '../src/watch/fah.ts';
+import { eachFahLine } from '../src/watch/fah-file.ts';
 import { replayAllocations } from '../src/watch/replay.ts';
 import { buildWatchReport, type FahDownload, type ReplaySummary } from '../src/watch/report.ts';
 
@@ -69,13 +68,10 @@ async function fahSummary(): Promise<{ download: FahDownload; path: string } | n
   return null;
 }
 
-/** Streams the decompressed summary (`bzip2 -dc`) into the address map without holding the text in memory. */
+/** Streams the decompressed summary into the address map without holding the text in memory. */
 async function fahAddresses(bz2Path: string): Promise<Map<string, string[]>> {
-  const child = spawn('bzip2', ['-dc', bz2Path], { stdio: ['ignore', 'pipe', 'inherit'] });
   const found = new Map<string, string[]>();
-  for await (const line of createInterface({ input: child.stdout })) addFahLine(found, line);
-  const code = await new Promise<number | null>((done) => child.on('close', done));
-  if (code !== 0) throw new Error(`bzip2 exited with ${code}`);
+  await eachFahLine(bz2Path, (line) => addFahLine(found, line));
   return found;
 }
 

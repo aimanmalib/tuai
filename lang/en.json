@@ -8,7 +8,8 @@
     "done": "{command} on {network}:",
     "error": "Error: {message}",
     "notYet": "Not yet: {message}",
-    "runs": "Run names: --run <name> keeps a second pool on the same network in its own record (state/runs/<network>-<name>.json, deployments/<network>-<name>/)"
+    "runs": "Run names: --run <name> keeps a second pool on the same network in its own record (state/runs/<network>-<name>.json, deployments/<network>-<name>/)",
+    "watchLegacy": "Legacy BTC leaves (method 2): {found} of {checked} carry their address in a Folding@home name"
   },
   "budget": {
     "exceeded": "Mainnet budget exceeded: {spent} + {next} sats is above the limit of {limit} sats",

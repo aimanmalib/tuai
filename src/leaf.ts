@@ -10,6 +10,8 @@ export const LinkMethod = {
   fahName: 0,
   /** Address mapping kept by FoldingCash (compatibility addresses). */
   compatibilityMapping: 1,
+  /** Legacy BTC P2PKH address in the Folding@home name, paid to the same hash160 script on BCH (src/leaf-legacy.ts). */
+  legacyBtcName: 2,
 } as const;
 export type LinkMethod = (typeof LinkMethod)[keyof typeof LinkMethod];
 const METHODS: readonly number[] = Object.values(LinkMethod);
@@ -32,8 +34,14 @@ export function assertLeaf(leaf: Leaf): void {
   if (leaf.lockingBytecode.length === 0 || leaf.lockingBytecode.length > MAX_LOCKING_BYTECODE) {
     throw new Error(`locking bytecode must be 1..${MAX_LOCKING_BYTECODE} bytes`);
   }
+  if (leaf.method === LinkMethod.legacyBtcName && !isP2pkh(leaf.lockingBytecode)) {
+    throw new Error('a legacy BTC leaf (method 2) must pay a P2PKH script');
+  }
   uint64le(leaf.cumulative);
 }
+
+const isP2pkh = (b: Uint8Array): boolean =>
+  b.length === 25 && b[0] === 0x76 && b[1] === 0xa9 && b[2] === 0x14 && b[23] === 0x88 && b[24] === 0xac;
 
 /** Leaf preimage: 0x00 || method(1) || uint64le(cumulative) || lockingBytecode. */
 export function encodeLeaf(leaf: Leaf): Uint8Array {

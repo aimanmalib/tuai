@@ -5,7 +5,7 @@ import { buildEpoch, type InputSource } from '../../epoch/build.ts';
 import { readEpochFile } from '../../epoch/file.ts';
 import { verifyEpoch } from '../../epoch/verify.ts';
 import type { LinkMethod } from '../../leaf.ts';
-import { flag, flags, requireFlag, type ParsedArgs } from '../args.ts';
+import { flag, flags, has, requireFlag, type ParsedArgs } from '../args.ts';
 import type { Context } from '../context.ts';
 
 async function sources(ctx: Context, a: ParsedArgs): Promise<{ list: InputSource[]; fromCache: boolean[] }> {
@@ -17,24 +17,37 @@ async function sources(ctx: Context, a: ParsedArgs): Promise<{ list: InputSource
   }
   if (source !== 'api') throw new Error('--source must be api or fixture');
   const api = ctx.config.sponsorApi;
-  const response = await fetchDistro(
-    {
-      ...api,
-      cacheDir: resolve(ctx.repoRoot, api.cacheDir),
-      now: ctx.now,
-      ...(ctx.fetch ? { fetch: ctx.fetch } : {}),
-    },
-    {
-      startDate: requireFlag(a, 'start'),
-      endDate: requireFlag(a, 'end'),
-      amount: Number(requireFlag(a, 'amount')),
-      includeFoldingUserTypes: api.includeFoldingUserTypes,
-    },
-  );
-  return { list: [{ bytes: response.bytes, request: { path: response.path, query: response.query } }], fromCache: [response.fromCache] };
+  const options = {
+    ...api,
+    cacheDir: resolve(ctx.repoRoot, api.cacheDir),
+    now: ctx.now,
+    ...(ctx.fetch ? { fetch: ctx.fetch } : {}),
+  };
+  // `--real` (ADR 0015): one request per configured window, all user types. Each is cached, so a rate limited run
+  // is simply repeated a minute later and only the missing window is fetched.
+  const queries = has(a, 'real')
+    ? api.realEpoch.windows.map((w) => ({
+        ...w,
+        amount: Number(flag(a, 'amount') ?? api.realEpoch.amount),
+        includeFoldingUserTypes: api.realEpoch.includeFoldingUserTypes,
+      }))
+    : [{
+        startDate: requireFlag(a, 'start'),
+        endDate: requireFlag(a, 'end'),
+        amount: Number(requireFlag(a, 'amount')),
+        includeFoldingUserTypes: api.includeFoldingUserTypes,
+      }];
+  const list: InputSource[] = [];
+  const fromCache: boolean[] = [];
+  for (const q of queries) {
+    const response = await fetchDistro(options, q);
+    list.push({ bytes: response.bytes, request: { path: response.path, query: response.query } });
+    fromCache.push(response.fromCache);
+  }
+  return { list, fromCache };
 }
 
-/** `epoch build --source api|fixture ...`: adds new allocations to the previous epoch and writes the next epoch file. */
+/** `epoch build --source api [--real] | --source fixture ...`: adds new allocations to the previous epoch and writes the next epoch file. */
 export async function epochBuild(ctx: Context, a: ParsedArgs) {
   const previousPath = flag(a, 'previous');
   const nextEpoch = previousPath ? readEpochFile(previousPath).epoch + 1 : 1;

@@ -47,6 +47,11 @@ export interface TuaiConfig {
     cacheDir: string;
     /** Link method given to leaves built from the API (0: address in the Folding@home name). */
     linkMethod: 0 | 1;
+    /**
+     * Demonstration epoch from real sponsor data (ADR 0015): all user types and one request per window. The
+     * production query above (`includeFoldingUserTypes`) is not changed by it.
+     */
+    realEpoch: { includeFoldingUserTypes: number; amount: number; windows: Array<{ startDate: string; endDate: string }> };
   };
   rewards: { decimals: number };
   budget: { mainnetMaxSats: number; ledgerPath: string };
@@ -188,6 +193,7 @@ export function validateConfig(c: TuaiConfig): string[] {
     problems.push('rewards.decimals must be 0..18');
   }
   if (api && !isPositiveInt(api.timeoutSeconds)) problems.push('sponsorApi.timeoutSeconds must be > 0');
+  if (api) problems.push(...validateRealEpoch(api.realEpoch));
   if (!isPositiveInt(c.budget?.mainnetMaxSats)) problems.push('budget.mainnetMaxSats must be > 0');
   problems.push(...validateBanner(c));
   problems.push(...validateCost(c.cost));
@@ -197,6 +203,21 @@ export function validateConfig(c: TuaiConfig): string[] {
     problems.push('link.domain must be a lowercase host name');
   }
   problems.push(...validateRelay(c.relay));
+  return problems;
+}
+
+function validateRealEpoch(r: TuaiConfig['sponsorApi']['realEpoch'] | undefined): string[] {
+  if (!r) return ['sponsorApi.realEpoch is required'];
+  const problems: string[] = [];
+  if (!isPositiveInt(r.includeFoldingUserTypes)) problems.push('sponsorApi.realEpoch.includeFoldingUserTypes must be > 0');
+  if (!(typeof r.amount === 'number' && r.amount > 0)) problems.push('sponsorApi.realEpoch.amount must be > 0');
+  const windows = Array.isArray(r.windows) ? r.windows : [];
+  if (windows.length === 0) problems.push('sponsorApi.realEpoch.windows must list at least one window');
+  for (const w of windows) {
+    const start = Date.parse(w?.startDate ?? '');
+    const end = Date.parse(w?.endDate ?? '');
+    if (!(start < end)) problems.push(`sponsorApi.realEpoch window ${w?.startDate} to ${w?.endDate} must be two dates in order`);
+  }
   return problems;
 }
 
