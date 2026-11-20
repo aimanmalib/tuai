@@ -4,6 +4,8 @@
 
 Entry for **BCH BLAZE 2026**, bounty "Trust-minimized, pull-based reward claims for FoldingCash".
 
+New project, first commit after the 14 November start: the first commit of this repository is <https://github.com/aimanmalib/tuai/commit/d99169c7796262077826e106bf1e017ea30b005a> (17 November 2026, 11:36 UTC).
+
 ## Links
 
 - Claim page (chipnet): <https://tuai.sasateguh.com>

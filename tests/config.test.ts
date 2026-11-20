@@ -53,6 +53,21 @@ describe('config/tuai.json', () => {
     expect(problems).toMatch(/cost.sponsorCategory/);
   });
 
+  it('keeps the banner deck, repository, first commit and note well formed', () => {
+    const cases: [(c: TuaiConfig) => void, RegExp][] = [
+      [(c) => (c.banner.deckUrl = 'https://example.org/deck.pdf'), /banner\.deckUrl/],
+      [(c) => (c.banner.deckUrl = '/deck/../x.pdf'), /banner\.deckUrl/],
+      [(c) => (c.banner.repoUrl = `${c.project.repoUrl}-other`), /banner\.repoUrl/],
+      [(c) => (c.banner.firstCommit = 'd99169c'), /banner\.firstCommit/],
+      [(c) => ((c.banner as { note: unknown }).note = 'yes'), /banner\.note/],
+    ];
+    for (const [change, problem] of cases) {
+      const c = clone();
+      change(c);
+      expect(validateConfig(c).join()).toMatch(problem);
+    }
+  });
+
   it('rejects a sponsor API interval below one minute', () => {
     const c = clone();
     c.sponsorApi.minIntervalSeconds = 10;

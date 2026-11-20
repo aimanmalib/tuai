@@ -158,3 +158,14 @@ test('the home page shows the hero, live numbers read from chipnet and the demo 
     await page.screenshot({ path: `${shot}-video.png` });
   }
 });
+
+test('the banner serves the slides as a PDF and links the first commit of the repository', async ({ page }) => {
+  await page.goto('/');
+  const deck = (await page.locator('#banner-deck').getAttribute('href')) ?? '';
+  expect(deck).toMatch(/^\/[\w/.-]+\.pdf\?v=[0-9a-f]{12}$/);
+  const pdf = await page.request.get(deck);
+  expect(pdf.status()).toBe(200);
+  expect(pdf.headers()['content-type']).toContain('application/pdf');
+  expect((await pdf.body()).subarray(0, 5).toString()).toBe('%PDF-');
+  await expect(page.locator('#banner-note')).toHaveAttribute('href', /\/commit\/[0-9a-f]{40}$/);
+});

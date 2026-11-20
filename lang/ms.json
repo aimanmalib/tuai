@@ -23,6 +23,11 @@
     "bannerEntry": "Penyertaan {event}, bounty “{bounty}”.",
     "bannerSource": "Kod sumber",
     "bannerPrize": "Alamat hadiah",
+    "banner": {
+      "deck": "Slaid",
+      "note": "Projek baharu, komit pertama selepas permulaan 14 November",
+      "firstCommit": "Komit pertama {commit} dalam repositori sumber"
+    },
     "langLabel": "Bahasa",
     "langOther": "English",
     "intro": "Masukkan alamat Bitcoin Cash yang anda guna untuk folding. Halaman ini mencari daun anda dalam fail epoch yang diterbitkan, menyemak buktinya dalam pelayar anda, dan membandingkan akarnya dengan akar yang dipegang kontrak pool di rantaian.",

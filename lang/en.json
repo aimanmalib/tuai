@@ -23,6 +23,11 @@
     "bannerEntry": "Entry for {event}, bounty “{bounty}”.",
     "bannerSource": "Source code",
     "bannerPrize": "Prize address",
+    "banner": {
+      "deck": "Slides",
+      "note": "New project, first commit after the 14 November start",
+      "firstCommit": "First commit {commit} in the source repository"
+    },
     "langLabel": "Language",
     "langOther": "Bahasa Melayu",
     "intro": "Enter the Bitcoin Cash address you fold for. This page finds your leaf in the published epoch file, checks its proof in your browser, and compares the root with the one the pool contract holds on chain.",

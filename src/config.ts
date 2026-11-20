@@ -50,7 +50,8 @@ export interface TuaiConfig {
   };
   rewards: { decimals: number };
   budget: { mainnetMaxSats: number; ledgerPath: string };
-  banner: { event: string; bounty: string; prizeAddress: string };
+  /** The entry banner. `deckUrl` is the site path the slides (docs/deck.pdf) are served at; `note` shows the new-project line. */
+  banner: { event: string; bounty: string; prizeAddress: string; deckUrl: string; repoUrl: string; firstCommit: string; note: boolean };
   cost: CostConfig;
   demo: DemoConfig;
   web: WebConfig;
@@ -186,7 +187,7 @@ export function validateConfig(c: TuaiConfig): string[] {
   }
   if (api && !isPositiveInt(api.timeoutSeconds)) problems.push('sponsorApi.timeoutSeconds must be > 0');
   if (!isPositiveInt(c.budget?.mainnetMaxSats)) problems.push('budget.mainnetMaxSats must be > 0');
-  if (!c.banner?.prizeAddress?.startsWith('bitcoincash:')) problems.push('banner.prizeAddress must be a mainnet address');
+  problems.push(...validateBanner(c));
   problems.push(...validateCost(c.cost));
   problems.push(...validateDemo(c.demo));
   problems.push(...validateWeb(c));
@@ -250,4 +251,17 @@ export function loadConfig(path: string = DEFAULT_CONFIG_PATH): TuaiConfig {
   const problems = validateConfig(config);
   if (problems.length > 0) throw new Error(`Invalid config at ${path}: ${problems.join('; ')}`);
   return config;
+}
+
+function validateBanner(c: TuaiConfig): string[] {
+  const b = c.banner;
+  const problems: string[] = [];
+  if (!b?.prizeAddress?.startsWith('bitcoincash:')) problems.push('banner.prizeAddress must be a mainnet address');
+  if (typeof b?.deckUrl !== 'string' || !/^\/[a-z0-9/._-]+\.pdf$/.test(b.deckUrl) || b.deckUrl.includes('..')) {
+    problems.push('banner.deckUrl must be a site path ending in .pdf');
+  }
+  if (b?.repoUrl !== c.project?.repoUrl) problems.push('banner.repoUrl must equal project.repoUrl');
+  if (typeof b?.firstCommit !== 'string' || !/^[0-9a-f]{40}$/.test(b.firstCommit)) problems.push('banner.firstCommit must be a full commit id');
+  if (typeof b?.note !== 'boolean') problems.push('banner.note must be true or false');
+  return problems;
 }

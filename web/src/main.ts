@@ -20,6 +20,7 @@ import { startStats } from './stats-view.ts';
 import { refreshMs } from './stats.ts';
 import { isVideoHash, mountVideo } from './video-view.ts';
 import { startMainnetCard } from './mainnet-view.ts';
+import { mountBanner } from './banner.ts';
 
 type NetworkKey = 'chipnet' | 'mainnet';
 const web = config.web;
@@ -54,6 +55,12 @@ function renderStatic(): void {
   applyStatic(document);
   byId('banner-entry').textContent = t('bannerEntry', { event: config.banner.event, bounty: config.banner.bounty });
   byId('banner-prize').textContent = config.banner.prizeAddress;
+  mountBanner(
+    { deck: byId<HTMLAnchorElement>('banner-deck'), source: byId<HTMLAnchorElement>('banner-repo'), note: byId<HTMLAnchorElement>('banner-note'), noteDot: byId('banner-note-dot') },
+    config.banner,
+    __TUAI_DECK_VERSION__,
+    t,
+  );
   const costs = heroCostLines(HERO_COSTS, t, localeTag());
   byId('hero-cost-push').textContent = costs.push;
   byId('hero-cost-pull').textContent = costs.pull;
@@ -69,7 +76,6 @@ function renderStatic(): void {
 
 function setLinks(): void {
   const repo = config.project.repoUrl;
-  byId<HTMLAnchorElement>('banner-repo').href = repo;
   byId<HTMLAnchorElement>('link-source').href = repo;
   byId<HTMLAnchorElement>('link-spec').href = `${repo}/blob/main/docs/SPEC.md`;
   byId<HTMLAnchorElement>('link-measured').href = `${repo}/blob/main/docs/MEASURED.md`;
