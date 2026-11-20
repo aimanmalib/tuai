@@ -4,6 +4,7 @@ import { dirname, resolve } from 'node:path';
 import { validateRelay, type RelayConfig } from './relay/config.ts';
 import { MAX_SHARDS } from './pool/shards.ts';
 import { explorerProblems, type Explorer } from './explorers.ts';
+import { validateThirdPartyWallet, type ThirdPartyWalletConfig } from './wallet-driver.ts';
 
 export type NetworkName = 'mock' | 'chipnet' | 'mainnet';
 export const NETWORKS: readonly NetworkName[] = ['mock', 'chipnet', 'mainnet'];
@@ -65,6 +66,8 @@ export interface TuaiConfig {
   link: { domain: string };
   /** Chipnet demo relayer (docs/decisions/0009-chipnet-relayer.md). */
   relay: RelayConfig;
+  /** Driver for a claim signed by a third-party wallet on chipnet (docs/decisions/0016-third-party-wallet.md). */
+  thirdPartyWallet: ThirdPartyWalletConfig;
 }
 
 /** Watcher report: the deployment it checks on chain, the public Folding@home summary, and where results go. */
@@ -203,6 +206,7 @@ export function validateConfig(c: TuaiConfig): string[] {
     problems.push('link.domain must be a lowercase host name');
   }
   problems.push(...validateRelay(c.relay));
+  problems.push(...validateThirdPartyWallet(c.thirdPartyWallet));
   return problems;
 }
 

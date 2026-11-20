@@ -195,5 +195,18 @@
       "scanAddresses": 3,
       "relayUrls": []
     }
+  },
+  "thirdPartyWallet": {
+    "name": "Cashonize",
+    "version": "0.15.2",
+    "commit": "4542351748dc412763a4e50c04451735fc8cf038",
+    "network": "chipnet",
+    "port": 4397,
+    "envFile": ".env",
+    "mnemonicEnv": "TUAI_W3_MNEMONIC",
+    "outputDir": "state/w3",
+    "recordPath": "deployments/chipnet/wallet-claims.json",
+    "maxFundSats": 30000,
+    "timeoutSeconds": 240
   }
 }
