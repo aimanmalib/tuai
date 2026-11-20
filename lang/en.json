@@ -284,6 +284,14 @@
       "tip": "Block {height}",
       "tipMissing": "Block height not read",
       "checked": "checked {time}"
+    },
+    "video": {
+      "heading": "Demo video",
+      "label": "Demo video: a claim from this page on chipnet, a refused repeat, and the mainnet test-token claim",
+      "caption": "A silent walk through this page: a demo address, a claim paid by the chipnet relayer, the refused repeat, and the mainnet test-token claim.",
+      "download": "Download the video",
+      "bannerLink": "Video",
+      "play": "Play the demo video"
     }
   }
 }

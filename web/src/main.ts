@@ -18,6 +18,7 @@ import { HERO_COSTS, heroCostLines } from './hero.ts';
 import { loadStats } from './stats-load.ts';
 import { startStats } from './stats-view.ts';
 import { refreshMs } from './stats.ts';
+import { isVideoHash, mountVideo } from './video-view.ts';
 
 type NetworkKey = 'chipnet' | 'mainnet';
 const web = config.web;
@@ -275,6 +276,7 @@ function route(): void {
     else byId(id).removeAttribute('aria-current');
   }
   if (!activity) stats.refresh();
+  if (isVideoHash(location.hash)) byId('demo-video').scrollIntoView();
   if (activity) {
     const asked = match[1];
     const key = (asked !== undefined && (web.networks as string[]).includes(asked) ? asked : select.value) as NetworkKey;
@@ -299,6 +301,7 @@ window.addEventListener('hashchange', route);
 
 setLocale(initialLocale());
 setLinks();
+mountVideo(byId<HTMLVideoElement>('video-player'), byId<HTMLButtonElement>('video-play'), byId<HTMLAnchorElement>('video-download'));
 renderStatic();
 select.value = web.defaultNetwork;
 route();

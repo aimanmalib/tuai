@@ -16,5 +16,5 @@
     "verbatimModuleSyntax": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["src", "bin", "scripts", "tests", "examples", "*.config.ts"]
+  "include": ["src", "bin", "scripts", "tests", "examples", "*.config.ts", "web/src/assets.d.ts"]
 }

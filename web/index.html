@@ -10,7 +10,7 @@
   </head>
   <body>
     <div class="banner" role="note">
-      <p><span id="banner-entry"></span> <a id="banner-repo" data-i18n="bannerSource"></a></p>
+      <p><span id="banner-entry"></span> <a id="banner-repo" data-i18n="bannerSource"></a> <span aria-hidden="true">&#183;</span> <a href="#demo-video" id="banner-video" data-i18n="video.bannerLink"></a></p>
       <p class="banner-prize"><span data-i18n="bannerPrize"></span>: <code id="banner-prize"></code></p>
     </div>
     <header class="top">
@@ -110,6 +110,16 @@
             <div class="stat" id="stat-cost"><dt data-i18n="stats.cost"></dt><dd class="stat-value">&#8212;</dd><dd class="stat-note"></dd></div>
           </dl>
           <p id="stats-line" class="stats-line"></p>
+        </section>
+        <section id="demo-video" class="demo-video" aria-labelledby="video-heading">
+          <h2 id="video-heading" class="stats-heading" data-i18n="video.heading"></h2>
+          <div class="video-frame">
+            <video id="video-player" playsinline preload="none" width="1920" height="1080" tabindex="-1" data-i18n-label="video.label"></video>
+            <button type="button" id="video-play" class="video-play" data-i18n-label="video.play" hidden>
+              <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false"><circle cx="32" cy="32" r="30" /><path d="M26 20v24l19-12z" /></svg>
+            </button>
+          </div>
+          <p class="video-caption"><span data-i18n="video.caption"></span> <a id="video-download" download="tuai-demo.mp4" data-i18n="video.download"></a></p>
         </section>
         <p class="intro" data-i18n="intro"></p>
         <form id="lookup" class="lookup" novalidate>

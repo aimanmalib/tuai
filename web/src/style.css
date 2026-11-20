@@ -284,3 +284,16 @@ button.small { min-height: 2.25rem; padding: 0.25rem 0.75rem; font-size: 0.875re
 .stat-value { font: 600 1.35rem/1.25 var(--serif); font-variant-numeric: tabular-nums; }
 .stat-note { font-size: 0.75rem; line-height: 1.3; color: var(--ink-soft); }
 .stats-line { margin: 0.6rem 0 0; font-size: 0.8rem; color: var(--ink-soft); overflow-wrap: anywhere; }
+
+/* Recorded demo (KF17.3): plays in place at the page width; nothing downloads until play. */
+.demo-video { margin: 0 0 1.5rem; padding: 0.75rem 1rem; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+.demo-video video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: var(--ink); border-radius: var(--radius-field); }
+.video-frame { position: relative; }
+.video-play { position: absolute; inset: 0; display: grid; place-items: start end; width: 100%; padding: 4% 4%; border: 0; background: none; cursor: pointer; border-radius: var(--radius-field); }
+.video-play[hidden] { display: none; }
+.video-play svg { width: clamp(3rem, 14vw, 4.5rem); height: auto; }
+.video-play circle { fill: var(--grain-bg); stroke: var(--grain); stroke-width: 3; }
+.video-play path { fill: var(--ink); }
+.video-play:hover circle { fill: var(--panel); }
+.video-play:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.video-caption { margin: 0.5rem 0 0; font-size: 0.85rem; color: var(--ink-soft); overflow-wrap: anywhere; }

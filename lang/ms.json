@@ -284,6 +284,14 @@
       "tip": "Blok {height}",
       "tipMissing": "Ketinggian blok tidak dibaca",
       "checked": "disemak {time}"
+    },
+    "video": {
+      "heading": "Video demo",
+      "label": "Video demo: tuntutan dari halaman ini di chipnet, ulangan yang ditolak, dan tuntutan token ujian mainnet",
+      "caption": "Lawatan senyap halaman ini: alamat demo, tuntutan dibayar relayer chipnet, ulangan yang ditolak, dan tuntutan token ujian mainnet.",
+      "download": "Muat turun video",
+      "bannerLink": "Video",
+      "play": "Mainkan video demo"
     }
   }
 }

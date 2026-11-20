@@ -9,6 +9,7 @@ Entry for **BCH BLAZE 2026**, bounty "Trust-minimized, pull-based reward claims 
 - Claim page (chipnet): <https://tuai.sasateguh.com>
 - Every chipnet transaction, with explorer links: <https://tuai.sasateguh.com/#/activity>
 - The mainnet test-token run, checked on chain by the page: <https://tuai.sasateguh.com/#/activity/mainnet>
+- Demo video (68 s, silent): [`docs/video/tuai-demo.mp4`](docs/video/tuai-demo.mp4), also played on the claim page: <https://tuai.sasateguh.com/#demo-video>
 - Proof endpoint: <https://tuai.sasateguh.com/epochs/chipnet/index.json>
 - Slides: [`docs/deck.pdf`](docs/deck.pdf) (8 pages)
 - Chipnet and mainnet record with every txid: [`docs/MEASURED.md`](docs/MEASURED.md)
