@@ -251,4 +251,6 @@ instead of a CashTokens address. The sponsor's distribution endpoint returns the
 Building a demonstration epoch from real sponsor data: `tuai epoch build --source api --real` sends one request per
 window in `sponsorApi.realEpoch` (all user types) through the same cached, rate limited client as `--source api`. The
 production query (`sponsorApi.includeFoldingUserTypes`) is not changed. A rate limited run stops with a retry time;
-running it again after that fetches only the window that is not cached yet. Decision record: ADR 0015.
+running it again after that fetches only the window that is not cached yet. `--file <allocations>` next to
+`--source api` appends local allocation files after the responses (chipnet epoch 3 adds one leaf for a third-party
+wallet this way, written by `tuai demo allocations --round wallet --address <a>`). Decision record: ADR 0015.

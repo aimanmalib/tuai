@@ -111,16 +111,17 @@ Full format and transaction reference: [`docs/SPEC.md`](docs/SPEC.md). Decisions
 ## Bounty requirements
 
 Chipnet transactions below are from the demonstration recorded in [`docs/MEASURED.md`](docs/MEASURED.md#chipnet)
-(300 leaves, depth 9, two epochs). Explorer links are in that table.
+(300 leaves, depth 9, two epochs), and from a third epoch built from the sponsor's real distributions (370 leaves,
+[Real distribution epoch](docs/MEASURED.md#real-distribution-epoch-chipnet)). Explorer links are in that table.
 
 | Requirement | Where | Tests | Chipnet evidence |
 |---|---|---|---|
-| Merkle root of (address, cumulative earned) published each epoch | [`src/epoch/`](src/epoch/), [`src/merkle/`](src/merkle/), [`RootGate.propose`](contracts/RootGate.cash) | `tests/merkle.test.ts`, `tests/cumulative.test.ts`, `tests/epoch-watch.test.ts` | epoch 1 proposed `72b5fbf76e2a5dfb14932ffe69db28e034cde7724cfac08cea7078217b7efa48`, epoch 2 proposed `9bbc758dd43b721a9526e251acd7eb19fc8c2fab8bd7f146acbcfddd94fb2c34` |
+| Merkle root of (address, cumulative earned) published each epoch | [`src/epoch/`](src/epoch/), [`src/merkle/`](src/merkle/), [`RootGate.propose`](contracts/RootGate.cash) | `tests/merkle.test.ts`, `tests/cumulative.test.ts`, `tests/epoch-watch.test.ts` | epoch 1 proposed `72b5fbf76e2a5dfb14932ffe69db28e034cde7724cfac08cea7078217b7efa48`, epoch 2 proposed `9bbc758dd43b721a9526e251acd7eb19fc8c2fab8bd7f146acbcfddd94fb2c34`, epoch 3 (real distributions, 68 legacy BTC leaves) proposed `abbc9a133c387990b9403591200528d0db445a5aed18a3a9a879954467784fe1` and activated `5068fd149578789262fe14f82b8a7875577dd9d0a930fafecd91c23ccb6811b5` |
 | Pool contract holds the tokens and verifies a proof on every claim; funds do not expire | [`ClaimPool.claim`](contracts/ClaimPool.cash), [`PoolVault`](contracts/PoolVault.cash), [`src/tx/claim.ts`](src/tx/claim.ts) | `tests/claim-pool.test.ts`, `tests/vault-topup.test.ts` | deploy `6356165de951e6a7e4765151250eec97d853a368da5d11106865307a9ef40cec`; first claims `bdb7b8f1e6e03691dc379c8c8fa5834425a75d2580df6a2d5f9a5eca071d6ca4` (leaf 0), `aded1114eb0c2cfb9ad61cc6258fd379bb16b23df1544c4fa65f78ffe5c1cd2f` (leaf 150), `e7b5780761a0c254d4db380051d2c616d31c3f560dee796955479a936c73038f` (leaf 299) |
 | No double claims (receipt with the claimed amount) | receipt list in [`ClaimPool.claim`](contracts/ClaimPool.cash), ADR [0002](docs/decisions/0002-claim-pool-and-receipts.md) | `tests/claim-pool.test.ts` ("rejects a second claim of the same amount", "rejects a burned receipt") | second first claim for leaf 0 refused by the network (`mandatory-script-verify-flag-failed`), row 20 of the table; top-up claims paid only the difference: `3b891a54a58dab33e147e6cb723241d2b8385f161d7fc18a7ef12cd27fed3c36` |
 | Timelock on root updates (audit window) | [`RootGate.activate`](contracts/RootGate.cash), ADR [0003](docs/decisions/0003-root-gate.md) | `tests/root-gate.test.ts`, `tests/sequence-time.test.ts` | seven early activations refused with `non-BIP68-final` (rows 6 to 13); accepted `5003786414a7babd59114603a497f9435c6b75989da9a8f183def325df7cd35a` and `d3217738961f951e97890fdf0782b5091a28bc38f247b820b80ab6af63bf93a3` |
 | No claim threshold; the claimant pays dust and fee | [`src/tx/claim.ts`](src/tx/claim.ts), `payment > 0` in [`ClaimPool.claim`](contracts/ClaimPool.cash) | `tests/claim-pool.test.ts` | fees and dust came from each claim's own funding input (the project payer key or a demo key), not from the pool; leaf 0's top-up was funded by leaf 150's key and still paid leaf 0 |
-| Reference transaction-building code, chipnet demo of several hundred leaves, cost comparison with push | [`src/tx/`](src/tx/), [`bin/tuai.ts`](bin/tuai.ts), [`docs/MEASURED.md`](docs/MEASURED.md), [`docs/COST.md`](docs/COST.md) | `tests/cli-e2e.test.ts`, `tests/cost.test.ts`, `tests/chipnet-record.test.ts` | all 24 attempts with full txids in [`docs/MEASURED.md`](docs/MEASURED.md#chipnet) |
+| Reference transaction-building code, chipnet demo of several hundred leaves, cost comparison with push | [`src/tx/`](src/tx/), [`bin/tuai.ts`](bin/tuai.ts), [`docs/MEASURED.md`](docs/MEASURED.md), [`docs/COST.md`](docs/COST.md) | `tests/cli-e2e.test.ts`, `tests/cost.test.ts`, `tests/chipnet-record.test.ts` | every attempt with its full txid in [`docs/MEASURED.md`](docs/MEASURED.md#chipnet) |
 
 ### Optional and stretch items
 
@@ -160,11 +161,14 @@ the push path ran on two later chipnet pools, one of five leaves and one with th
   as a list sorted by key. A first claim spends its predecessor as proof that no receipt exists yet. Receipts never
   sit in the claimant's wallet, so burning one cannot reset a claim (ADR [0002](docs/decisions/0002-claim-pool-and-receipts.md)).
 - **Leaf contents.** Link method (1 byte), cumulative amount (8 bytes), locking bytecode. The method byte records
-  how the address was linked, so a watcher knows which leaves it can check.
+  how the address was linked, so a watcher knows which leaves it can check. Chipnet epoch 3 carries methods 0 and 2
+  side by side from the sponsor's own responses ([`docs/MEASURED.md`](docs/MEASURED.md#real-distribution-epoch-chipnet)).
 - **Link verification.** Method 0 (address in the Folding@home name) is checked by `tuai watch --fah` against the
   public daily file. Method 1 (FoldingCash's own mapping) is checked by `tuai watch --links` against a BCH signed
   message from the linked address naming the Folding@home user, published with the epoch inputs
   ([SPEC section 8](docs/SPEC.md#8-signed-compatibility-links)). Method 1 leaves without one are listed as unverified.
+  Method 2 (a legacy BTC address in the Folding@home name) is checked by `tuai watch --fah` from the same public file,
+  with no mapping database (ADR [0015](docs/decisions/0015-legacy-btc-leaves.md)).
 
 ## Trust boundaries
 
@@ -334,9 +338,13 @@ in [`lang/en.json`](lang/en.json) and [`lang/ms.json`](lang/ms.json).
 - The CLI signs a proposal with two operator key files on one machine.
 - A signed link proves that the key of a method 1 address names a Folding@home user, not that the user controls that
   Folding@home account, and the contracts do not require one: an unverified method 1 leaf still pays.
-- The sponsor's October 2026 distribution had one recipient, so the chipnet tree uses five project demo keys and
-  295 synthetic leaves nobody holds a key for (ADR [0006](docs/decisions/0006-chipnet-demonstration.md)). No real
-  participant's address is in the demonstration.
+- The sponsor's production query (user type 8) returned one recipient for October 2026, so epochs 1 and 2 of the
+  chipnet pool use five project demo keys and synthetic leaves nobody holds a key for (ADR
+  [0006](docs/decisions/0006-chipnet-demonstration.md)). Epoch 3 adds the sponsor's October and November 2026
+  distributions for all user types: 69 addresses, of which 68 are legacy BTC addresses mapped to the P2PKH script with
+  the same hash160 and checked by the watcher against the public Folding@home file alone (ADR
+  [0015](docs/decisions/0015-legacy-btc-leaves.md)). The tokens on chipnet are the project's test token, and nobody in
+  the project claims a participant's leaf.
 - Chipnet nodes read a block-count sequence lock as ten one-minute blocks per unit at the time of the demonstration,
   so the demo delay of 3 took 30 blocks (ADR 0006).
 - The 300-leaf chipnet demonstration ran the version 1 contracts (kept in `src/contracts/artifacts/v1/`); the push

@@ -55,7 +55,8 @@ with its proof): [`epoch-1.json`](../deployments/chipnet/epoch-1.json) and
 [`epoch-2.json`](../deployments/chipnet/epoch-2.json); recompute either with
 `npx tsx bin/tuai.ts epoch verify deployments/chipnet/epoch-2.json`. The five project demo keys sit at leaves 0, 1,
 150, 298 and 299; the other 295 leaves pay synthetic scripts nobody holds a key for (ADR 0006). No real
-participant's address is in the tree.
+participant's address is in epochs 1 and 2; epoch 3 adds the sponsor's real distributions (see
+[Real distribution epoch (chipnet)](#real-distribution-epoch-chipnet)).
 
 What the record below shows:
 
@@ -110,7 +111,43 @@ Electrum and each size checked against the network's. Machine-readable copy:
 | 23 | 2026-11-18 01:08:40 | claim-additional-epoch-2 | [`3b891a54a58dab33e147e6cb723241d2b8385f161d7fc18a7ef12cd27fed3c36`](https://cbch.loping.net/tx/3b891a54a58dab33e147e6cb723241d2b8385f161d7fc18a7ef12cd27fed3c36) | 1748 | 1748 | 336076 | accepted (leaf 0) |
 | 24 | 2026-11-18 01:09:03 | claim-additional-epoch-2 | [`9c0edf1cbb7803e643b50c9bfd3ba9eac50b217b39686cfd84cc5ae6c6720164`](https://cbch.loping.net/tx/9c0edf1cbb7803e643b50c9bfd3ba9eac50b217b39686cfd84cc5ae6c6720164) | 1750 | 1750 | 336076 | accepted (leaf 299) |
 | 25 | 2026-11-18 21:12:16 | fund-relay-chipnet | [`58ca9a8181e68dfdfec161853e745b850c4ea56d26052264337599c7ab36552e`](https://cbch.loping.net/tx/58ca9a8181e68dfdfec161853e745b850c4ea56d26052264337599c7ab36552e) | 219 | 219 | 337267 | accepted |
+| 26 | 2026-11-20 14:44:38 | propose-epoch-3 | [`abbc9a133c387990b9403591200528d0db445a5aed18a3a9a879954467784fe1`](https://cbch.loping.net/tx/abbc9a133c387990b9403591200528d0db445a5aed18a3a9a879954467784fe1) | 861 | 864 | 339745 | accepted (operators 1,2) |
+| 27 | 2026-11-20 15:21:54 | activate-epoch-3 | [`5068fd149578789262fe14f82b8a7875577dd9d0a930fafecd91c23ccb6811b5`](https://cbch.loping.net/tx/5068fd149578789262fe14f82b8a7875577dd9d0a930fafecd91c23ccb6811b5) | 1473 | 1473 | - | accepted (pending mined at 339745, tip 339780) |
 <!-- chipnet-transactions:end -->
+
+## Real distribution epoch (chipnet)
+
+Run on 2026-11-20 with the committed CLI on the chipnet pool that the claim page and relayer read
+([`deployments/chipnet/epoch-3.json`](../deployments/chipnet/epoch-3.json), 370 leaves, depth 9).
+
+- **Inputs.** Epoch 2 carried over (300 leaves, cumulative amounts unchanged or higher), then two responses of the
+  sponsor's distribution endpoint for all user types, fetched once each through the cached, rate limited client
+  (`npx tsx bin/tuai.ts epoch build --network chipnet --source api --real --file <wallet leaf> --previous
+  deployments/chipnet/epoch-2.json`), then one allocations file for a third-party wallet's own address (leaf 251, the
+  amount `demo.walletLeafWhole` from the config):
+
+  | Query | Snapshot | Entries | SHA-256 of the stored response |
+  |---|---|---|---|
+  | `GET https://api.folding.cash/v1/GetDistro?startDate=2026-10-01T00:00:00Z&endDate=2026-11-01T00:00:00Z&amount=1000&includeFoldingUserTypes=15` | 2026-10-01 17:11:01 to 2026-11-01 10:39:27 UTC | 62 (61 legacy BTC, 1 CashTokens address) | [`a9dec677c572607bbe1002988d3a8559e304c67622c23c76b9c25f21091cd88c`](../deployments/chipnet/inputs/a9dec677c572607bbe1002988d3a8559e304c67622c23c76b9c25f21091cd88c.json) |
+  | `GET https://api.folding.cash/v1/GetDistro?startDate=2026-11-01T00:00:00Z&endDate=2026-11-20T00:00:00Z&amount=1000&includeFoldingUserTypes=15` | 2026-11-01 10:39:27 to 2026-11-20 11:39:04 UTC | 56 (all legacy BTC) | [`ed44ff993d11a83f5d45e0d32ede8da8677e52c5a0c4c993d6cf08c8853d43b2`](../deployments/chipnet/inputs/ed44ff993d11a83f5d45e0d32ede8da8677e52c5a0c4c993d6cf08c8853d43b2.json) |
+  | wallet leaf allocations | - | 1 | [`c88484040194994e1ff870dc8ca0e832d2736872b723593e7ed18e3b67425d5f`](../deployments/chipnet/inputs/c88484040194994e1ff870dc8ca0e832d2736872b723593e7ed18e3b67425d5f.json) |
+
+  Together the two months name 69 distinct recipients (49 appear in both): 68 legacy BTC addresses, every one Base58Check
+  P2PKH, which became method 2 leaves paying `76a914<hash160>88ac`, and 1 CashTokens address (method 0). Root
+  `c4929769c990f49178dd618e3edc2ddb31d13a37880a4945ef19d0bb94462d70`, inputs hash
+  `acc197b8f5aabc8c45d94d5bd09e90471cca4434a4b09b99079add6220168540`; `npx tsx bin/tuai.ts epoch verify
+  deployments/chipnet/epoch-3.json` recomputes both.
+- **Root authority.** Proposed with operator keys 1 and 2: `abbc9a133c387990b9403591200528d0db445a5aed18a3a9a879954467784fe1`
+  (2026-11-20 14:44:38 UTC, block 339745). Activated after the delay by
+  `5068fd149578789262fe14f82b8a7875577dd9d0a930fafecd91c23ccb6811b5` (2026-11-20 15:21:54 UTC). The pool's token
+  balance already covered the new amounts, so no top-up was sent. Block heights are in the [Chipnet](#chipnet) table.
+- **Watcher.** `npx tsx bin/tuai.ts watch --network chipnet --epoch deployments/chipnet/epoch-3.json --fah
+  daily_user_summary.txt.bz2 --json` with the Folding@home file identified under [Watcher](#watcher) (SHA-256
+  `135703b69c1d9f01c1afa705f86231f38ad495adb1d470d962724385eb3f3c64`): legacy BTC leaves 68 of 68 carry their address
+  in a Folding@home name, none missing. Of the method 0 leaves, the one real CashTokens address is in a name; the
+  other 301 (project demo keys, the wallet leaf and synthetic leaves) are not, as expected, and are listed as findings,
+  so the command exits 1. Root check after the activation: active epoch 3 on chain, `matched: true`.
+- Nobody in the project claims a participant's leaf. The reward token on chipnet is the project's test token.
 
 ## Chipnet operator push
 

@@ -1,6 +1,6 @@
 {
  "network": "chipnet",
- "tipHeight": 337293,
+ "tipHeight": 339788,
  "transactions": [
   {
    "kind": "prepare-genesis",
@@ -225,6 +225,24 @@
    "feeSats": 219,
    "utc": "2026-11-18T21:12:16.768Z",
    "height": 337267
+  },
+  {
+   "kind": "propose-epoch-3",
+   "txid": "abbc9a133c387990b9403591200528d0db445a5aed18a3a9a879954467784fe1",
+   "bytes": 861,
+   "feeSats": 864,
+   "utc": "2026-11-20T14:44:38.149Z",
+   "height": 339745,
+   "note": "operators 1,2"
+  },
+  {
+   "kind": "activate-epoch-3",
+   "txid": "5068fd149578789262fe14f82b8a7875577dd9d0a930fafecd91c23ccb6811b5",
+   "bytes": 1473,
+   "feeSats": 1473,
+   "utc": "2026-11-20T15:21:54.097Z",
+   "height": null,
+   "note": "pending mined at 339745, tip 339780"
   }
  ]
 }
