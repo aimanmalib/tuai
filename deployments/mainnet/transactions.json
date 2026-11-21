@@ -1,6 +1,6 @@
 {
  "network": "mainnet",
- "tipHeight": 978157,
+ "tipHeight": 978332,
  "transactions": [
   {
    "kind": "token-genesis",
@@ -79,6 +79,15 @@
    "utc": "2026-11-20T10:09:36.161Z",
    "height": 978157,
    "note": "leaf 150"
+  },
+  {
+   "kind": "propose-epoch-2",
+   "txid": "4016ddabe26701b86d83ba7c5ccf1f83b2eaf72215edb5bf742ac623487a138c",
+   "bytes": 1026,
+   "feeSats": 1029,
+   "utc": "2026-11-21T15:19:31.870Z",
+   "height": 978332,
+   "note": "operators 1,2"
   }
  ]
 }
