@@ -1,32 +1,40 @@
-// A fake Electrum server for the claim page, answering from the committed chipnet deployment files.
+// A fake Electrum server for the claim page, answering from the committed chipnet (or mainnet) deployment files.
 import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { binToHex, hexToBin } from '@bitauth/libauth';
 import { encodeReceipt, encodeState, END_KEY, receiptKey } from '../src/pool/encoding.ts';
 
 export const config = JSON.parse(readFileSync('config/tuai.json', 'utf8')) as {
-  networks: { chipnet: { electrum: { wssUrl: string } } };
+  networks: { chipnet: { electrum: { wssUrl: string } }; mainnet: { electrum: { wssUrl: string } } };
 };
-export const record = JSON.parse(readFileSync('deployments/chipnet/pool.json', 'utf8')) as {
+interface PoolRecordFile {
   poolCategory: string;
   rewardCategory: string;
   contracts: { pool: string; vault: string; gate: string };
-};
+}
+const poolRecord = (network: string) => JSON.parse(readFileSync(`deployments/${network}/pool.json`, 'utf8')) as PoolRecordFile;
+export const record = poolRecord('chipnet');
 export interface Leaf {
   index: number;
   address: string;
   cumulative: string;
   lockingBytecode: string;
 }
-export const epoch = JSON.parse(readFileSync('deployments/chipnet/epoch-2.json', 'utf8')) as {
+interface EpochFileJson {
   epoch: number;
   root: string;
   inputsHash: string;
   depth: number;
   leaves: Leaf[];
-};
+}
+const epochFile = (network: string, n: number) => JSON.parse(readFileSync(`deployments/${network}/epoch-${n}.json`, 'utf8')) as EpochFileJson;
+export const epoch = epochFile('chipnet', 2);
+/** The mainnet pool and the epoch its state NFT holds in the fake chain (`network: 'mainnet'`). */
+export const mainnet = { record: poolRecord('mainnet'), epoch: epochFile('mainnet', 1) };
 
 export interface FakeChain {
+  /** Which deployment and Electrum URL the fake serves; chipnet by default. */
+  network?: 'chipnet' | 'mainnet';
   /** Root the pool state NFT holds; defaults to the epoch file's root. */
   root?: string;
   /** A pending root for the next epoch, confirmed at this height. */
@@ -57,17 +65,18 @@ function txAnswer(chain: FakeChain, tip: number, txid: string): { result: unknow
   return { result: { txid, hex: '', confirmations: tip - entry + 1 } };
 }
 
-const stateHex = (root: string, e: number) =>
-  binToHex(encodeState({ root: hexToBin(root), epoch: e, inputsHash: hexToBin(epoch.inputsHash) }));
-const nft = (capability: string, commitment: string, height: number) => ({
-  tx_hash: '00'.repeat(32),
-  tx_pos: 0,
-  height,
-  value: 1000,
-  token_data: { category: record.poolCategory, amount: '0', nft: { capability, commitment } },
-});
-
 export async function fakeElectrum(page: Page, chain: FakeChain = {}): Promise<void> {
+  const network = chain.network ?? 'chipnet';
+  const { record, epoch } = network === 'mainnet' ? mainnet : { record: poolRecord('chipnet'), epoch: epochFile('chipnet', 2) };
+  const stateHex = (root: string, e: number) =>
+    binToHex(encodeState({ root: hexToBin(root), epoch: e, inputsHash: hexToBin(epoch.inputsHash) }));
+  const nft = (capability: string, commitment: string, height: number) => ({
+    tx_hash: '00'.repeat(32),
+    tx_pos: 0,
+    height,
+    value: 1000,
+    token_data: { category: record.poolCategory, amount: '0', nft: { capability, commitment } },
+  });
   const tip = chain.tip ?? 400_000;
   const active = stateHex(chain.root ?? epoch.root, epoch.epoch);
   const gate =
@@ -82,7 +91,7 @@ export async function fakeElectrum(page: Page, chain: FakeChain = {}): Promise<v
     [record.contracts.gate]: [gate],
     [record.contracts.vault]: receipts,
   };
-  await page.routeWebSocket(config.networks.chipnet.electrum.wssUrl, (ws) => {
+  await page.routeWebSocket(config.networks[network].electrum.wssUrl, (ws) => {
     ws.onMessage((raw) => {
       const msg = JSON.parse(String(raw)) as { id: number; method: string; params: unknown[] };
       if (msg.method === 'blockchain.transaction.get') {

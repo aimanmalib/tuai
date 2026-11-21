@@ -189,6 +189,8 @@
     "keyRole": "relay-chipnet",
     "wallet": {
       "enabled": true,
+      "networks": ["chipnet", "mainnet"],
+      "deployments": { "chipnet": "chipnet", "mainnet": "mainnet" },
       "preparePath": "/api/relay/prepare",
       "maxBodyBytes": 2048,
       "maxAddresses": 20,

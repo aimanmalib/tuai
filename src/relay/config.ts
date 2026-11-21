@@ -35,8 +35,16 @@ export interface RelayConfig {
   wallet: WalletClaimConfig;
 }
 
+/** Networks a wallet claim may be prepared on. The prepare route never signs or spends, so it is not bound to chipnet. */
+export const WALLET_NETWORKS = ['chipnet', 'mainnet'] as const;
+export type WalletNetwork = (typeof WALLET_NETWORKS)[number];
+
 export interface WalletClaimConfig {
   enabled: boolean;
+  /** Networks the prepare route serves; a request names one (no name = chipnet). The keyed relayer stays on chipnet. */
+  networks: string[];
+  /** Folder under deployments/ whose pool record and epoch files the prepare route reads, per network. */
+  deployments: Record<string, string>;
   preparePath: string;
   maxBodyBytes: number;
   /** Most wallet addresses one prepare request may list (funded addresses plus the change address); the relay reads their coins. */
@@ -58,6 +66,13 @@ export interface WalletClaimConfig {
 }
 
 const isPositiveInt = (n: unknown): n is number => Number.isSafeInteger(n) && (n as number) > 0;
+
+/** Throws unless config lists the network for wallet claims. */
+export function assertWalletNetwork(network: string, wallet: Pick<WalletClaimConfig, 'networks' | 'deployments'>): void {
+  if (!(WALLET_NETWORKS as readonly string[]).includes(network) || !wallet.networks.includes(network) || !wallet.deployments[network]) {
+    throw new Error(`wallet claims are not served on ${network}`);
+  }
+}
 
 /** Throws unless the network is the relay network and config lists it as the only one. */
 export function assertRelayNetwork(network: string, config: Pick<RelayConfig, 'networks'>): void {
@@ -95,6 +110,14 @@ export function validateWallet(w: WalletClaimConfig | undefined): string[] {
   if (!w) return ['relay.wallet is missing'];
   const out: string[] = [];
   if (typeof w.enabled !== 'boolean') out.push('relay.wallet.enabled must be true or false');
+  const known = WALLET_NETWORKS as readonly string[];
+  if (!Array.isArray(w.networks) || w.networks.length === 0 || w.networks.some((n) => !known.includes(n)) || new Set(w.networks).size !== w.networks.length) {
+    out.push(`relay.wallet.networks must list some of ${known.join(', ')}, each once`);
+  } else {
+    for (const n of w.networks) {
+      if (!new RegExp(`^${n}(-[a-z0-9-]+)?$`).test(w.deployments?.[n] ?? '')) out.push(`relay.wallet.deployments.${n} must be a ${n} deployment folder`);
+    }
+  }
   if (!/^\/api\/relay\/[a-z]+$/.test(w.preparePath ?? '')) out.push('relay.wallet.preparePath must be under /api/relay/');
   for (const k of ['maxBodyBytes', 'maxAddresses', 'maxSpendSats', 'maxPreparesPerHour', 'gapLimit', 'maxAddressesPerScan', 'reconnectGraceSeconds', 'livenessSeconds'] as const) {
     if (!isPositiveInt(w[k])) out.push(`relay.wallet.${k} must be > 0`);

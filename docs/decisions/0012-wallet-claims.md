@@ -110,3 +110,27 @@ wallet ending the session.
 Tests: `tests/wallet-disconnect.test.ts` (fake session manager and fake timers; the first four cases fail on the
 previous behaviour, where only `disconnect` was heard) and `e2e/wallet-disconnect.spec.ts`, where the page clock jumps
 over the grace period from config instead of a shortened test setting.
+
+## Addendum: mainnet wallet claims
+
+The prepare route reads coins and plans an unsigned claim. It never signs, never sends and spends nothing of its
+own, so serving it on mainnet does not put any key at risk. The keyed relayer is unchanged: `relay.networks` stays
+exactly `["chipnet"]`, the relay key is only loaded for the chipnet relayer, and the prepare routes never receive it.
+
+- **Config.** `relay.wallet.networks` lists the networks the prepare route serves (`chipnet`, `mainnet`), and
+  `relay.wallet.deployments` names the `deployments/<folder>/` record each one reads. Validation refuses an unknown
+  network, a repeated one, and a folder that does not belong to the network it is listed under.
+- **Routing.** A prepare request may carry `network`. No name means chipnet, so a page built before this change
+  keeps working. A name that is not served gets `wrongNetwork` before any chain read; so do addresses whose prefix
+  belongs to the other network. Each network has its own chain reader (`networks.<n>.electrum`), its own pool record
+  (checked against the contracts of this build, as before) and its own hourly limit. The off switch closes every
+  network.
+- **Page.** The wallet button appears when the chosen network is in `relay.wallet.networks`. On the relayer's own
+  network it still waits for the relayer status, because the same container answers prepare; on mainnet there is no
+  relayer status to wait for. The card says on mainnet that the reward is a test token of this project, with no
+  value, not FLDCH, and repeats it next to the fee before the wallet signs. With no coins found, the way to claim
+  without a wallet is the command line (there is no Claim now button on mainnet). The page still checks every input
+  and output against the chosen network's pool record before the wallet sees the transaction.
+- **Rejected.** A second relay container for mainnet (more to deploy and watch for no gain, since nothing is signed),
+  and letting the page talk to a mainnet Electrum server to build the claim itself (the planner already lives on the
+  server and is tested there).

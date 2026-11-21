@@ -8,7 +8,7 @@ import { addressToLockingBytecode, type CashAddressPrefix } from '../leaf.ts';
 import type { PoolContracts } from '../pool/contracts.ts';
 import { assembleClaim, planClaim } from '../tx/claim.ts';
 import { hexToBinChecked } from '../bytes.ts';
-import { assertRelayNetwork, type RelayConfig } from './config.ts';
+import { assertWalletNetwork, type RelayConfig } from './config.ts';
 import { checkClaimOutputs, scriptOf } from './guard.ts';
 import { HourlyLimit, SerialQueue } from './limits.ts';
 import { firstLine, lookupLeaf, reply, withTimeout, type RelayReply } from './lookup.ts';
@@ -32,7 +32,7 @@ export interface PrepareRequest {
   wallet: string[];
 }
 
-/** Parses `{ address, change, wallet: [address...] }`; every address must be a CashAddr of the relay network. */
+/** Parses `{ address, change, wallet: [address...] }`; every address must be a CashAddr of the prepare route's network. */
 export function parsePrepareBody(body: unknown, prefix: CashAddressPrefix, maxAddresses: number): PrepareRequest | RelayReply {
   const b = body as { address?: unknown; change?: unknown; wallet?: unknown } | null;
   if (!b || typeof b !== 'object' || !Array.isArray(b.wallet) || b.wallet.length === 0) return reply(400, 'badRequest');
@@ -59,7 +59,7 @@ export interface SourceOutputJson {
 }
 
 export function createPrepare(d: PrepareDeps) {
-  assertRelayNetwork(d.network, d.relay);
+  assertWalletNetwork(d.network, d.relay.wallet);
   const w = d.relay.wallet;
   const limit = new HourlyLimit(w.maxPreparesPerHour, d.now);
   const queue = new SerialQueue();

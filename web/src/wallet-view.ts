@@ -16,6 +16,10 @@ import { watchLiveness, type LivenessWatch } from './wallet-liveness.ts';
 import type { WalletSession } from './wizardconnect.ts';
 
 export interface WalletViewOptions {
+  /** The network the card shows; sent with the prepare request so the server reads that network's pool. */
+  network: 'chipnet' | 'mainnet';
+  /** Whether the keyed demo relayer serves this network (its Claim now button is the way without a wallet). */
+  relayer: boolean;
   address: string;
   prefix: string;
   claimable: bigint;
@@ -129,9 +133,9 @@ async function searchWallet(session: WalletSession, o: WalletViewOptions): Promi
 }
 
 /** The way to claim without a wallet: the relayer's Claim now button on this card (when it is on) and the CLI. */
-function withoutWallet(): HTMLElement {
-  const box = el('div', { class: 'wallet-without' }, el('p', { id: 'wallet-without' }, t('walletClaim.withoutWallet')));
-  const claimNow = document.getElementById('relay-claim');
+function withoutWallet(relayer: boolean): HTMLElement {
+  const box = el('div', { class: 'wallet-without' }, el('p', { id: 'wallet-without' }, t(relayer ? 'walletClaim.withoutWallet' : 'walletClaim.withoutWalletCli')));
+  const claimNow = relayer ? document.getElementById('relay-claim') : null;
   if (claimNow instanceof HTMLButtonElement && !claimNow.disabled) {
     const go = el('button', { type: 'button', class: 'small secondary', id: 'wallet-go-claim' }, t('walletClaim.withoutWalletButton'));
     go.addEventListener('click', () => {
@@ -152,6 +156,8 @@ export function renderWalletClaim(target: HTMLElement, o: WalletViewOptions): vo
     out.replaceChildren(...lines.map((l) => (typeof l === 'string' ? el('p', {}, l) : l)));
   };
   let abort: AbortController | undefined;
+  const network = t(`walletClaim.networkName.${o.network}`);
+  const mainnet = o.network === 'mainnet';
 
   start.addEventListener('click', () => {
     closeOpen();
@@ -192,7 +198,7 @@ export function renderWalletClaim(target: HTMLElement, o: WalletViewOptions): vo
           start.disabled = false;
         });
         const name = session.name || t('walletClaim.theWallet');
-        say('', t('walletClaim.searching', { wallet: name }), cancel);
+        say('', t('walletClaim.searching', { wallet: name, network }), cancel);
         const found = await watch.guard(searchWallet(session, o));
         const change = found.change;
         if (!change || !found.receive) throw new Error(t('walletClaim.noKeys'));
@@ -207,15 +213,16 @@ export function renderWalletClaim(target: HTMLElement, o: WalletViewOptions): vo
         if (found.funded.length === 0) {
           // Nothing to spend: say where the page looked and how to claim without a wallet. The relay is not asked.
           const { receive, change: changeCount } = found.scanned;
-          say('', t('walletClaim.noCoins', { receive, change: changeCount, gap: o.scan.gapLimit }), withoutWallet());
+          const note = t(`walletClaim.noCoinsNote.${o.network}`);
+          say('', `${t('walletClaim.noCoins', { receive, change: changeCount, gap: o.scan.gapLimit, network })} ${note}`, withoutWallet(o.relayer));
           return;
         }
-        say('', t('walletClaim.preparing', { wallet: name }), cancel);
+        say('', t('walletClaim.preparing', { wallet: name, network }), cancel);
         const wallet = walletForRelay(found.funded, change, o.scan.maxAddresses);
-        const p = await watch.guard(prepare(o.preparePath, { address: o.address, change: change.address, wallet: wallet.map((w) => w.address) }, o.timeoutMs));
+        const p = await watch.guard(prepare(o.preparePath, { network: o.network, address: o.address, change: change.address, wallet: wallet.map((w) => w.address) }, o.timeoutMs));
         if (p.code !== 'prepared') {
-          const text = t(`walletClaim.code.${CODES.has(p.code) ? p.code : 'unknown'}`, { sats: String(p.needSats ?? '') });
-          say('error', text, ...(p.code === 'walletEmpty' || p.code === 'walletShort' ? [withoutWallet()] : []));
+          const text = t(`walletClaim.code.${CODES.has(p.code) ? p.code : 'unknown'}`, { sats: String(p.needSats ?? ''), network });
+          say('error', text, ...(p.code === 'walletEmpty' || p.code === 'walletShort' ? [withoutWallet(o.relayer)] : []));
           return;
         }
         const userPrompt = t('walletClaim.prompt', { amount: o.amountText, address: o.address });
@@ -224,7 +231,8 @@ export function renderWalletClaim(target: HTMLElement, o: WalletViewOptions): vo
           say('error', el('p', { id: 'wallet-refused' }, t('walletClaim.refused', { reason: checked.refused })));
           return;
         }
-        say('', t('walletClaim.approve', { sats: checked.spendSats.toString(), amount: o.amountText }), cancel);
+        const approve = t('walletClaim.approve', { sats: checked.spendSats.toString(), amount: o.amountText });
+        say('', approve, ...(mainnet ? [el('p', { id: 'wallet-test-token' }, t('walletClaim.testToken'))] : []), cancel);
         const signed = await watch.guard(session.sign(checked.request, checked.inputPaths, signAbort.signal));
         const txid = binToHex(hashTransactionUiOrder(hexToBin(signed)));
         const answer: RelayAnswer = { code: 'claimed', txid };
@@ -255,7 +263,8 @@ export function renderWalletClaim(target: HTMLElement, o: WalletViewOptions): vo
       'section',
       { class: 'relay', 'aria-labelledby': 'wallet-h' },
       el('h3', { id: 'wallet-h' }, t('walletClaim.heading')),
-      el('p', {}, t('walletClaim.text')),
+      el('p', {}, t('walletClaim.text', { network })),
+      ...(mainnet ? [el('p', { id: 'wallet-network-note' }, t('walletClaim.testToken'))] : []),
       el('div', { class: 'copy-row' }, start),
       out,
     ),

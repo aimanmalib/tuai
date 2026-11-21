@@ -13,10 +13,11 @@ export interface RelayDeployment {
   epochs: EpochFile[];
 }
 
-export function loadRelayDeployment(deploymentsDir: string, deployment: string, provider: NetworkProvider): RelayDeployment {
+/** `network` is the network the record must name: chipnet for the relayer, the chosen one for wallet claims. */
+export function loadRelayDeployment(deploymentsDir: string, deployment: string, provider: NetworkProvider, network: string = RELAY_NETWORK): RelayDeployment {
   const dir = resolve(deploymentsDir, deployment);
   const record = JSON.parse(readFileSync(join(dir, 'pool.json'), 'utf8')) as PoolParams & { network: string; contracts: Record<string, string> };
-  if (record.network !== RELAY_NETWORK) throw new Error(`deployment ${deployment} is not a ${RELAY_NETWORK} pool`);
+  if (record.network !== network) throw new Error(`deployment ${deployment} is not a ${network} pool`);
   const contracts = poolContracts(record, provider);
   if (contracts.pool.tokenAddress !== record.contracts.pool || contracts.vault.tokenAddress !== record.contracts.vault) {
     throw new Error('the pool record does not match the contracts in this build');

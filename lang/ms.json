@@ -217,7 +217,7 @@
     },
     "walletClaim": {
       "heading": "Tuntut dengan dompet anda sendiri",
-      "text": "Sambungkan dompet WizardConnect di chipnet. Pelayan ini menyediakan tuntutan, halaman ini menyemak setiap input dan output, dan dompet anda menandatangani serta membayar yuran dan dust. Kontrak tetap menghantar token hanya ke alamat dalam daun.",
+      "text": "Sambungkan dompet WizardConnect di {network}. Pelayan ini menyediakan tuntutan, halaman ini menyemak setiap input dan output, dan dompet anda menandatangani serta membayar yuran dan dust. Kontrak tetap menghantar token hanya ke alamat dalam daun.",
       "button": "Sambung dengan WizardConnect",
       "loading": "Memuatkan sambungan dompet.",
       "scan": "Imbas kod ini dengan dompet WizardConnect, atau buka pautan pada peranti yang ada dompet itu.",
@@ -228,9 +228,9 @@
       "cancel": "Batal",
       "dappName": "Tuntutan ganjaran Tuai",
       "theWallet": "dompet",
-      "preparing": "Disambungkan ke {wallet}. Menyediakan tuntutan daripada syiling chipnet dompet anda.",
-      "searching": "Disambungkan ke {wallet}. Mencari syiling pada alamat chipnet dompet anda.",
-      "noCoins": "Tiada syiling chipnet dijumpai pada {receive} alamat terima dan {change} alamat baki pertama dompet ini (carian berhenti selepas {gap} alamat tidak digunakan berturut-turut). Halaman ini hanya menggunakan syiling ujian di chipnet; dompet yang ditetapkan ke mainnet tiada syiling di sini.",
+      "preparing": "Bersambung dengan {wallet}. Menyediakan tuntutan daripada syiling {network} dompet anda.",
+      "searching": "Bersambung dengan {wallet}. Mencari syiling pada alamat {network} dompet anda.",
+      "noCoins": "Tiada syiling {network} dijumpai pada {receive} alamat terima dan {change} alamat baki pertama dompet ini (carian berhenti selepas {gap} alamat tidak digunakan berturut-turut).",
       "withoutWallet": "Anda boleh menuntut tanpa dompet: tekan Tuntut sekarang pada kad ini, di mana geganti demo membayar yuran, atau jalankan tuntutan dari klon repositori.",
       "withoutWalletButton": "Pergi ke Tuntut sekarang",
       "noKeys": "dompet tidak berkongsi kunci terima atau baki",
@@ -241,15 +241,15 @@
       "failed": "Tuntutan dompet tidak selesai: {message}",
       "code": {
         "nothingToClaim": "Alamat ini tiada baki untuk dituntut.",
-        "walletEmpty": "Pelayan tidak menjumpai syiling chipnet yang boleh dibelanjakan pada alamat dompet yang dijumpai halaman ini. Tuntutan dompet membayar yuran dan dust (kira-kira {sats} satoshi) daripada syiling dompet itu sendiri.",
-        "walletShort": "Syiling chipnet dompet tidak cukup untuk yuran dan dust tuntutan ini (kira-kira {sats} satoshi).",
+        "walletEmpty": "Pelayan tidak menjumpai syiling {network} yang boleh dibelanjakan pada alamat dompet yang dijumpai halaman ini. Tuntutan dompet membayar yuran dan dust (kira-kira {sats} satoshi) daripada syiling dompet itu sendiri.",
+        "walletShort": "Syiling {network} dompet tidak cukup untuk yuran dan dust tuntutan ini (kira-kira {sats} satoshi).",
         "notInEpoch": "Alamat ini tiada dalam epoch aktif.",
         "epochMissing": "Pelayan tiada fail epoch yang dipegang pool.",
         "off": "Tuntutan dompet dimatikan di pelayan ini.",
         "hourFull": "Pelayan mencapai had sejam untuk tuntutan yang disediakan. Cuba lagi kemudian.",
         "badRequest": "Permintaan tidak diterima.",
         "badAddress": "Satu alamat tidak diterima.",
-        "wrongNetwork": "Alamat dompet bukan alamat chipnet.",
+        "wrongNetwork": "Alamat dompet bukan alamat {network}.",
         "tooManyAddresses": "Terlalu banyak alamat dompet dihantar.",
         "changeNotInWallet": "Alamat baki bukan salah satu alamat dompet.",
         "tooLarge": "Permintaan terlalu besar.",
@@ -266,7 +266,17 @@
       "balanceChecked": "Disemak {time}",
       "balanceFailed": "Baki tidak dapat dibaca semula: {reason}",
       "lost": "Sambungan kepada dompet terputus, menunggu ia kembali.",
-      "ended": "Dompet menamatkan sambungan. Sambung semula untuk meneruskan."
+      "ended": "Dompet menamatkan sambungan. Sambung semula untuk meneruskan.",
+      "networkName": {
+        "chipnet": "chipnet",
+        "mainnet": "mainnet"
+      },
+      "noCoinsNote": {
+        "chipnet": "Halaman ini hanya menggunakan syiling ujian di chipnet; dompet yang ditetapkan ke mainnet tiada syiling di sini.",
+        "mainnet": "Di mainnet, tuntutan dompet membayar yuran dan dust daripada BCH dompet itu sendiri; dompet yang ditetapkan ke chipnet tiada syiling di sini."
+      },
+      "testToken": "Ganjaran ialah token ujian projek ini, tanpa nilai, bukan FLDCH.",
+      "withoutWalletCli": "Anda boleh menuntut tanpa dompet: jalankan tuntutan dari klon repositori, dengan arahan pada kad ini."
     },
     "hero": {
       "line": "Pelipat menuntut FLDCH mereka sendiri. Operator menerbitkan satu akar dan tidak perlu membayar ratusan output.",

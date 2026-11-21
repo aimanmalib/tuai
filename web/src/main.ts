@@ -86,6 +86,8 @@ function setLinks(): void {
 let lastQuery: string | undefined;
 const relayCfg = config.relay;
 const relayOn = (n: NetworkKey) => (relayCfg.networks as string[]).includes(n);
+/** Wallet claims are prepared on the networks in relay.wallet.networks; the prepare route never signs or spends. */
+const walletOn = (n: NetworkKey) => relayCfg.wallet.enabled && (relayCfg.wallet.networks as string[]).includes(n);
 const OFF: RelayStatus = { network: '', enabled: false, reason: 'off' };
 
 /** Pool record, epoch list and chain view of a network, or the message to show instead. */
@@ -168,10 +170,15 @@ async function check(query: string, notice?: RelayAnswer): Promise<void> {
       onSent: (answer) => void check(query, answer),
     });
   }
-  const st = relayOn(network) ? await relay : OFF;
   const walletCfg = relayCfg.wallet;
-  if (relayOn(network) && walletCfg.enabled && found.fileMatchesChain === 'match' && found.claimable > 0n && st.reason !== 'off' && st.reason !== 'unreachable') {
+  // On the relayer's network the same container answers prepare, so an unreachable or switched-off relayer hides the
+  // wallet button there. Elsewhere there is no relayer status to wait for; a switched-off route answers `off` itself.
+  const st = relayOn(network) ? await relay : undefined;
+  const relayUp = !st || (st.reason !== 'off' && st.reason !== 'unreachable');
+  if (walletOn(network) && found.fileMatchesChain === 'match' && found.claimable > 0n && relayUp) {
     renderWalletClaim(result, {
+      network,
+      relayer: relayOn(network),
       address,
       prefix: net.addressPrefix,
       claimable: found.claimable,
