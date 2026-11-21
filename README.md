@@ -360,8 +360,10 @@ in [`lang/en.json`](lang/en.json) and [`lang/ms.json`](lang/ms.json).
 - The 300-leaf chipnet demonstration ran the version 1 contracts (kept in `src/contracts/artifacts/v1/`); the push
   path ran on two later chipnet pools (five leaves, and the 300-leaf tree). Pushes open only between `pushDelay` blocks after activation and the next proposal.
 - On mainnet four pull claims ran, with the project's own test token rather than a real reward token, on a 300-leaf
-  tree of five project demo keys and synthetic leaves (`docs/MEASURED.md`, "Mainnet claim with a test token"). Pushes,
-  top-ups and the relayer ran on chipnet only.
+  tree of five project demo keys and synthetic leaves (`docs/MEASURED.md`, "Mainnet claim with a test token"). A second
+  mainnet epoch built from the sponsor's real October and November distributions (370 leaves, 68 legacy BTC leaves) was
+  proposed and activated with the same test token (`docs/MEASURED.md`, "Real distribution epoch (mainnet)"); the
+  project does not claim or push a participant's leaf. Pushes, top-ups and the relayer ran on chipnet only.
 - The claim page claims through the chipnet demo relayer, through the
   user's own WizardConnect wallet on chipnet, or shows the CLI command. A claim was signed by Cashonize v0.15.2 over
   WizardConnect on chipnet (txid `96bfbbc12ad9f9df4c027292531965702b378f6d1509e0d6b9df233d150c5eff`,

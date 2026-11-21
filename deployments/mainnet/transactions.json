@@ -1,6 +1,6 @@
 {
  "network": "mainnet",
- "tipHeight": 978332,
+ "tipHeight": 978374,
  "transactions": [
   {
    "kind": "token-genesis",
@@ -88,6 +88,15 @@
    "utc": "2026-11-21T15:19:31.870Z",
    "height": 978332,
    "note": "operators 1,2"
+  },
+  {
+   "kind": "activate-epoch-2",
+   "txid": "7aa982ba5c293ce3ded35c5c7d4a45359492a96586ae378d953421198f720064",
+   "bytes": 1688,
+   "feeSats": 1688,
+   "utc": "2026-11-21T21:15:53.991Z",
+   "height": 978374,
+   "note": "pending mined at 978332, tip 978373"
   }
  ]
 }

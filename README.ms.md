@@ -73,8 +73,9 @@ lencana di atas menunjukkan larian terkini. Rekod chipnet dan mainnet dengan set
 - Kunci operator tetap dalam gerbang; menukarnya bermakna deployment baharu.
 - Pertanyaan pengeluaran penaja memulangkan satu penerima untuk Oktober 2026, jadi epoch 1 dan 2 di chipnet memakai kunci demo projek dan
   daun sintetik; token di chipnet ialah token ujian projek, dan tiada sesiapa dalam projek menuntut daun peserta.
-- Di mainnet, empat tuntutan tarik berjalan dengan token ujian projek sendiri, bukan token ganjaran sebenar. Tolak,
-  tambahan dan relayer hanya di chipnet.
+- Di mainnet, empat tuntutan tarik berjalan dengan token ujian projek sendiri, bukan token ganjaran sebenar. Epoch
+  mainnet kedua dari data pengagihan sebenar penaja (Oktober dan November) dicadang dan diaktifkan dengan token ujian
+  yang sama; projek tidak menuntut atau menolak daun peserta. Tolak, tambahan dan relayer hanya di chipnet.
 - Tuntutan dompet hanya di chipnet, dan Cashonize ialah satu-satunya dompet pihak ketiga yang dicuba.
 - Senarai penuh: [README.md](README.md#known-limits).
 
