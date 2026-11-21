@@ -185,7 +185,7 @@ async function check(query: string, notice?: RelayAnswer): Promise<void> {
         maxSpendSats: BigInt(walletCfg.maxSpendSats),
       },
       preparePath: walletCfg.preparePath,
-      scanAddresses: walletCfg.scanAddresses,
+      scan: { gapLimit: walletCfg.gapLimit, maxAddressesPerScan: walletCfg.maxAddressesPerScan, maxAddresses: walletCfg.maxAddresses },
       relayUrls: walletCfg.relayUrls,
       timeoutMs: 120_000,
       explorers: explorersOf(net),

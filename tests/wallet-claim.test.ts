@@ -166,4 +166,17 @@ describe('wallet claims', () => {
     expect(validateWallet(W)).toEqual([]);
     expect(validateWallet({ ...W, relayUrls: ['http://x'] })).toContain('relay.wallet.relayUrls must list wss:// URLs');
   });
+
+  it('validates the address discovery limits and fits a full wallet list in one request', () => {
+    expect(validateWallet({ ...W, gapLimit: 0 }).join()).toMatch(/gapLimit/);
+    expect(validateWallet({ ...W, gapLimit: 101, maxAddressesPerScan: 200 }).join()).toMatch(/gapLimit must be 1\.\.100/);
+    expect(validateWallet({ ...W, maxAddressesPerScan: W.gapLimit - 1 }).join()).toMatch(/maxAddressesPerScan must be >= gapLimit/);
+    expect(validateWallet({ ...W, maxAddressesPerScan: 501 }).join()).toMatch(/maxAddressesPerScan/);
+    expect(validateWallet({ ...W, maxAddresses: 1 }).join()).toMatch(/maxAddresses must be >= 2/);
+    // The page sends up to maxAddresses addresses: the request stays under the body limit and is accepted.
+    const list = Array.from({ length: W.maxAddresses }, (_, i) => addr('receive', 100 + i).address);
+    const full = { address: alice.address, change: list[list.length - 1], wallet: list };
+    expect(JSON.stringify(full).length).toBeLessThanOrEqual(W.maxBodyBytes);
+    expect('status' in parsePrepareBody(full, 'bchtest', W.maxAddresses)).toBe(false);
+  });
 });

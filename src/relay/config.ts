@@ -39,14 +39,16 @@ export interface WalletClaimConfig {
   enabled: boolean;
   preparePath: string;
   maxBodyBytes: number;
-  /** Most wallet addresses one prepare request may list; the relay reads their coins from the chain. */
+  /** Most wallet addresses one prepare request may list (funded addresses plus the change address); the relay reads their coins. */
   maxAddresses: number;
   /** Most satoshis a claim may take from the wallet: fee plus the dust of the payment and of a new receipt. */
   maxSpendSats: number;
   /** Global limit on prepare requests; they read the chain but never sign or send. */
   maxPreparesPerHour: number;
-  /** Receive and change addresses the page derives from the wallet's keys and looks up for coins. */
-  scanAddresses: number;
+  /** The page stops searching a key path after this many unused addresses in a row (BIP44 address gap limit). */
+  gapLimit: number;
+  /** Most addresses the page derives and looks up on each key path (receive and change) in one search. */
+  maxAddressesPerScan: number;
   /** Nostr relays for the WizardConnect session; empty means the library's defaults. */
   relayUrls: string[];
 }
@@ -90,10 +92,14 @@ export function validateWallet(w: WalletClaimConfig | undefined): string[] {
   const out: string[] = [];
   if (typeof w.enabled !== 'boolean') out.push('relay.wallet.enabled must be true or false');
   if (!/^\/api\/relay\/[a-z]+$/.test(w.preparePath ?? '')) out.push('relay.wallet.preparePath must be under /api/relay/');
-  for (const k of ['maxBodyBytes', 'maxAddresses', 'maxSpendSats', 'maxPreparesPerHour', 'scanAddresses'] as const) {
+  for (const k of ['maxBodyBytes', 'maxAddresses', 'maxSpendSats', 'maxPreparesPerHour', 'gapLimit', 'maxAddressesPerScan'] as const) {
     if (!isPositiveInt(w[k])) out.push(`relay.wallet.${k} must be > 0`);
   }
-  if (isPositiveInt(w.scanAddresses) && w.scanAddresses * 2 > w.maxAddresses) out.push('relay.wallet.scanAddresses * 2 must be <= maxAddresses');
+  if (isPositiveInt(w.maxAddresses) && w.maxAddresses < 2) out.push('relay.wallet.maxAddresses must be >= 2 (a funded address and the change address)');
+  if (isPositiveInt(w.gapLimit) && w.gapLimit > 100) out.push('relay.wallet.gapLimit must be 1..100');
+  if (isPositiveInt(w.maxAddressesPerScan) && (w.maxAddressesPerScan > 500 || (isPositiveInt(w.gapLimit) && w.maxAddressesPerScan < w.gapLimit))) {
+    out.push('relay.wallet.maxAddressesPerScan must be >= gapLimit and <= 500');
+  }
   if (!Array.isArray(w.relayUrls) || w.relayUrls.some((u) => typeof u !== 'string' || !u.startsWith('wss://'))) {
     out.push('relay.wallet.relayUrls must list wss:// URLs');
   }

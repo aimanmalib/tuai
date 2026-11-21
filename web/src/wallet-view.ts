@@ -3,12 +3,14 @@
 import type { Explorer } from '../../src/explorers.ts';
 import { binToHex, hashTransactionUiOrder, hexToBin } from '@bitauth/libauth';
 import qrcode from 'qrcode-generator';
+import { openWalletLookup } from './electrum.ts';
 import { t } from './i18n.ts';
 import { el } from './render.ts';
 import { showAnswer } from './relay-view.ts';
 import type { RelayAnswer } from './relay.ts';
-import { checkPrepared, type CheckContext, type PreparedJson, type WalletAddress } from './wallet-check.ts';
+import { checkPrepared, type CheckContext, type PreparedJson } from './wallet-check.ts';
 import { watchBalance, type BalanceWatch } from './wallet-balance-view.ts';
+import { scanWallet, walletForRelay, type ScanResult } from './wallet-scan.ts';
 import { wizardHat } from './wizard-hat.ts';
 import type { WalletSession } from './wizardconnect.ts';
 
@@ -19,7 +21,8 @@ export interface WalletViewOptions {
   amountText: string;
   check: Omit<CheckContext, 'wallet' | 'change' | 'userPrompt'>;
   preparePath: string;
-  scanAddresses: number;
+  /** Address discovery limits from config (relay.wallet): gap limit, cap per key path, addresses sent to the relay. */
+  scan: { gapLimit: number; maxAddressesPerScan: number; maxAddresses: number };
   relayUrls: string[];
   timeoutMs: number;
   explorers: readonly Explorer[];
@@ -105,6 +108,36 @@ function pairing(uri: string, qrUri: string, cancel: HTMLElement): Node[] {
   ];
 }
 
+/** Searches the wallet's receive and change paths for coins through one Electrum connection. */
+async function searchWallet(session: WalletSession, o: WalletViewOptions): Promise<ScanResult> {
+  const chain = await openWalletLookup(o.balance.electrumUrl, o.balance.timeoutMs);
+  try {
+    return await scanWallet({
+      derive: (path, index) => session.address(path, index, o.prefix),
+      lookup: chain.lookup,
+      gapLimit: o.scan.gapLimit,
+      maxAddressesPerScan: o.scan.maxAddressesPerScan,
+    });
+  } finally {
+    chain.close();
+  }
+}
+
+/** The way to claim without a wallet: the relayer's Claim now button on this card (when it is on) and the CLI. */
+function withoutWallet(): HTMLElement {
+  const box = el('div', { class: 'wallet-without' }, el('p', { id: 'wallet-without' }, t('walletClaim.withoutWallet')));
+  const claimNow = document.getElementById('relay-claim');
+  if (claimNow instanceof HTMLButtonElement && !claimNow.disabled) {
+    const go = el('button', { type: 'button', class: 'small secondary', id: 'wallet-go-claim' }, t('walletClaim.withoutWalletButton'));
+    go.addEventListener('click', () => {
+      claimNow.scrollIntoView({ block: 'center' });
+      claimNow.focus({ preventScroll: true });
+    });
+    box.append(go);
+  }
+  return box;
+}
+
 /** Appends the wallet claim section; only called while the leaf has tokens to claim. */
 export function renderWalletClaim(target: HTMLElement, o: WalletViewOptions): void {
   const out = el('div', { class: 'relay-out', id: 'wallet-out', role: 'status', 'aria-live': 'polite' });
@@ -134,22 +167,32 @@ export function renderWalletClaim(target: HTMLElement, o: WalletViewOptions): vo
           signal,
           onUri: (uri, qrUri) => say('', ...pairing(uri, qrUri, cancel)),
         });
-        say('', t('walletClaim.preparing', { wallet: session.name || t('walletClaim.theWallet') }), cancel);
-        const wallet: WalletAddress[] = session.addresses(o.scanAddresses, o.prefix);
+        const name = session.name || t('walletClaim.theWallet');
+        say('', t('walletClaim.searching', { wallet: name }), cancel);
+        const found = await searchWallet(session, o);
+        const change = found.change;
+        if (!change || !found.receive) throw new Error(t('walletClaim.noKeys'));
         const mine: NonNullable<typeof open> = { session, balance: undefined };
         open = mine;
         mine.balance = watchBalance(o.balance.slot, {
           ...o.balance,
-          addresses: wallet.map((w) => w.address),
+          addresses: [...new Set([...found.funded, found.receive, change].map((w) => w.address))],
           rewardCategory: o.check.rewardCategory,
           onDisconnect: () => open === mine && closeOpen(),
         });
         session.onClose(() => open === mine && closeOpen());
-        const change = wallet.find((w) => w.path === 'change') ?? wallet[0];
-        if (!change) throw new Error(t('walletClaim.noKeys'));
+        if (found.funded.length === 0) {
+          // Nothing to spend: say where the page looked and how to claim without a wallet. The relay is not asked.
+          const { receive, change: changeCount } = found.scanned;
+          say('', t('walletClaim.noCoins', { receive, change: changeCount, gap: o.scan.gapLimit }), withoutWallet());
+          return;
+        }
+        say('', t('walletClaim.preparing', { wallet: name }), cancel);
+        const wallet = walletForRelay(found.funded, change, o.scan.maxAddresses);
         const p = await prepare(o.preparePath, { address: o.address, change: change.address, wallet: wallet.map((w) => w.address) }, o.timeoutMs);
         if (p.code !== 'prepared') {
-          say('error', t(`walletClaim.code.${CODES.has(p.code) ? p.code : 'unknown'}`, { sats: String(p.needSats ?? ''), count: o.scanAddresses }));
+          const text = t(`walletClaim.code.${CODES.has(p.code) ? p.code : 'unknown'}`, { sats: String(p.needSats ?? '') });
+          say('error', text, ...(p.code === 'walletEmpty' || p.code === 'walletShort' ? [withoutWallet()] : []));
           return;
         }
         const userPrompt = t('walletClaim.prompt', { amount: o.amountText, address: o.address });

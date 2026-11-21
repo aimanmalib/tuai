@@ -1,6 +1,12 @@
 // Read-only checks against a deployed claim page (E2E_BASE_URL): the page, the proof endpoint headers, and one real
 // lookup whose proof is checked against the root read from chipnet. Run by deploy/deploy.sh after each deploy.
 import { test, expect, type Page } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import { syntheticAddress } from './wallet-stub.ts';
+
+const walletCfg = (JSON.parse(readFileSync('config/tuai.json', 'utf8')) as {
+  relay: { wallet: { preparePath: string; maxAddresses: number } };
+}).relay.wallet;
 
 interface EpochFile {
   epoch: number;
@@ -88,6 +94,20 @@ test('the relayer status names the network and says when it is running low', asy
   expect(typeof s.low).toBe('boolean');
   expect(Number.isInteger(s.warnClaimsLeft)).toBe(true);
   expect(s.low).toBe(s.claimsLeft! <= s.warnClaimsLeft!);
+});
+
+test('the served page searches wallets with a gap limit, and the relay accepts a full list of wallet addresses', async ({ page }) => {
+  const html = await (await page.request.get('/')).text();
+  const scripts = [...new Set(html.match(/\/assets\/[^"' ]+\.js/g) ?? [])];
+  expect(scripts.length).toBeGreaterThan(0);
+  const bodies = await Promise.all(scripts.map(async (s) => (await page.request.get(s)).text()));
+  expect(bodies.some((b) => b.includes('gapLimit'))).toBe(true);
+  // Addresses no key controls: the relay reads them and finds no coins; it must not refuse the list for its length.
+  const { file } = await latestEpoch(page);
+  const wallet = Array.from({ length: walletCfg.maxAddresses }, (_, i) => syntheticAddress(`live ${i}`).address);
+  const res = await page.request.post(walletCfg.preparePath, { data: { address: file.leaves[0]!.address, change: wallet.at(-1), wallet } });
+  const code = ((await res.json()) as { code: string }).code;
+  expect(['tooManyAddresses', 'tooLarge', 'badRequest', 'badAddress']).not.toContain(code);
 });
 
 test('the activity page checks the recorded deploy transaction on chain itself and shows its block', async ({ page }) => {

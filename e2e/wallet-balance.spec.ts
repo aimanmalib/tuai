@@ -1,44 +1,20 @@
 // The wallet connect button and the balance chip, with a fake WizardConnect session: the page's lazily loaded
-// wallet module is answered by a stub module, so no Nostr relay is contacted. The stub shows a pairing link and,
-// in "connect" mode, connects a wallet whose addresses the fake Electrum server knows.
+// wallet module is answered by a stub module (wallet-stub.ts), so no Nostr relay is contacted. The stub shows a
+// pairing link and, in "connect" mode, connects a wallet whose addresses the fake Electrum server knows.
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { config, epoch, fakeElectrum, record } from './fake-electrum.ts';
 import { formatUnits } from '../web/src/model.ts';
+import { stubModule, walletTable } from './wallet-stub.ts';
 
 const relay = (config as unknown as { relay: { statusPath: string; wallet: { preparePath: string } } }).relay;
 const leaf = epoch.leaves[151]!;
 const PAIRING = 'wiz://fake-pairing-link';
-// Two wallet addresses; the stub lists the first one twice (receive 0 and change 0), as a wallet might.
+// Two funded wallet addresses: receive 0 and 1, and the wallet reuses the first one as change 0, as a wallet might.
+// The other addresses are unused, so the page's search stops after the gap limit.
 const [a, b] = [epoch.leaves[10]!, epoch.leaves[11]!];
-const walletAddresses = [
-  { address: a.address, hex: a.lockingBytecode, path: 'receive', index: 0 },
-  { address: b.address, hex: b.lockingBytecode, path: 'receive', index: 1 },
-  { address: a.address, hex: a.lockingBytecode, path: 'change', index: 0 },
-];
-
-function stubModule(mode: 'pair' | 'connect'): string {
-  return `
-const A = ${JSON.stringify(walletAddresses)};
-export function connectWallet(o) {
-  window.__wallet = { closed: 0, end: undefined };
-  o.onUri(${JSON.stringify(PAIRING)}, ${JSON.stringify(PAIRING)});
-  return new Promise((resolve, reject) => {
-    o.signal.addEventListener('abort', () => reject(new Error('cancelled')));
-    if (${JSON.stringify(mode)} !== 'connect') return;
-    setTimeout(() => resolve({
-      name: 'Fake wallet',
-      close() { window.__wallet.closed++; },
-      onClose(listener) { window.__wallet.end = listener; },
-      addresses() {
-        return A.map((w) => ({ address: w.address, path: w.path, index: w.index,
-          lockingBytecode: Uint8Array.from(w.hex.match(/../g).map((h) => parseInt(h, 16))) }));
-      },
-      sign() { return new Promise(() => {}); },
-    }), 300);
-  });
-}`;
-}
+const asStub = (l: typeof a) => ({ address: l.address, hex: l.lockingBytecode });
+const table = walletTable('balance', { receive: { 0: asStub(a), 1: asStub(b) }, change: { 0: asStub(a) } });
 
 const coin = (n: number, value: number, tokens?: string) => ({
   tx_hash: n.toString(16).padStart(64, '0'),
@@ -49,7 +25,9 @@ const coin = (n: number, value: number, tokens?: string) => ({
 });
 
 async function open(page: Page, mode: 'pair' | 'connect', unspent: Record<string, unknown[]> = {}): Promise<{ release: () => Promise<void> }> {
-  await fakeElectrum(page, { unspent });
+  // Every address with coins has history, as on a real chain; the page's search reads history first.
+  const history = Object.fromEntries(Object.keys(unspent).map((addr, i) => [addr, [{ tx_hash: (i + 1).toString(16).padStart(64, 'e'), height: 398_000 }]]));
+  await fakeElectrum(page, { unspent, history });
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
@@ -59,7 +37,7 @@ async function open(page: Page, mode: 'pair' | 'connect', unspent: Record<string
   // Any other socket (a real Nostr relay included) is held silent.
   const electrumUrl = config.networks.chipnet.electrum.wssUrl;
   await page.routeWebSocket((url) => !url.href.startsWith(electrumUrl), () => undefined);
-  await page.route('**/assets/wizardconnect-*.js', (r) => r.fulfill({ contentType: 'text/javascript', body: stubModule(mode) }));
+  await page.route('**/assets/wizardconnect-*.js', (r) => r.fulfill({ contentType: 'text/javascript', body: stubModule(mode, PAIRING, table) }));
   await page.route(`**${relay.statusPath}`, (r) => r.fulfill({ json: { network: 'chipnet', enabled: true } }));
   // The prepare request is held, so the session stays open while the test watches the chip.
   const held: (() => Promise<void>)[] = [];
@@ -105,7 +83,7 @@ test('a connected wallet shows its balance, which follows the chain without a cl
   const { release } = await open(page, 'connect', unspent);
   await page.getByRole('button', { name: 'Connect with WizardConnect' }).click();
   const chip = page.locator('#wallet-balance');
-  await expect(chip).toBeVisible();
+  await expect(chip).toBeVisible({ timeout: 30_000 });
   await expect(page.locator('#wallet-balance-bch')).toHaveText(`${formatUnits(52_800n, 8)} BCH`);
   await expect(page.locator('#wallet-balance-tokens')).toHaveText(`${formatUnits(125_000_000_000n, 8)} test reward tokens`);
   // A claim lands in the wallet: the chip reads again on its own.
@@ -129,7 +107,7 @@ test('a connected wallet shows its balance, which follows the chain without a cl
 test('the chip goes away when the wallet ends the session', async ({ page }) => {
   const { release } = await open(page, 'connect', { [a.address]: [coin(1, 2_000)] });
   await page.getByRole('button', { name: 'Connect with WizardConnect' }).click();
-  await expect(page.locator('#wallet-balance-bch')).toHaveText(`${formatUnits(2_000n, 8)} BCH`);
+  await expect(page.locator('#wallet-balance-bch')).toHaveText(`${formatUnits(2_000n, 8)} BCH`, { timeout: 30_000 });
   await page.evaluate(() => (window as unknown as { __wallet: { end: () => void } }).__wallet.end());
   await expect(page.locator('#wallet-balance')).toBeHidden();
   await release();

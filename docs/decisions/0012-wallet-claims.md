@@ -61,3 +61,31 @@ Three parts, each with one job:
   ends the session as before.
 - `e2e/wallet-balance.spec.ts` answers the lazily loaded wallet module with a stub session, so the tests contact no
   Nostr relay.
+
+## Addendum: address discovery
+
+A wallet that hands out a new address for every payment keeps its coins far from index 0, often on the change path.
+Looking at a fixed handful of addresses made such a wallet look empty. The page now searches the way the wallet
+itself does.
+
+- **Gap limit.** `web/src/wallet-scan.ts` walks the receive path, then the change path, in batches of
+  `relay.wallet.gapLimit` addresses (20, the BIP44 address gap limit). An address is used when it has any history or
+  any coin. The search on a path stops after `gapLimit` unused addresses in a row after the last used one, or at
+  `relay.wallet.maxAddressesPerScan` addresses on that path (60). Coins behind a full gap of unused addresses are not
+  seen, which is the same rule wallets follow when they restore from a seed.
+- **In the browser.** WizardConnect shares extended public keys, so the page derives any index locally. The history
+  and coins of each batch are read through one Electrum connection (`blockchain.address.get_history` and
+  `blockchain.address.listunspent`). The relay is not asked to search: it only reads the addresses the page sends.
+- **What the relay gets.** Only addresses holding coins without tokens, largest first, plus one change address: the
+  first unused change address, or the first unused receive address when the wallet shares no change key. At most
+  `relay.wallet.maxAddresses` addresses (20) are sent; the relay rejects longer lists. The page still checks every
+  input and output before the wallet sees the transaction (`wallet-check.ts`); the key path of each input comes from
+  the search.
+- **No coins found.** The relay is not called. The page says how many receive and change addresses it looked at and
+  that it only uses chipnet test coins, then points to the claim that needs no wallet: the Claim now button on the
+  same card, where the demo relayer pays the fee, or the CLI from a clone. The page never asks the user to move money
+  and shows no payment address or payment QR code; `tests/wallet-scan.test.ts` checks the wallet claim text in both
+  languages for such requests.
+- Tested in `tests/wallet-scan.test.ts` (coins on the 25th receive address, on the change path, across a gap, behind
+  a full gap, the scan cap, a wallet without change keys, token-only coins, batching) and `e2e/wallet-scan.spec.ts`
+  (WebKit iPhone 13 and Chromium, a stub wallet and a fake Electrum server).

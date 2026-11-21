@@ -1,6 +1,7 @@
 // Minimal Electrum JSON-RPC client over WebSocket (protocol 1.5, Fulcrum). Read-only: no keys, no broadcasts.
 import type { ElectrumUtxo } from './model.ts';
 import { checkTransactions, type ChainCheck } from './chain-check.ts';
+import { activityOf, type AddressActivity } from './wallet-scan.ts';
 
 type Pending = { resolve: (v: unknown) => void; reject: (e: Error) => void; timer: ReturnType<typeof setTimeout> };
 
@@ -126,6 +127,29 @@ export async function readHistories(
   } finally {
     socket.close();
   }
+}
+
+/** One connection for a whole wallet scan: each lookup reads the history and the coins of a batch of addresses. */
+export async function openWalletLookup(
+  url: string,
+  timeoutMs: number,
+): Promise<{ lookup: (addresses: readonly string[]) => Promise<AddressActivity[]>; close: () => void }> {
+  const socket = new ElectrumSocket(url, timeoutMs);
+  try {
+    await socket.connect();
+    await socket.request('server.version', 'tuai-web', '1.5');
+  } catch (e) {
+    socket.close();
+    throw e;
+  }
+  // A coin always leaves history, so coins are read only for addresses that have some.
+  const one = async (address: string) => {
+    const history = (await socket.request<unknown[]>('blockchain.address.get_history', address)) ?? [];
+    if (history.length === 0) return activityOf([], []);
+    const unspent = await socket.request<ElectrumUtxo[]>('blockchain.address.listunspent', address, 'include_tokens');
+    return activityOf(history, unspent ?? []);
+  };
+  return { lookup: (addresses) => Promise.all(addresses.map(one)), close: () => socket.close() };
 }
 
 /**

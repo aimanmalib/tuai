@@ -5,10 +5,11 @@ import { hash160, lockingBytecodeToCashAddress, type CashAddressNetworkPrefix } 
 import { initiateDappRelay } from '@wizardconnect/core';
 import { DappConnectionManager } from '@wizardconnect/dapp';
 import { wireSignRequest, type WalletAddress, type WalletSignRequest } from './wallet-check.ts';
+import type { KeyPath } from './wallet-scan.ts';
 
 export interface WalletSession {
-  /** Receive and change addresses 0..count-1, in that order. */
-  addresses(count: number, prefix: string): WalletAddress[];
+  /** The address at `index` on a key path, or undefined when the wallet shared no key for that path. */
+  address(path: KeyPath, index: number, prefix: string): WalletAddress | undefined;
   /** Hex of the transaction the wallet signed (and, with broadcast, sent). */
   sign(request: WalletSignRequest, inputPaths: [number, string, number][], signal: AbortSignal): Promise<string>;
   name: string;
@@ -17,10 +18,8 @@ export interface WalletSession {
   onClose(listener: () => void): void;
 }
 
-const PATHS = [
-  ['receive', 0],
-  ['change', 1],
-] as const;
+/** WizardConnect child numbers of the key paths the page uses. */
+const CHILD: Record<KeyPath, number> = { receive: 0, change: 1 };
 
 function p2pkh(publicKey: Uint8Array, prefix: string): { address: string; lockingBytecode: Uint8Array } {
   const lockingBytecode = Uint8Array.from([0x76, 0xa9, 0x14, ...hash160(publicKey), 0x88, 0xac]);
@@ -49,15 +48,10 @@ export function connectWallet(o: { dappName: string; relayUrls: string[]; onUri:
         name: mgr.walletName ?? '',
         close,
         onClose: (listener) => mgr.on('disconnect', () => listener()),
-        addresses(count, prefix) {
-          const out: WalletAddress[] = [];
-          for (const [path, child] of PATHS) {
-            for (let index = 0; index < count; index++) {
-              const key = mgr.getPubkey(child, BigInt(index));
-              if (key) out.push({ ...p2pkh(key, prefix), path, index });
-            }
-          }
-          return out;
+        address(path, index, prefix) {
+          // Derived in the browser from the extended public key the wallet shared, so any index is available.
+          const key = mgr.getPubkey(CHILD[path], BigInt(index));
+          return key ? { ...p2pkh(key, prefix), path, index } : undefined;
         },
         async sign(request, inputPaths, signal) {
           const r = await mgr.signTransaction({ transaction: wireSignRequest(request) as typeof request, inputPaths }, { signal });

@@ -190,10 +190,11 @@
       "enabled": true,
       "preparePath": "/api/relay/prepare",
       "maxBodyBytes": 2048,
-      "maxAddresses": 6,
+      "maxAddresses": 20,
       "maxSpendSats": 6000,
       "maxPreparesPerHour": 120,
-      "scanAddresses": 3,
+      "gapLimit": 20,
+      "maxAddressesPerScan": 60,
       "relayUrls": []
     }
   },
