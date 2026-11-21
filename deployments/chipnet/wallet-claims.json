@@ -1,0 +1,14 @@
+{
+  "network": "chipnet",
+  "claims": [
+    {
+      "txid": "96bfbbc12ad9f9df4c027292531965702b378f6d1509e0d6b9df233d150c5eff",
+      "wallet": "Cashonize v0.15.2",
+      "commit": "4542351748dc412763a4e50c04451735fc8cf038",
+      "leafIndex": 251,
+      "address": "bchtest:qz8z4h46lz7kpfr6hqlvzn8usv5fkur29yz9phvsh3",
+      "height": 340636,
+      "at": "2026-11-21T04:41:08.000Z"
+    }
+  ]
+}

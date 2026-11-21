@@ -362,6 +362,44 @@ answered ranges from that copy, which Safari on iPhone does not play from. The s
 and the video was remuxed with a title tag to get a new file name, since the old name stays cached at the CDN. The very
 first range request for the new name still got 200 once (the test retried and passed); every request after it got 206.
 
+## Claim from a third-party wallet (chipnet)
+
+A claim signed by a wallet this project did not write: Cashonize v0.15.2 (commit
+`4542351748dc412763a4e50c04451735fc8cf038`, built from its tag), set to chipnet with its own phrase, paired with the
+live claim page `https://tuai.sasateguh.com` over WizardConnect. The page prepared the claim through the relay,
+checked it itself and asked the wallet to sign; the wallet paid the fee from its own coins. Driven by
+`scripts/wallet-claim-cashonize.ts` (docs/decisions/0016-third-party-wallet.md); the record is
+`deployments/chipnet/wallet-claims.json`.
+
+- Wallet funding: 12,000 sat from the project's chipnet payer, txid
+  `51832a377bcacf076dcabe6092280a58c7c6e3ec7493c88849b217295bc7bfaa` (219 bytes, fee 219 sat, block 340589), sent
+  2026-11-21 03:47:46 UTC to the wallet's receive address `bchtest:qz8z4h46lz7kpfr6hqlvzn8usv5fkur29yz9phvsh3` as
+  Cashonize showed it.
+- Claim: txid `96bfbbc12ad9f9df4c027292531965702b378f6d1509e0d6b9df233d150c5eff`, 1901 bytes, fee 1901 sat, block
+  340636 (read back from a chipnet Electrum server), signed 2026-11-21 04:31:18 UTC. Leaf 251 of epoch 3
+  (`bchtest:zz8z4h46lz7kpfr6hqlvzn8usv5fkur29y90jfzkgz`, the token-aware form of the same key) received
+  100,000,000,000 token units (1,000 tokens); the other outputs went to the pool contracts and the wallet's change
+  address got 8,099 sat back.
+- What Cashonize showed before signing: "Claim 1,000 test reward tokens to bchtest:zz8z4h46...", origin "Tuai reward
+  claims", balance change "- 2901 sat" and "+ 100,000,000,000" of the reward token category, then Sign or Cancel.
+- Failures on the way, in order: (1) 2026-11-21 03:49 UTC the page said "Do not know how to serialize a BigInt":
+  WizardConnect sends messages as plain JSON, so the sign request is now sent as extended JSON text (fixed in the
+  page, with a test that replays the JSON trip; deployed as `c80471c-202611210354`). (2) 04:20 UTC the driver timed
+  out opening Cashonize while the host was heavily loaded; no pairing happened. (3) 04:31 UTC the wallet signed and
+  the claim was sent, then the driver could not find the plain address among the epoch's token-aware leaf addresses;
+  leaves are now matched by locking script and the claim was recorded with `--record`.
+
+![Cashonize sign dialog for the claim](img/wallet-cashonize-sign.png)
+
+Cashonize's sign dialog for the claim above, opened by the live page over WizardConnect (Chromium, captured
+2026-11-21 04:31 UTC).
+
+![Claim page after the wallet signed](img/wallet-cashonize-claimed.png)
+
+The live claim page after the wallet signed: the connected wallet holds 1,000 test reward tokens, nothing is left to
+claim in epoch 3, and the claim transaction `96bfbbc12ad9f9df4c027292531965702b378f6d1509e0d6b9df233d150c5eff` is
+shown (Chromium, captured 2026-11-21 04:31 UTC; the two parts of the page are joined).
+
 ## Screenshots
 
 Captured from the live site `https://tuai.sasateguh.com` with Playwright on 2026-11-19 and 2026-11-20 (`docs/img/`). Each caption
