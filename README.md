@@ -1,10 +1,18 @@
-# Tuai: pull-based reward claims for FoldingCash
+<p align="center"><img src="brand/logo.svg" width="96" height="96" alt="Tuai logo: a rice stalk"></p>
 
-[![Tuai tests](https://github.com/aimanmalib/tuai/actions/workflows/test.yml/badge.svg)](https://github.com/aimanmalib/tuai/actions/workflows/test.yml)
+<h1 align="center">Tuai</h1>
+
+<p align="center"><a href="https://github.com/aimanmalib/tuai/actions/workflows/test.yml"><img src="https://github.com/aimanmalib/tuai/actions/workflows/test.yml/badge.svg" alt="Tuai tests"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-173f39" alt="Licence: MIT"></a> <a href="https://tuai.sasateguh.com"><img src="https://img.shields.io/badge/claim%20page-chipnet-173f39" alt="Claim page on chipnet"></a> <a href="https://tuai.sasateguh.com/#/activity/mainnet"><img src="https://img.shields.io/badge/mainnet-test%20token%20run-173f39" alt="Mainnet run with a test token"></a></p>
+
+<p align="center"><b>Pull-based reward claims for FoldingCash: the operator publishes one root, and each folder claims their own FLDCH.</b> · <i>Tuntutan ganjaran secara tarik untuk FoldingCash: operator menerbitkan satu akar, dan setiap folder menuntut FLDCH sendiri.</i><br>
+<a href="https://tuai.sasateguh.com"><b>claim page</b></a> · <a href="#reviewer-guide"><b>Reviewing? Start here</b></a> · <a href="#run-it">Run it</a> · <a href="#tests">Tests</a> · <a href="#known-limits">Limits</a> · <a href="README.ms.md">Bahasa Melayu</a><br>
+Built in Malaysia by <a href="https://aimanmalib.com">Aiman Malib</a> · <a href="https://sasateguh.com">Sasa Teguh</a></p>
 
 Entry for **BCH BLAZE 2026**, bounty "Trust-minimized, pull-based reward claims for FoldingCash".
 
 New project, first commit after the 14 November start: the first commit of this repository is <https://github.com/aimanmalib/tuai/commit/d99169c7796262077826e106bf1e017ea30b005a> (17 November 2026, 11:36 UTC).
+
+![The claim page: push next to pull with the cost of each, the Try a demo address button and the live numbers read from chipnet](docs/img/home.png)
 
 ## Links
 
@@ -230,8 +238,8 @@ Other scripts: `npm run vectors` (test vectors), `npm run contracts` (compile `c
 ### Tests
 
 `npm test` runs every unit, contract and CLI test offline, including the mock-network runs of the full flow.
-`.github/workflows/test.yml` runs the same `npm ci` and `npm test` on every push and pull request once the repository
-is public; the job is skipped while the repository is private.
+`.github/workflows/test.yml` runs the same `npm ci` and `npm test` on every push and pull request; the badge at the
+top of this page shows the latest run.
 
 ### Claim page
 
@@ -370,3 +378,9 @@ On-chain measurements in `docs/MEASURED.md` come from transactions the tools in 
 
 MIT, see [LICENSE](LICENSE). The page loads the WizardConnect libraries (`@wizardconnect/core`,
 `@wizardconnect/dapp`, LGPL-3.0) unmodified from npm, as a separate file, only for a wallet claim.
+
+## Work with Sasa Teguh
+
+I built this project. I run [Sasa Teguh](https://sasateguh.com), a studio in Malaysia that builds websites found on Google and in AI answers, and sets up systems like this one for businesses.
+
+[Book a call](https://sasateguh.com/book) · hello@sasateguh.com · [More from Sasa Teguh](https://github.com/sasateguh)
