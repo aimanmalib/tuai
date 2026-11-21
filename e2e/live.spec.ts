@@ -188,3 +188,31 @@ test('the home page mainnet card counts the claims in the served mainnet record 
     await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-p5d2-mainnet-${test.info().project.name}.png` });
   }
 });
+
+test('a legacy BTC leaf (method 2) of the newest epoch is found and verified, and the leaves tile counts that epoch', async ({ page }) => {
+  test.setTimeout(120_000);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  const index = (await (await page.request.get('/epochs/chipnet/index.json')).json()) as { epochs: number[] };
+  const newest = Math.max(...index.epochs);
+  const file = (await (await page.request.get(`/epochs/chipnet/epoch-${newest}.json`)).json()) as {
+    leaves: { address: string; method: number }[];
+  };
+  const legacy = file.leaves.find((l) => l.method === 2);
+  expect(legacy, `epoch ${newest} has no method 2 leaf`).toBeDefined();
+  expect(legacy!.address).toMatch(/^bchtest:/);
+  await page.goto('/');
+  await expect(page.locator('#stat-leaves .stat-value')).toHaveText(/\d/, { timeout: 60_000 });
+  const shown = Number(((await page.locator('#stat-leaves .stat-value').textContent()) ?? '').replace(/\D/g, ''));
+  expect(shown).toBe(file.leaves.length);
+  await page.getByLabel(/Your address|Alamat anda/).fill(legacy!.address);
+  await page.getByRole('button', { name: /Check address|Semak alamat/ }).click();
+  await expect(page.locator('#proof-ok')).toBeVisible({ timeout: 45_000 });
+  await expect(page.locator('#warn-root')).toHaveCount(0);
+  const o = await page.evaluate(() => ({ s: document.documentElement.scrollWidth, c: document.documentElement.clientWidth }));
+  expect(o.s).toBeLessThanOrEqual(o.c);
+  if (process.env.SCREENSHOT_DIR) {
+    await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-p6d1-legacy-${test.info().project.name}.png`, fullPage: true });
+  }
+  expect(errors).toEqual([]);
+});
