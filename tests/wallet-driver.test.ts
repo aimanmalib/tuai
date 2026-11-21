@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { binToHex, decodeCashAddress, encodeCashAddress, encodeTransaction, hashTransaction, hexToBin } from '@bitauth/libauth';
 import { loadConfig } from '../src/config.ts';
 import {
-  addWalletClaim, firstChipnetAddress, leafIndexOf, parseWalletClaims, readEnvValue, redact, txSizeAndFee, validateThirdPartyWallet,
+  addWalletClaim, firstWalletAddress, leafIndexOf, parseWalletClaims, readEnvValue, redact, txSizeAndFee, validateThirdPartyWallet,
   withEnvValue,
   type WalletClaim,
 } from '../src/wallet-driver.ts';
@@ -85,7 +85,8 @@ describe('wallet claims record', () => {
     expect(() => addWalletClaim(parseWalletClaims(undefined), claim({ txid: 'AB'.repeat(32) }))).toThrow(/txid/);
     expect(() => addWalletClaim(parseWalletClaims(undefined), claim({ address: ADDR.replace('bchtest', 'bitcoincash') }))).toThrow(/chipnet/);
     expect(() => addWalletClaim(parseWalletClaims(undefined), claim({ height: 0 }))).toThrow(/height/);
-    expect(() => parseWalletClaims(JSON.stringify({ network: 'mainnet', claims: [] }))).toThrow(/chipnet/);
+    expect(() => parseWalletClaims(JSON.stringify({ network: 'mainnet', claims: [] }), 'chipnet')).toThrow(/not chipnet/);
+    expect(() => parseWalletClaims(JSON.stringify({ network: 'regtest', claims: [] }))).toThrow(/chipnet or mainnet/);
     expect(() => parseWalletClaims(JSON.stringify({ network: 'chipnet', claims: [claim({ at: 'today' })] }))).toThrow(/ISO/);
   });
 
@@ -108,16 +109,16 @@ describe('wallet claims record', () => {
 describe('wallet screen and config', () => {
   it('reads the first chipnet P2PKH address, not a token address', () => {
     const token = ADDR.replace('bchtest:q', 'bchtest:z');
-    expect(firstChipnetAddress([token, `Address: ${ADDR}`])).toBe(ADDR);
-    expect(firstChipnetAddress([token])).toBeUndefined();
+    expect(firstWalletAddress([token, `Address: ${ADDR}`], 'chipnet')).toBe(ADDR);
+    expect(firstWalletAddress([token], 'chipnet')).toBeUndefined();
+    expect(firstWalletAddress([`Address: ${ADDR}`], 'mainnet')).toBeUndefined();
   });
 
-  it('accepts the shipped settings and refuses mainnet, a reserved port or a larger fund ceiling', () => {
+  it('accepts the shipped settings and refuses a reserved port or a larger chipnet fund ceiling', () => {
     const w = loadConfig().thirdPartyWallet;
     expect(validateThirdPartyWallet(w)).toEqual([]);
-    expect(validateThirdPartyWallet({ ...w, network: 'mainnet' as 'chipnet' })).toHaveLength(1);
     expect(validateThirdPartyWallet({ ...w, port: 4173 })).toHaveLength(1);
-    expect(validateThirdPartyWallet({ ...w, maxFundSats: 30_001 })).toHaveLength(1);
+    expect(validateThirdPartyWallet({ ...w, networks: { ...w.networks, chipnet: { ...w.networks.chipnet, maxFundSats: 30_001 } } })).toHaveLength(1);
     expect(validateThirdPartyWallet(undefined)).toEqual(['thirdPartyWallet is missing']);
   });
 });

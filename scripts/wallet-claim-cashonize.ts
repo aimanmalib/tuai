@@ -1,14 +1,14 @@
 /**
- * A claim signed by a third-party wallet on chipnet (docs/decisions/0016-third-party-wallet.md). Cashonize runs in
- * headless Chromium with its own phrase, set to chipnet, and pairs with the public page over WizardConnect; the
+ * A claim signed by a third-party wallet on chipnet or mainnet (docs/decisions/0016-third-party-wallet.md). Cashonize runs in
+ * headless Chromium with its own phrase, set to the chosen network, and pairs with the public page over WizardConnect; the
  * page prepares the claim, checks it and asks the wallet to sign; this script presses Sign like a person would.
  *
- *   npx tsx scripts/wallet-claim-cashonize.ts --cashonize <dir> --address-only   the wallet's chipnet address, read from its own screen
+ *   npx tsx scripts/wallet-claim-cashonize.ts --cashonize <dir> --address-only   the wallet's address on that network, read from its own screen
  *   npx tsx scripts/wallet-claim-cashonize.ts --cashonize <dir> --dry [--leaf A]  pair with the page and stop before any Sign
  *   npx tsx scripts/wallet-claim-cashonize.ts --cashonize <dir> [--leaf A]        claim leaf A (default: the wallet's own address)
  *   npx tsx scripts/wallet-claim-cashonize.ts --refresh                           fill in block heights, sizes and fees of recorded claims
  *   npx tsx scripts/wallet-claim-cashonize.ts --record <txid> [--leaf A]          record a claim the wallet already signed
- * Options: --site <url> (default project.siteUrl). Settings: `thirdPartyWallet` in config/tuai.json.
+ * Options: --network chipnet|mainnet (default chipnet), --site <url> (default project.siteUrl). Settings: `thirdPartyWallet` in config/tuai.json.
  *
  * <dir> is a Cashonize build: clone https://github.com/cashonize/cashonize-wallet, check out the tag of
  * `thirdPartyWallet.version` (commit `thirdPartyWallet.commit`), `pnpm install --frozen-lockfile`, `pnpm build`;
@@ -16,7 +16,7 @@
  *
  * The phrase (`thirdPartyWallet.mnemonicEnv` in the .env file) is made here once and never printed, logged or put in
  * a screenshot; nor is the pairing link. Every printed line goes through `redact`. Screenshots (the wallet's dialog and
- * the page after it) go to `thirdPartyWallet.outputDir`; the claim is added to `thirdPartyWallet.recordPath`.
+ * the page after it) go to `thirdPartyWallet.networks.<network>.outputDir`; the claim is added to its `recordPath`.
  */
 import { createServer } from 'node:http';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
@@ -28,32 +28,36 @@ import { ElectrumNetworkProvider } from 'cashscript';
 import { REPO_ROOT, loadConfig } from '../src/config.ts';
 import { confirmedHeight, electrumHeightSource } from '../src/tx-height.ts';
 import {
-  addWalletClaim, firstChipnetAddress, formatWalletClaims, leafIndexOf, parseWalletClaims, readEnvValue, redact, txSizeAndFee, withEnvValue,
+  addWalletClaim, firstWalletAddress, formatWalletClaims, leafIndexOf, parseWalletClaims, readEnvValue, redact, txSizeAndFee, walletNetwork,
+  withEnvValue,
 } from '../src/wallet-driver.ts';
 
 const config = loadConfig();
 const w = config.thirdPartyWallet;
 const { values } = parseArgs({
   options: {
-    cashonize: { type: 'string' }, site: { type: 'string' }, leaf: { type: 'string' }, record: { type: 'string' },
+    cashonize: { type: 'string' }, site: { type: 'string' }, leaf: { type: 'string' }, record: { type: 'string' }, network: { type: 'string' },
     'address-only': { type: 'boolean', default: false }, dry: { type: 'boolean', default: false }, refresh: { type: 'boolean', default: false },
   },
 });
 const SITE = (values.site ?? config.project.siteUrl).replace(/\/$/, '');
 const TIMEOUT = w.timeoutSeconds * 1000;
-const OUT = resolve(REPO_ROOT, w.outputDir);
-const RECORD = resolve(REPO_ROOT, w.recordPath);
-const net = config.networks[w.network];
+// --network chipnet (default) or mainnet: each has its own output folder, claims record and funding limit.
+const wn = walletNetwork(w, values.network);
+const NETWORK = wn.network;
+const OUT = resolve(REPO_ROOT, wn.outputDir);
+const RECORD = resolve(REPO_ROOT, wn.recordPath);
+const net = config.networks[NETWORK];
 const secrets: string[] = [];
 const log = (m: string): void => console.log(`[${new Date().toISOString().slice(11, 19)}] ${redact(m, secrets)}`);
 
 const provider = (): ElectrumNetworkProvider => {
-  if (!net.electrum) throw new Error(`${w.network} has no Electrum server in the config`);
-  return new ElectrumNetworkProvider(w.network, { hostname: net.electrum.hostname });
+  if (!net.electrum) throw new Error(`${NETWORK} has no Electrum server in the config`);
+  return new ElectrumNetworkProvider(NETWORK, { hostname: net.electrum.hostname });
 };
 const heightOf = (txid: string): Promise<number | null> => confirmedHeight(electrumHeightSource(provider()), txid);
 const sizeOf = (txid: string) => txSizeAndFee(async (id) => (await provider().getRawTransaction(id)) as string, txid).catch(() => ({}));
-const readRecord = () => parseWalletClaims(existsSync(RECORD) ? readFileSync(RECORD, 'utf8') : undefined);
+const readRecord = () => parseWalletClaims(existsSync(RECORD) ? readFileSync(RECORD, 'utf8') : undefined, NETWORK);
 
 if (values.refresh) {
   let r = readRecord();
@@ -74,7 +78,7 @@ if (values.record) {
 
 const SPA = values.cashonize;
 if (!SPA || !existsSync(join(SPA, 'index.html'))) {
-  console.error('usage: npx tsx scripts/wallet-claim-cashonize.ts --cashonize <built dist/spa dir> [--address-only | --dry] [--leaf A] [--site url]');
+  console.error('usage: npx tsx scripts/wallet-claim-cashonize.ts --cashonize <built dist/spa dir> [--network chipnet|mainnet] [--address-only | --dry] [--leaf A] [--site url]');
   process.exit(2);
 }
 const envPath = resolve(REPO_ROOT, w.envFile);
@@ -103,7 +107,7 @@ function readdirSafe(p: string): boolean {
 await new Promise<void>((r) => { server.listen(w.port, '127.0.0.1', r); });
 const browser = await chromium.launch();
 
-/** Restores the wallet from the phrase and switches it to chipnet; resolves once its chipnet screen shows. */
+/** Restores the wallet from the phrase and switches it to the network; resolves once that network's screen shows. */
 async function openWallet(): Promise<Page> {
   const page = await (await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: 'en-US' })).newPage();
   await page.goto(`http://127.0.0.1:${w.port}/`);
@@ -114,7 +118,7 @@ async function openWallet(): Promise<Page> {
   await page.getByRole('button', { name: 'Finish Setup' }).click();
   await page.locator('nav').waitFor({ timeout: TIMEOUT });
   // Cashonize keeps the network in localStorage and reads it on load; an imported wallet has both networks.
-  await page.evaluate((n) => localStorage.setItem('network', n), w.network);
+  await page.evaluate((n) => localStorage.setItem('network', n), NETWORK);
   await page.reload();
   await page.locator('nav').waitFor({ timeout: TIMEOUT });
   return page;
@@ -123,8 +127,8 @@ async function openWallet(): Promise<Page> {
 async function walletAddress(page: Page): Promise<string> {
   const shown = page.locator('.depositAddr');
   await shown.first().waitFor({ timeout: TIMEOUT });
-  const address = firstChipnetAddress(await shown.allInnerTexts());
-  if (!address) throw new Error('Cashonize showed no chipnet address; is it on chipnet?');
+  const address = firstWalletAddress(await shown.allInnerTexts(), NETWORK);
+  if (!address) throw new Error(`Cashonize showed no ${NETWORK} address; is it on ${NETWORK}?`);
   return address;
 }
 
@@ -152,7 +156,7 @@ try {
   const wallet = await openWallet();
   const address = await walletAddress(wallet);
   writeFileSync(join(OUT, 'address.txt'), `${address}\n`);
-  log(`Cashonize ${w.version} on ${w.network}: ${address}`);
+  log(`Cashonize ${w.version} on ${NETWORK}: ${address}`);
   if (!values['address-only']) {
     const leaf = values.leaf ?? address;
     const site = await (await browser.newContext({ viewport: { width: 1280, height: 1000 }, locale: 'en-US' })).newPage();
@@ -203,7 +207,7 @@ async function recordClaim(txid: string, leaf: string): Promise<void> {
     address: leaf, height: await heightOf(txid).catch(() => null), ...(await sizeOf(txid)), at: new Date().toISOString().replace(/\.\d{3}Z$/, '.000Z') });
   mkdirSync(resolve(RECORD, '..'), { recursive: true });
   writeFileSync(RECORD, formatWalletClaims(record));
-  log(`${txid} (leaf ${leafIndex}) recorded in ${w.recordPath}`);
+  log(`${txid} (leaf ${leafIndex}) recorded in ${wn.recordPath}`);
 }
 
 function newestEpoch(): string {

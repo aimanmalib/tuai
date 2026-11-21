@@ -30,3 +30,17 @@ in-process fake wallet. A reviewer should be able to see a claim signed by a wal
   gate covers the pure parts only.
 - A Cashonize release that renames its buttons breaks the script, not the page. The version is pinned for that reason.
 - Undo: revert the commit; recorded chipnet claims stay on chain as test data.
+
+## Addendum: one setting per network, and no operator pushes on mainnet
+
+- `thirdPartyWallet.networks.{chipnet,mainnet}` each name an `outputDir`, a `recordPath`
+  (`deployments/<network>/wallet-claims.json`) and a `maxFundSats`. The driver takes `--network chipnet|mainnet`
+  (default chipnet) and reads only that network's settings. The config check holds `maxFundSats` under a ceiling
+  the config cannot raise: 30,000 satoshis on chipnet, 10,000 on mainnet.
+- `scripts/fund-wallet.ts` sends the wallet its fee money from the project payer. The amount is checked against
+  `maxFundSats` before anything is built; on mainnet the shared broadcast path also checks `budget.mainnetMaxSats`
+  and records the spend in the ledger as kind `fund-wallet`.
+- `networks.mainnet.pushDisabled` must be true (config check). `tuai arm` and `tuai push` on such a network stop with
+  `pushDisabledOnMainnet` before any key, contract or chain read: on mainnet each recipient pulls their own claim
+  and the project never sends rewards to anyone.
+- The relayer that holds a key stays chipnet only (`relay.networks`); this addendum does not change it.

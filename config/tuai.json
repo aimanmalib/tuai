@@ -47,7 +47,8 @@
           "name": "3xpl.com",
           "txUrl": "https://3xpl.com/bitcoin-cash/transaction/"
         }
-      ]
+      ],
+      "pushDisabled": true
     }
   },
   "production": {
@@ -202,13 +203,21 @@
     "name": "Cashonize",
     "version": "0.15.2",
     "commit": "4542351748dc412763a4e50c04451735fc8cf038",
-    "network": "chipnet",
     "port": 4397,
     "envFile": ".env",
     "mnemonicEnv": "TUAI_W3_MNEMONIC",
-    "outputDir": "state/w3",
-    "recordPath": "deployments/chipnet/wallet-claims.json",
-    "maxFundSats": 30000,
-    "timeoutSeconds": 240
+    "timeoutSeconds": 240,
+    "networks": {
+      "chipnet": {
+        "outputDir": "state/w3",
+        "recordPath": "deployments/chipnet/wallet-claims.json",
+        "maxFundSats": 30000
+      },
+      "mainnet": {
+        "outputDir": "state/w3-mainnet",
+        "recordPath": "deployments/mainnet/wallet-claims.json",
+        "maxFundSats": 10000
+      }
+    }
   }
 }

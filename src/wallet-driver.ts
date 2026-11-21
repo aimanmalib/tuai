@@ -5,43 +5,83 @@
  */
 import { binToHex, cashAddressToLockingBytecode, decodeTransaction, hexToBin } from '@bitauth/libauth';
 
+/** Networks the third-party wallet driver may run on. */
+export type WalletNetwork = 'chipnet' | 'mainnet';
+export const WALLET_NETWORKS: readonly WalletNetwork[] = ['chipnet', 'mainnet'];
+
+/** Per-network part of `thirdPartyWallet`: where the driver writes, and how much the project may fund the wallet. */
+export interface ThirdPartyWalletNetwork {
+  /** Screenshots and the address the wallet showed, for this network (ignored by git). */
+  outputDir: string;
+  /** Claims the wallet signed on this network: `deployments/<network>/wallet-claims.json`. */
+  recordPath: string;
+  /** Largest amount the project payer may send the wallet for fees, in satoshis. */
+  maxFundSats: number;
+}
+
 /** `thirdPartyWallet` in config/tuai.json. */
 export interface ThirdPartyWalletConfig {
   name: string;
   version: string;
   /** Source commit of the wallet build the driver was run with. */
   commit: string;
-  /** The only network the driver runs on. */
-  network: 'chipnet';
   /** Local port the wallet's static build is served on (127.0.0.1 only). */
   port: number;
   envFile: string;
   mnemonicEnv: string;
-  outputDir: string;
-  recordPath: string;
-  /** Largest amount the project payer may send the wallet for fees, in satoshis. */
-  maxFundSats: number;
   timeoutSeconds: number;
+  networks: Record<WalletNetwork, ThirdPartyWalletNetwork>;
 }
 
 /** Ports other local tools on the host listen on; the wallet build is never served there. */
 export const RESERVED_PORTS: readonly number[] = [4173, 4174, 4175, 4190];
-const FUND_CEILING_SATS = 30_000;
+/**
+ * Upper bounds for `maxFundSats` that config cannot raise: the wallet only needs fees for a few claims, and on
+ * mainnet every funding transaction is also counted against `budget.mainnetMaxSats`.
+ */
+export const FUND_CEILING_SATS: Readonly<Record<WalletNetwork, number>> = { chipnet: 30_000, mainnet: 10_000 };
 
 export function validateThirdPartyWallet(w: ThirdPartyWalletConfig | undefined): string[] {
   if (!w) return ['thirdPartyWallet is missing'];
   const e: string[] = [];
-  if (w.network !== 'chipnet') e.push('thirdPartyWallet.network must be chipnet');
   if (!Number.isInteger(w.port) || w.port < 1024 || w.port > 65535 || RESERVED_PORTS.includes(w.port))
     e.push(`thirdPartyWallet.port must be 1024..65535 and not one of ${RESERVED_PORTS.join(', ')}`);
   if (!/^[A-Z][A-Z0-9_]*$/.test(w.mnemonicEnv)) e.push('thirdPartyWallet.mnemonicEnv must be an upper-case variable name');
   if (!/^[0-9a-f]{40}$/.test(w.commit)) e.push('thirdPartyWallet.commit must be a 40-hex commit id');
-  if (!Number.isInteger(w.maxFundSats) || w.maxFundSats <= 0 || w.maxFundSats > FUND_CEILING_SATS)
-    e.push(`thirdPartyWallet.maxFundSats must be 1..${FUND_CEILING_SATS}`);
   if (!Number.isInteger(w.timeoutSeconds) || w.timeoutSeconds < 30) e.push('thirdPartyWallet.timeoutSeconds must be >= 30');
-  for (const k of ['name', 'version', 'envFile', 'outputDir', 'recordPath'] as const)
+  for (const k of ['name', 'version', 'envFile'] as const)
     if (typeof w[k] !== 'string' || w[k] === '') e.push(`thirdPartyWallet.${k} is required`);
+  const names = Object.keys(w.networks ?? {});
+  if (names.length === 0) e.push('thirdPartyWallet.networks must name at least one network');
+  for (const name of names) {
+    const at = `thirdPartyWallet.networks.${name}`;
+    if (!(WALLET_NETWORKS as readonly string[]).includes(name)) {
+      e.push(`${at}: the driver runs on ${WALLET_NETWORKS.join(' or ')} only`);
+      continue;
+    }
+    const n = w.networks[name as WalletNetwork];
+    const ceiling = FUND_CEILING_SATS[name as WalletNetwork];
+    if (!Number.isInteger(n.maxFundSats) || n.maxFundSats <= 0 || n.maxFundSats > ceiling) e.push(`${at}.maxFundSats must be 1..${ceiling}`);
+    if (n.recordPath !== `deployments/${name}/wallet-claims.json`) e.push(`${at}.recordPath must be deployments/${name}/wallet-claims.json`);
+    if (typeof n.outputDir !== 'string' || n.outputDir === '') e.push(`${at}.outputDir is required`);
+  }
+  if (new Set(names.map((n) => w.networks[n as WalletNetwork]?.outputDir)).size !== names.length)
+    e.push('thirdPartyWallet.networks: each network needs its own outputDir');
   return e;
+}
+
+/** The network a `--network` value names (absent = chipnet) with its settings; refuses one the config does not list. */
+export function walletNetwork(w: ThirdPartyWalletConfig, value: string | undefined): ThirdPartyWalletNetwork & { network: WalletNetwork } {
+  const network = (value ?? 'chipnet') as WalletNetwork;
+  const n = (WALLET_NETWORKS as readonly string[]).includes(network) ? w.networks[network] : undefined;
+  if (!n) throw new Error(`--network ${String(value)}: the third-party wallet driver runs on ${Object.keys(w.networks).join(' or ')}`);
+  return { ...n, network };
+}
+
+/** Refuses a wallet funding amount outside 1..maxFundSats for the network; checked before anything is built. */
+export function checkFundAmount(n: ThirdPartyWalletNetwork & { network: WalletNetwork }, sats: bigint): void {
+  if (sats <= 0n || sats > BigInt(n.maxFundSats))
+    throw new RangeError(`funding the wallet with ${sats} sats on ${n.network} is outside 1..${n.maxFundSats} (thirdPartyWallet.networks.${n.network}.maxFundSats)`);
 }
 
 /** Value of `name` in the text of a .env file (KEY=value lines; quotes around the value are removed). */
@@ -97,13 +137,15 @@ export interface WalletClaim {
 }
 
 export interface WalletClaimsRecord {
-  network: 'chipnet';
+  network: WalletNetwork;
   claims: WalletClaim[];
 }
 
-function claimProblem(c: WalletClaim): string | undefined {
+const ADDRESS_PREFIX: Readonly<Record<WalletNetwork, string>> = { chipnet: 'bchtest', mainnet: 'bitcoincash' };
+
+function claimProblem(c: WalletClaim, network: WalletNetwork): string | undefined {
   if (!/^[0-9a-f]{64}$/.test(c.txid)) return 'txid must be 64 lower-case hex characters';
-  if (!/^bchtest:[02-9ac-hj-np-z]{42}$/.test(c.address)) return `${c.address}: not a chipnet address`;
+  if (!new RegExp(`^${ADDRESS_PREFIX[network]}:[02-9ac-hj-np-z]{42}$`).test(c.address)) return `${c.address}: not a ${network} address`;
   if (!Number.isInteger(c.leafIndex) || c.leafIndex < 0) return `${c.txid}: leafIndex must be a whole number >= 0`;
   if (c.height !== null && (!Number.isInteger(c.height) || c.height <= 0)) return `${c.txid}: height must be null or > 0`;
   if (Number.isNaN(Date.parse(c.at)) || new Date(c.at).toISOString() !== c.at) return `${c.txid}: at must be an ISO UTC time`;
@@ -113,13 +155,18 @@ function claimProblem(c: WalletClaim): string | undefined {
   return undefined;
 }
 
-/** Reads wallet-claims.json text (undefined = no file yet) and checks every entry. */
-export function parseWalletClaims(text: string | undefined): WalletClaimsRecord {
-  if (text === undefined) return { network: 'chipnet', claims: [] };
+/**
+ * Reads wallet-claims.json text and checks every entry against the network the record names. No file yet
+ * (undefined) gives an empty record for `network`; a file for another network than `network` is refused.
+ */
+export function parseWalletClaims(text: string | undefined, network?: WalletNetwork): WalletClaimsRecord {
+  if (text === undefined) return { network: network ?? 'chipnet', claims: [] };
   const r = JSON.parse(text) as WalletClaimsRecord;
-  if (r.network !== 'chipnet' || !Array.isArray(r.claims)) throw new Error('wallet claims record: network must be chipnet with a claims list');
+  if (!WALLET_NETWORKS.includes(r.network) || !Array.isArray(r.claims))
+    throw new Error(`wallet claims record: network must be ${WALLET_NETWORKS.join(' or ')} with a claims list`);
+  if (network !== undefined && r.network !== network) throw new Error(`wallet claims record is for ${r.network}, not ${network}`);
   for (const c of r.claims) {
-    const p = claimProblem(c);
+    const p = claimProblem(c, r.network);
     if (p) throw new Error(`wallet claims record: ${p}`);
   }
   return r;
@@ -129,7 +176,7 @@ const sizeOf = (c: WalletClaim) => (c.bytes === undefined || c.feeSats === undef
 
 /** Adds a claim, or fills in the height, size and fee of one already recorded with the same txid. */
 export function addWalletClaim(r: WalletClaimsRecord, c: WalletClaim): WalletClaimsRecord {
-  const p = claimProblem(c);
+  const p = claimProblem(c, r.network);
   if (p) throw new Error(p);
   const old = r.claims.find((x) => x.txid === c.txid);
   if (!old) return { ...r, claims: [...r.claims, c] };
@@ -176,10 +223,11 @@ export function leafIndexOf(leaves: readonly { address?: string }[], address: st
   return i;
 }
 
-/** First chipnet P2PKH address (not a token address) in text the wallet shows. */
-export function firstChipnetAddress(texts: readonly string[]): string | undefined {
+/** First P2PKH address (not a token address) of the network in text the wallet shows. */
+export function firstWalletAddress(texts: readonly string[], network: WalletNetwork): string | undefined {
+  const pattern = new RegExp(`${ADDRESS_PREFIX[network]}:q[02-9ac-hj-np-z]{41}`);
   for (const t of texts) {
-    const m = /bchtest:q[02-9ac-hj-np-z]{41}/.exec(t);
+    const m = pattern.exec(t);
     if (m) return m[0];
   }
   return undefined;

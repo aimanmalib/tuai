@@ -26,6 +26,11 @@ export interface NetworkConfig {
    * one-minute blocks, so a lock keeps its ten-minute meaning). Absent: 1.
    */
   sequenceBlockScale?: number;
+  /**
+   * Operator pushes (`arm`, `push`) are refused on this network before anything is built (error
+   * `pushDisabledOnMainnet`). Must be true on mainnet: the project never sends rewards there, each recipient pulls.
+   */
+  pushDisabled?: boolean;
 }
 
 export interface TuaiConfig {
@@ -164,6 +169,8 @@ export function validateConfig(c: TuaiConfig): string[] {
       problems.push(`networks.${name}.sequenceBlockScale must be > 0`);
     }
     problems.push(...explorerProblems(name, n));
+    if (n.pushDisabled !== undefined && typeof n.pushDisabled !== 'boolean') problems.push(`networks.${name}.pushDisabled must be true or false`);
+    if (name === 'mainnet' && n.pushDisabled !== true) problems.push('networks.mainnet.pushDisabled must be true');
     if (n.rewardCategory && !/^[0-9a-f]{64}$/.test(n.rewardCategory)) {
       problems.push(`networks.${name}.rewardCategory must be 32 bytes of hex`);
     }

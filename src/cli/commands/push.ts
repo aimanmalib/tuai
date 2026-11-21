@@ -12,6 +12,19 @@ import { plainUtxos, selectFunding } from '../wallet.ts';
 import { activeLeaf, proofOf } from './claim.ts';
 import { NotYetError } from './root.ts';
 
+/** `arm` or `push` on a network whose config sets `pushDisabled` (mainnet: recipients pull, the project never pushes). */
+export class PushDisabledError extends Error {
+  readonly code = 'pushDisabledOnMainnet';
+  constructor(readonly network: string) {
+    super(`pushDisabledOnMainnet: operator pushes are turned off on ${network} (networks.${network}.pushDisabled); each recipient claims for themselves`);
+  }
+}
+
+/** Refuses `arm` and `push` before any contract, key or chain read when the network turns pushes off. */
+export function assertPushAllowed(ctx: Pick<Context, 'config' | 'network'>): void {
+  if (ctx.config.networks[ctx.network].pushDisabled === true) throw new PushDisabledError(ctx.network);
+}
+
 /** Enough BCH for an arm transaction (the same size as an activation) at the configured fee rate. */
 const ARM_FUNDING_SATS = 10_000n;
 
@@ -20,6 +33,7 @@ const ARM_FUNDING_SATS = 10_000n;
  * `pushDelay` blocks old. Anyone may send it; `--force` sends it early so the network's refusal is recorded.
  */
 export async function arm(ctx: Context, a: ParsedArgs) {
+  assertPushAllowed(ctx);
   const contracts = contractsFor(ctx);
   const push = pushParamsOf(contracts);
   const pool = await readPool(contracts);
@@ -57,6 +71,7 @@ export async function arm(ctx: Context, a: ParsedArgs) {
  * `--force` builds it anyway and sends it without the local script check, so the network's refusal is recorded.
  */
 export async function push(ctx: Context, a: ParsedArgs) {
+  assertPushAllowed(ctx);
   const address = a.positional[1];
   if (!address) throw new Error('usage: tuai push <address> --epoch <file>');
   const { entry, epoch, contracts, live } = await activeLeaf(ctx, a, address);
