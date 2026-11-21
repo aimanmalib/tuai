@@ -21,6 +21,13 @@ export interface RelayViewOptions {
 const KNOWN = new Set(['nothingToClaim', 'notInEpoch', 'epochMissing', 'hourFull', 'lowBalance', 'off', 'badAddress', 'wrongNetwork',
   'badRequest', 'tooLarge', 'guardRefused', 'feeTooHigh', 'nodeRefused', 'chainError', 'notClaimedYet', 'notRefusedLocally', 'acceptedAgain']);
 
+/** Appends the outcome of an earlier claim to `parent` where no relayer card carries it (a wallet claim on mainnet). */
+export function renderNotice(parent: HTMLElement, a: RelayAnswer, explorers: readonly Explorer[]): void {
+  const out = el('div', { id: 'claim-notice', role: 'status' });
+  showAnswer(out, a, explorers);
+  parent.append(out);
+}
+
 /** Renders the outcome of a relayer answer into `out`. */
 export function showAnswer(out: HTMLElement, a: RelayAnswer, explorers: readonly Explorer[]): void {
   if (a.code === 'claimed' && a.txid) {

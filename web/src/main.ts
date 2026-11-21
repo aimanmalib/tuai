@@ -9,7 +9,7 @@ import { epochHistory } from './activity.ts';
 import { renderHistory } from './activity-view.ts';
 import { showActivity } from './activity-page.ts';
 import { relayStatus, type RelayAnswer, type RelayStatus } from './relay.ts';
-import { renderRelay } from './relay-view.ts';
+import { renderNotice, renderRelay } from './relay-view.ts';
 import { addressToLockingBytecode, type CashAddressPrefix } from '../../src/leaf.ts';
 import { renderWalletClaim } from './wallet-view.ts';
 import { formatUnits } from './model.ts';
@@ -170,6 +170,9 @@ async function check(query: string, notice?: RelayAnswer): Promise<void> {
       onSent: (answer) => void check(query, answer),
     });
   }
+  // Without the relayer card (mainnet), the card is read again after a wallet claim with nothing left to claim, so the
+  // claim's transaction is shown on its own; otherwise it would vanish as soon as the chain is read again.
+  if (!relayOn(network) && notice) renderNotice(result, notice, explorersOf(net));
   const walletCfg = relayCfg.wallet;
   // On the relayer's network the same container answers prepare, so an unreachable or switched-off relayer hides the
   // wallet button there. Elsewhere there is no relayer status to wait for; a switched-off route answers `off` itself.

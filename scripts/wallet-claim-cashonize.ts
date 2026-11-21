@@ -6,6 +6,8 @@
  *   npx tsx scripts/wallet-claim-cashonize.ts --cashonize <dir> --address-only   the wallet's address on that network, read from its own screen
  *   npx tsx scripts/wallet-claim-cashonize.ts --cashonize <dir> --dry [--leaf A]  pair with the page and stop before any Sign
  *   npx tsx scripts/wallet-claim-cashonize.ts --cashonize <dir> [--leaf A]        claim leaf A (default: the wallet's own address)
+ *   npx tsx scripts/wallet-claim-cashonize.ts --cashonize <dir> --disconnect-check  pair for a demo leaf, sign nothing; idle twice
+ *       `relay.wallet.livenessSeconds` (the page must stay connected), then close the wallet and time the page's notice
  *   npx tsx scripts/wallet-claim-cashonize.ts --refresh                           fill in block heights, sizes and fees of recorded claims
  *   npx tsx scripts/wallet-claim-cashonize.ts --record <txid> [--leaf A]          record a claim the wallet already signed
  * Options: --network chipnet|mainnet (default chipnet), --site <url> (default project.siteUrl). Settings: `thirdPartyWallet` in config/tuai.json.
@@ -38,6 +40,7 @@ const { values } = parseArgs({
   options: {
     cashonize: { type: 'string' }, site: { type: 'string' }, leaf: { type: 'string' }, record: { type: 'string' }, network: { type: 'string' },
     'address-only': { type: 'boolean', default: false }, dry: { type: 'boolean', default: false }, refresh: { type: 'boolean', default: false },
+    'disconnect-check': { type: 'boolean', default: false },
   },
 });
 const SITE = (values.site ?? config.project.siteUrl).replace(/\/$/, '');
@@ -161,8 +164,12 @@ try {
     const leaf = values.leaf ?? address;
     const site = await (await browser.newContext({ viewport: { width: 1280, height: 1000 }, locale: 'en-US' })).newPage();
     await site.goto(`${SITE}/`);
-    await site.getByLabel(/Your address/).fill(leaf);
-    await site.getByRole('button', { name: /Check address/ }).click();
+    await site.locator('#network').selectOption(NETWORK);
+    if (values['disconnect-check']) await site.locator('#demo-pick').click();
+    else {
+      await site.getByLabel(/Your address/).fill(leaf);
+      await site.getByRole('button', { name: /Check address/ }).click();
+    }
     await site.locator('#wallet-connect').click({ timeout: TIMEOUT });
     const link = (await site.locator('#wallet-open').getAttribute('href', { timeout: TIMEOUT })) ?? '';
     if (!/^wiz:\/\//.test(link)) throw new Error('the page showed no WizardConnect link');
@@ -175,8 +182,9 @@ try {
     await consent.getByRole('button', { name: 'Connect', exact: true }).click();
     // Paired once the page no longer shows the link: it then prepares the claim and asks the wallet to sign.
     await site.locator('#wallet-open').waitFor({ state: 'detached', timeout: TIMEOUT });
-    log(`paired with ${SITE} for leaf ${leaf}`);
-    if (values.dry) {
+    log(`paired with ${SITE} for ${values['disconnect-check'] ? 'a demo leaf' : `leaf ${leaf}`}`);
+    if (values['disconnect-check']) await disconnectCheck(wallet, site);
+    else if (values.dry) {
       const said = site.locator('#wallet-out');
       const sign = wallet.locator('.q-dialog:visible').last().getByRole('button', { name: 'Sign' });
       await Promise.race([sign.waitFor({ timeout: TIMEOUT }), said.locator('.error, #wallet-refused').waitFor({ timeout: TIMEOUT }),
@@ -197,7 +205,30 @@ try {
   await browser.close();
   server.close();
 }
-process.exit(0);
+process.exit(process.exitCode ?? 0);
+
+/**
+ * Nothing is signed. (i) The wallet stays idle for twice `livenessSeconds`: the page must still show it connected.
+ * (ii) The wallet's page is closed, as a person closing the wallet would: the page must say the wallet ended the
+ * connection within `livenessSeconds` + `reconnectGraceSeconds` + 15 s. Prints both results with the measured time.
+ */
+async function disconnectCheck(wallet: Page, site: Page): Promise<void> {
+  const { livenessSeconds, reconnectGraceSeconds } = config.relay.wallet;
+  const ended = site.locator('#wallet-ended');
+  const lost = site.locator('#wallet-lost');
+  await site.waitForTimeout(2 * livenessSeconds * 1000);
+  const quiet = !(await ended.isVisible()) && !(await lost.isVisible());
+  log(`idle ${2 * livenessSeconds} s: ${quiet ? 'the page still shows the wallet connected' : 'the page reported a lost wallet (false alarm)'}`);
+  const limit = (livenessSeconds + reconnectGraceSeconds + 15) * 1000;
+  const closedAt = Date.now();
+  await wallet.close();
+  const seen = await ended.waitFor({ timeout: limit }).then(() => true, () => false);
+  const took = ((Date.now() - closedAt) / 1000).toFixed(1);
+  log(seen ? `wallet closed: the page said the wallet ended the connection after ${took} s (limit ${limit / 1000} s)`
+    : `wallet closed: no notice within ${limit / 1000} s; the page says: ${(await site.locator('#wallet-out').innerText()).replace(/\s+/g, ' ').slice(0, 200)}`);
+  await site.screenshot({ path: join(OUT, 'wallet-cashonize-ended.png') });
+  if (!quiet || !seen) process.exitCode = 1;
+}
 
 /** Adds a claim to the record: the leaf index comes from the newest epoch file, the height from Electrum. */
 async function recordClaim(txid: string, leaf: string): Promise<void> {

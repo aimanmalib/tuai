@@ -39,7 +39,8 @@ export function walletTable(
   return table;
 }
 
-export function stubModule(mode: 'pair' | 'connect', pairing: string, table: Record<KeyPath, StubAddress[]>): string {
+/** With `signed`, the wallet's sign() answers that transaction hex (as a wallet that signed and sent it); otherwise it never answers. */
+export function stubModule(mode: 'pair' | 'connect', pairing: string, table: Record<KeyPath, StubAddress[]>, signed?: string): string {
   return `
 const T = ${JSON.stringify(table)};
 export function connectWallet(o) {
@@ -62,7 +63,7 @@ export function connectWallet(o) {
         window.__wallet.derived++;
         return { address: w.address, path, index, lockingBytecode: Uint8Array.from(w.hex.match(/../g).map((h) => parseInt(h, 16))) };
       },
-      sign() { return new Promise(() => {}); },
+      sign() { return new Promise((resolve) => { if (${JSON.stringify(signed ?? null)} !== null) setTimeout(() => resolve(${JSON.stringify(signed ?? '')}), 200); }); },
     }), 300);
   });
 }`;
