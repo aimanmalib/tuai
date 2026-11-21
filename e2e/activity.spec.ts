@@ -16,8 +16,13 @@ const checked = chipnetRuns.flatMap((r) =>
     .filter((f) => existsSync(`deployments/${r.run}/${f}`))
     .map((f) => JSON.parse(readFileSync(`deployments/${r.run}/${f}`, 'utf8')) as Checked),
 );
+// Claims a third-party wallet signed on the page (wallet-claims.json beside a run).
+const walletClaims = chipnetRuns
+  .filter((r) => existsSync(`deployments/${r.run}/wallet-claims.json`))
+  .flatMap((r) => (JSON.parse(readFileSync(`deployments/${r.run}/wallet-claims.json`, 'utf8')) as { claims: { txid: string; height: number | null; wallet: string }[] }).claims);
 const all: Tx[] = [
   ...chipnetRuns.flatMap((r) => r.transactions),
+  ...walletClaims.map((x) => ({ txid: x.txid, height: x.height })),
   ...checked.flatMap((c) => [
     ...c.claims.map((x) => ({ txid: x.txid, height: x.height })),
     ...c.refusals.map((x) => ({ txid: null, height: null, error: x.message })),
@@ -72,6 +77,11 @@ test('lists every recorded transaction, refused ones without a link, and a claim
   await expect(page.locator('.topup').first()).toContainText('Epoch 2 top-up');
   await expect(page.locator('#seen-list > li')).toHaveCount(1);
   await expect(page.locator('#seen-list code')).toHaveText(LATER);
+  for (const w of walletClaims) {
+    const row = page.locator('.run .tx', { has: page.locator(`a[href$="/tx/${w.txid}"]`) });
+    await expect(row.locator('.tx-step')).toHaveText('Claim signed by a third-party wallet on the claim page, fee paid by the wallet');
+    await expect(row).toContainText(w.wallet);
+  }
   await noHorizontalOverflow(page);
   if (process.env.SCREENSHOT_DIR) {
     await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-r1-activity-${test.info().project.name}.png` });
@@ -124,9 +134,13 @@ test('shows the per-epoch history with the top-up on an address result', async (
   await fakeElectrum(page);
   await page.goto('/');
   const leaf = epoch.leaves[0]!;
+  // One amount per published epoch that lists the leaf, counted from the epoch files the page serves.
+  const epochsWithLeaf = readdirSync('deployments/chipnet')
+    .filter((f) => /^epoch-\d+\.json$/.test(f))
+    .filter((f) => (JSON.parse(readFileSync(`deployments/chipnet/${f}`, 'utf8')) as { leaves: { address: string }[] }).leaves.some((l) => l.address === leaf.address)).length;
   await page.getByLabel('Your address').fill(leaf.address);
   await page.getByRole('button', { name: 'Check address' }).click();
-  await expect(page.locator('#history .amount')).toHaveCount(2);
+  await expect(page.locator('#history .amount')).toHaveCount(epochsWithLeaf);
   await expect(page.locator('#history')).toContainText('top-up');
 });
 

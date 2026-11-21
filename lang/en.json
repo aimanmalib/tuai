@@ -125,6 +125,7 @@
         "claim-page-refused": "Claim attempt from the claim page",
         "claim-auto": "Auto-claim by the relayer once the leaf's opt-in threshold was reached",
         "claim-auto-refused": "Auto-claim attempt by the relayer",
+        "claim-wallet": "Claim signed by a third-party wallet on the claim page, fee paid by the wallet",
         "claim-first": "First claim",
         "double-claim": "Claim the same amount again",
         "claim-additional": "Claim the top-up",

@@ -40,8 +40,19 @@ const pageRecords = recorded.flatMap((r) =>
     }),
   })),
 );
+// Claims a third-party wallet signed on the page (wallet-claims.json beside a run).
+const walletRecords = recorded
+  .filter((r) => existsSync(join('deployments', r.run, 'wallet-claims.json')))
+  .map((r) => ({
+    run: r.run,
+    ...(JSON.parse(readFileSync(join('deployments', r.run, 'wallet-claims.json'), 'utf8')) as {
+      network: string;
+      claims: { txid: string; height: number | null; bytes: number; feeSats: number; address: string; wallet: string }[];
+    }),
+  }));
 const pageCount = (run: string) =>
-  pageRecords.filter((r) => r.run === run).reduce((n, p) => n + p.claims.length + p.refusals.length, 0);
+  pageRecords.filter((r) => r.run === run).reduce((n, p) => n + p.claims.length + p.refusals.length, 0) +
+  walletRecords.filter((r) => r.run === run).reduce((n, w) => n + w.claims.length, 0);
 
 describe('activity index', () => {
   it('lists every recorded transaction of every run, grouped by network', () => {
@@ -64,6 +75,19 @@ describe('activity index', () => {
       const refused = txs.filter((t) => t.step === `${p.step}-refused`);
       expect(refused.map((t) => t.error)).toEqual(p.refusals.map((r) => r.message.trim()));
       for (const t of refused) expect(t).toMatchObject({ txid: null, links: [] });
+    }
+  });
+
+  it('lists every claim a third-party wallet signed on the page, with its size, fee, height, leaf and wallet', () => {
+    expect(walletRecords.length).toBeGreaterThan(0);
+    for (const w of walletRecords) {
+      const txs = indexes.find((i) => i.network === w.network)!.runs.find((r) => r.run === w.run)!.transactions;
+      for (const c of w.claims)
+        expect(txs.find((t) => t.txid === c.txid), c.txid).toMatchObject({
+          step: 'claim-wallet', bytes: c.bytes, feeSats: c.feeSats, height: c.height, links: linksOf(c.txid),
+          note: expect.stringContaining(c.address) as unknown,
+        });
+      for (const c of w.claims) expect(txs.find((t) => t.txid === c.txid)!.note).toContain(c.wallet);
     }
   });
 

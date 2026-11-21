@@ -6,6 +6,7 @@ import type { PublicTx } from '../src/demo/report.ts';
 import type { ServedFile } from './web-epochs.ts';
 import type { PageClaimsRecord } from '../src/demo/page-claims.ts';
 import { explorerLinks, type Explorer } from '../src/explorers.ts';
+import { parseWalletClaims } from '../src/wallet-driver.ts';
 import { parseKind, type ActivityIndex, type ActivityRun, type ActivityTx, type EpochTotal } from '../src/demo/activity-index.ts';
 
 export { parseKind };
@@ -57,6 +58,33 @@ function checkedClaimTxs(dir: string, run: string, network: string, explorers: r
   return [...claims, ...refusals].sort((a, b) => a.utc.localeCompare(b.utc));
 }
 
+/**
+ * Claims a third-party wallet signed on the public page (deployments/<run>/wallet-claims.json, written by
+ * scripts/wallet-claim-cashonize.ts) become `claim-wallet` entries; the note names the leaf and the wallet.
+ */
+function walletClaimTxs(dir: string, run: string, network: string, explorers: readonly Explorer[]): ActivityTx[] {
+  const file = join(dir, 'wallet-claims.json');
+  if (!existsSync(file)) return [];
+  const record = parseWalletClaims(readFileSync(file, 'utf8'));
+  if (record.network !== network) throw new Error(`${run}: wallet-claims.json is ${record.network}, pool.json is ${network}`);
+  return record.claims.map((c): ActivityTx => {
+    if (c.bytes === undefined || c.feeSats === undefined)
+      throw new Error(`${run}: wallet claim ${c.txid} has no size or fee yet; run scripts/wallet-claim-cashonize.ts --refresh`);
+    return {
+      step: 'claim-wallet',
+      epoch: null,
+      kind: 'claim-wallet',
+      txid: c.txid,
+      bytes: c.bytes,
+      feeSats: c.feeSats,
+      height: c.height,
+      utc: c.at,
+      note: `${c.address} (${c.wallet})`,
+      links: explorerLinks(explorers, c.txid),
+    };
+  });
+}
+
 function epochTotals(dir: string): EpochTotal[] {
   return readdirSync(dir)
     .map((n) => /^epoch-(\d+)\.json$/.exec(n)?.[1])
@@ -71,7 +99,7 @@ function epochTotals(dir: string): EpochTotal[] {
 }
 
 /** One index per network found under the deployments folder; runs in folder-name order, transactions in recorded order,
- * followed by the checked claims made from the page and by auto-claim. */
+ * followed by the checked claims made from the page and by auto-claim, then claims signed by a third-party wallet. */
 export function buildTxIndex(repoRoot: string, deploymentsDir: string, explorers: Readonly<Record<string, readonly Explorer[]>>): ActivityIndex[] {
   const base = join(repoRoot, deploymentsDir);
   const byNetwork = new Map<string, ActivityRun[]>();
@@ -100,6 +128,7 @@ export function buildTxIndex(repoRoot: string, deploymentsDir: string, explorers
       };
     });
     for (const source of CHECKED_CLAIMS) transactions.push(...checkedClaimTxs(dir, run, record.network, netExplorers, source));
+    transactions.push(...walletClaimTxs(dir, run, record.network, netExplorers));
     const runs = byNetwork.get(record.network) ?? [];
     runs.push({ run, pool: pool.contracts.pool, epochs: epochTotals(dir), transactions });
     byNetwork.set(record.network, runs);

@@ -125,6 +125,7 @@
         "claim-page-refused": "Cubaan tuntutan dari halaman tuntutan",
         "claim-auto": "Tuntutan automatik oleh relayer selepas ambang pilihan daun dicapai",
         "claim-auto-refused": "Cubaan tuntutan automatik oleh relayer",
+        "claim-wallet": "Tuntutan ditandatangani dompet pihak ketiga di halaman tuntutan, yuran dibayar dompet",
         "claim-first": "Tuntutan pertama",
         "double-claim": "Tuntut amaun yang sama sekali lagi",
         "claim-additional": "Tuntut tambahan",

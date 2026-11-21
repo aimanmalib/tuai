@@ -107,6 +107,27 @@ test('the activity page checks the recorded deploy transaction on chain itself a
   }
 });
 
+test('the activity page lists the claim a third-party wallet signed on the page and checks it on chain', async ({ page }) => {
+  test.setTimeout(120_000);
+  const res = await page.request.get('/epochs/chipnet/transactions.json');
+  const index = (await res.json()) as { runs: { transactions: { step: string; txid: string | null; height: number | null; note?: string }[] }[] };
+  const wallet = index.runs.flatMap((r) => r.transactions).filter((t) => t.step === 'claim-wallet' && t.txid !== null);
+  expect(wallet.length, 'wallet claims in the served record').toBeGreaterThan(0);
+  await page.goto('/#/activity');
+  for (const w of wallet) {
+    const row = page.locator('.run .tx', { has: page.locator(`.chain-check[data-txid="${w.txid}"]`) });
+    await expect(row.locator('.tx-step')).toHaveText('Claim signed by a third-party wallet on the claim page, fee paid by the wallet');
+    await expect(row).toContainText(w.note ?? '');
+    const badge = row.locator('.chain-check');
+    await expect(badge).toHaveAttribute('data-chain', 'confirmed', { timeout: 60_000 });
+    if (w.height !== null) await expect(badge).toContainText(`block ${w.height}`);
+  }
+  if (process.env.SCREENSHOT_DIR) {
+    await page.locator(`.chain-check[data-txid="${wallet[0]!.txid}"]`).scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-p6d2-live-wallet-${test.info().project.name}.png` });
+  }
+});
+
 test('the mainnet activity page lists the served mainnet record and checks the claim on chain', async ({ page }) => {
   test.setTimeout(120_000);
   const res = await page.request.get('/epochs/mainnet/transactions.json');

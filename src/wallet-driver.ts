@@ -3,7 +3,7 @@
  * its config section, the .env value it keeps the wallet's phrase in, the log filter that keeps the phrase and the
  * WizardConnect pairing link out of every line it prints, and the record of claims the wallet signed.
  */
-import { binToHex, cashAddressToLockingBytecode } from '@bitauth/libauth';
+import { binToHex, cashAddressToLockingBytecode, decodeTransaction, hexToBin } from '@bitauth/libauth';
 
 /** `thirdPartyWallet` in config/tuai.json. */
 export interface ThirdPartyWalletConfig {
@@ -91,6 +91,9 @@ export interface WalletClaim {
   /** Block height once mined; null while it was not in a block when recorded. */
   height: number | null;
   at: string;
+  /** Size and fee of the claim transaction as read back from the chain; absent until read. */
+  bytes?: number;
+  feeSats?: number;
 }
 
 export interface WalletClaimsRecord {
@@ -105,6 +108,8 @@ function claimProblem(c: WalletClaim): string | undefined {
   if (c.height !== null && (!Number.isInteger(c.height) || c.height <= 0)) return `${c.txid}: height must be null or > 0`;
   if (Number.isNaN(Date.parse(c.at)) || new Date(c.at).toISOString() !== c.at) return `${c.txid}: at must be an ISO UTC time`;
   if (!/^[0-9a-f]{40}$/.test(c.commit) || c.wallet === '') return `${c.txid}: wallet and commit are required`;
+  for (const k of ['bytes', 'feeSats'] as const)
+    if (c[k] !== undefined && (!Number.isInteger(c[k]) || c[k] <= 0)) return `${c.txid}: ${k} must be a whole number > 0 when present`;
   return undefined;
 }
 
@@ -120,13 +125,35 @@ export function parseWalletClaims(text: string | undefined): WalletClaimsRecord 
   return r;
 }
 
-/** Adds a claim, or fills in the height of one already recorded with the same txid. */
+const sizeOf = (c: WalletClaim) => (c.bytes === undefined || c.feeSats === undefined ? {} : { bytes: c.bytes, feeSats: c.feeSats });
+
+/** Adds a claim, or fills in the height, size and fee of one already recorded with the same txid. */
 export function addWalletClaim(r: WalletClaimsRecord, c: WalletClaim): WalletClaimsRecord {
   const p = claimProblem(c);
   if (p) throw new Error(p);
   const old = r.claims.find((x) => x.txid === c.txid);
   if (!old) return { ...r, claims: [...r.claims, c] };
-  return { ...r, claims: r.claims.map((x) => (x.txid === c.txid ? { ...x, height: c.height ?? x.height } : x)) };
+  return { ...r, claims: r.claims.map((x) => (x.txid === c.txid ? { ...x, height: c.height ?? x.height, ...sizeOf(c.bytes === undefined ? x : c) } : x)) };
+}
+
+/** Size in bytes and fee in satoshis of a mined transaction, from raw transaction hex fetched by txid. */
+export async function txSizeAndFee(rawHex: (txid: string) => Promise<string>, txid: string): Promise<{ bytes: number; feeSats: number }> {
+  const decode = (hex: string, id: string) => {
+    const tx = decodeTransaction(hexToBin(hex));
+    if (typeof tx === 'string') throw new Error(`${id}: ${tx}`);
+    return tx;
+  };
+  const hex = await rawHex(txid);
+  const tx = decode(hex, txid);
+  let inSats = 0n;
+  for (const i of tx.inputs) {
+    const prevId = binToHex(i.outpointTransactionHash);
+    const prev = decode(await rawHex(prevId), prevId).outputs[i.outpointIndex];
+    if (!prev) throw new Error(`${txid}: input ${prevId}:${i.outpointIndex} not found`);
+    inSats += prev.valueSatoshis;
+  }
+  const outSats = tx.outputs.reduce((sum, o) => sum + o.valueSatoshis, 0n);
+  return { bytes: hex.length / 2, feeSats: Number(inSats - outSats) };
 }
 
 export function formatWalletClaims(r: WalletClaimsRecord): string {

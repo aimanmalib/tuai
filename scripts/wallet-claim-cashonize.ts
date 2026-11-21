@@ -6,7 +6,7 @@
  *   npx tsx scripts/wallet-claim-cashonize.ts --cashonize <dir> --address-only   the wallet's chipnet address, read from its own screen
  *   npx tsx scripts/wallet-claim-cashonize.ts --cashonize <dir> --dry [--leaf A]  pair with the page and stop before any Sign
  *   npx tsx scripts/wallet-claim-cashonize.ts --cashonize <dir> [--leaf A]        claim leaf A (default: the wallet's own address)
- *   npx tsx scripts/wallet-claim-cashonize.ts --refresh                           fill in block heights of recorded claims
+ *   npx tsx scripts/wallet-claim-cashonize.ts --refresh                           fill in block heights, sizes and fees of recorded claims
  *   npx tsx scripts/wallet-claim-cashonize.ts --record <txid> [--leaf A]          record a claim the wallet already signed
  * Options: --site <url> (default project.siteUrl). Settings: `thirdPartyWallet` in config/tuai.json.
  *
@@ -28,7 +28,7 @@ import { ElectrumNetworkProvider } from 'cashscript';
 import { REPO_ROOT, loadConfig } from '../src/config.ts';
 import { confirmedHeight, electrumHeightSource } from '../src/tx-height.ts';
 import {
-  addWalletClaim, firstChipnetAddress, formatWalletClaims, leafIndexOf, parseWalletClaims, readEnvValue, redact, withEnvValue,
+  addWalletClaim, firstChipnetAddress, formatWalletClaims, leafIndexOf, parseWalletClaims, readEnvValue, redact, txSizeAndFee, withEnvValue,
 } from '../src/wallet-driver.ts';
 
 const config = loadConfig();
@@ -52,12 +52,13 @@ const provider = (): ElectrumNetworkProvider => {
   return new ElectrumNetworkProvider(w.network, { hostname: net.electrum.hostname });
 };
 const heightOf = (txid: string): Promise<number | null> => confirmedHeight(electrumHeightSource(provider()), txid);
+const sizeOf = (txid: string) => txSizeAndFee(async (id) => (await provider().getRawTransaction(id)) as string, txid).catch(() => ({}));
 const readRecord = () => parseWalletClaims(existsSync(RECORD) ? readFileSync(RECORD, 'utf8') : undefined);
 
 if (values.refresh) {
   let r = readRecord();
-  for (const c of r.claims.filter((x) => x.height === null)) {
-    r = addWalletClaim(r, { ...c, height: await heightOf(c.txid) });
+  for (const c of r.claims.filter((x) => x.height === null || x.bytes === undefined)) {
+    r = addWalletClaim(r, { ...c, height: c.height ?? (await heightOf(c.txid)), ...(await sizeOf(c.txid)) });
     log(`${c.txid} height ${String(r.claims.find((x) => x.txid === c.txid)?.height)}`);
   }
   writeFileSync(RECORD, formatWalletClaims(r));
@@ -199,7 +200,7 @@ async function recordClaim(txid: string, leaf: string): Promise<void> {
   const epoch = newestEpoch();
   const leafIndex = leafIndexOf((JSON.parse(readFileSync(epoch, 'utf8')) as { leaves: { address?: string }[] }).leaves, leaf);
   const record = addWalletClaim(readRecord(), { txid, wallet: `${w.name} v${w.version}`, commit: w.commit, leafIndex,
-    address: leaf, height: await heightOf(txid).catch(() => null), at: new Date().toISOString().replace(/\.\d{3}Z$/, '.000Z') });
+    address: leaf, height: await heightOf(txid).catch(() => null), ...(await sizeOf(txid)), at: new Date().toISOString().replace(/\.\d{3}Z$/, '.000Z') });
   mkdirSync(resolve(RECORD, '..'), { recursive: true });
   writeFileSync(RECORD, formatWalletClaims(record));
   log(`${txid} (leaf ${leafIndex}) recorded in ${w.recordPath}`);

@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { decodeCashAddress, encodeCashAddress } from '@bitauth/libauth';
+import { binToHex, decodeCashAddress, encodeCashAddress, encodeTransaction, hashTransaction, hexToBin } from '@bitauth/libauth';
 import { loadConfig } from '../src/config.ts';
 import {
-  addWalletClaim, firstChipnetAddress, leafIndexOf, parseWalletClaims, readEnvValue, redact, validateThirdPartyWallet, withEnvValue,
+  addWalletClaim, firstChipnetAddress, leafIndexOf, parseWalletClaims, readEnvValue, redact, txSizeAndFee, validateThirdPartyWallet,
+  withEnvValue,
   type WalletClaim,
 } from '../src/wallet-driver.ts';
 
@@ -55,6 +56,29 @@ describe('wallet claims record', () => {
     expect(r.claims).toHaveLength(1);
     const again = addWalletClaim(parseWalletClaims(JSON.stringify(r)), claim({ height: 337900, at: '2026-11-20T16:00:00.000Z' }));
     expect(again.claims).toEqual([claim({ height: 337900 })]);
+  });
+
+  it('fills in size and fee once read, keeps them when a later update has none, and refuses non-positive values', () => {
+    const r = addWalletClaim(parseWalletClaims(undefined), claim({ height: 337900 }));
+    const sized = addWalletClaim(r, claim({ height: null, bytes: 1901, feeSats: 1901 }));
+    expect(sized.claims).toEqual([claim({ height: 337900, bytes: 1901, feeSats: 1901 })]);
+    expect(addWalletClaim(sized, claim({ height: 337901 })).claims).toEqual([claim({ height: 337901, bytes: 1901, feeSats: 1901 })]);
+    expect(parseWalletClaims(JSON.stringify(sized)).claims[0]).toMatchObject({ bytes: 1901, feeSats: 1901 });
+    expect(() => addWalletClaim(r, claim({ bytes: 0, feeSats: 10 }))).toThrow(/bytes/);
+    expect(() => addWalletClaim(r, claim({ bytes: 200, feeSats: 1.5 }))).toThrow(/feeSats/);
+  });
+
+  it('reads size and fee of a transaction from its raw hex and the outputs it spends', async () => {
+    const out = (sats: bigint) => ({ lockingBytecode: hexToBin('76a914' + '11'.repeat(20) + '88ac'), valueSatoshis: sats });
+    const prev = encodeTransaction({ version: 2, locktime: 0, inputs: [], outputs: [out(3000n), out(10000n)] });
+    const prevId = hashTransaction(prev);
+    const tx = encodeTransaction({
+      version: 2, locktime: 0, outputs: [out(8000n)],
+      inputs: [{ outpointTransactionHash: hexToBin(prevId), outpointIndex: 1, sequenceNumber: 0, unlockingBytecode: new Uint8Array(0) }],
+    });
+    const raw: Record<string, string> = { [prevId]: binToHex(prev), tx: binToHex(tx) };
+    expect(await txSizeAndFee(async (id) => raw[id]!, 'tx')).toEqual({ bytes: tx.length, feeSats: 2000 });
+    await expect(txSizeAndFee(async () => 'ff', 'bad')).rejects.toThrow(/bad/);
   });
 
   it('refuses entries that are not a chipnet claim', () => {
