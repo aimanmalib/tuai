@@ -1,6 +1,7 @@
 // Collects the public epoch files the claim page serves: <epochsPath>/<network>/{index.json,pool.json,epoch-<n>.json,inputs/*}.
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { HEX_SUFFIX, readStoredInput } from '../src/epoch/stored-input.ts';
 
 export interface ServedFile {
   /** Path under the epochs URL path, e.g. `chipnet/epoch-1.json`. */
@@ -27,8 +28,10 @@ export function collectEpochFiles(repoRoot: string, deploymentsDir: string, netw
     }
     const inputs = join(dir, 'inputs');
     if (existsSync(inputs)) {
-      for (const name of readdirSync(inputs).filter((n) => n.endsWith('.json')).sort()) {
-        out.push({ path: `${network}/inputs/${name}`, body: readFileSync(join(inputs, name), 'utf8') });
+      const names = readdirSync(inputs).filter((n) => n.endsWith('.json') || n.endsWith(`.json${HEX_SUFFIX}`));
+      for (const name of [...new Set(names.map((n) => n.replace(/\.hex$/, '')))].sort()) {
+        const body = new TextDecoder().decode(readStoredInput(join(inputs, name)));
+        out.push({ path: `${network}/inputs/${name}`, body });
       }
     }
     out.push({ path: `${network}/index.json`, body: `${JSON.stringify({ network, epochs })}\n` });
