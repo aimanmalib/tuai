@@ -1,9 +1,9 @@
+import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { hexToBinChecked } from '../bytes.ts';
 import { verifyProof } from '../merkle/proof.ts';
 import { manifestHash } from './canonical.ts';
 import { applyInputs, inputPath } from './build.ts';
-import { readStoredInput } from './stored-input.ts';
 import { leafFromJson, makeEpochFile, readEpochFile, recipientsFromJson, type EpochFile } from './file.ts';
 
 export interface VerifyReport {
@@ -59,7 +59,7 @@ export function verifyEpoch(path: string, depthLimit = 1000): VerifyReport {
   }
   let recomputed: EpochFile;
   try {
-    const balances = applyInputs(start, m, (input) => readStoredInput(inputPath(path, input)));
+    const balances = applyInputs(start, m, (input) => readFileSync(inputPath(path, input)));
     const prefix = PREFIXES[file.network as keyof typeof PREFIXES] ?? 'bitcoincash';
     recomputed = makeEpochFile(file.network, prefix, m, balances);
   } catch (e) {

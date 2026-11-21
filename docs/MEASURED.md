@@ -137,7 +137,7 @@ Run on 2026-11-20 with the committed CLI on the chipnet pool that the claim page
   `c4929769c990f49178dd618e3edc2ddb31d13a37880a4945ef19d0bb94462d70`, inputs hash
   `acc197b8f5aabc8c45d94d5bd09e90471cca4434a4b09b99079add6220168540`; `npx tsx bin/tuai.ts epoch verify
   deployments/chipnet/epoch-3.json` recomputes both.
-- **Root authority.** Proposal txid `abbc9a133c387990b9403591200528d0db445a5aed18a3a9a879954467784fe1`, signed by operators 1 and 2
+- **Root authority.** Proposed with operator keys 1 and 2: `abbc9a133c387990b9403591200528d0db445a5aed18a3a9a879954467784fe1`
   (2026-11-20 14:44:38 UTC, block 339745). Activated after the delay by
   `5068fd149578789262fe14f82b8a7875577dd9d0a930fafecd91c23ccb6811b5` (2026-11-20 15:21:54 UTC). The pool's token
   balance already covered the new amounts, so no top-up was sent. Block heights are in the [Chipnet](#chipnet) table.

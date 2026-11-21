@@ -1,9 +1,8 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import type { CashAddressPrefix, LinkMethod } from '../leaf.ts';
 import { addAllocations, type Balances } from './cumulative.ts';
 import { sha256Hex } from './canonical.ts';
-import { readStoredInput } from './stored-input.ts';
 import { inputKind, toAllocations } from './inputs.ts';
 import {
   MANIFEST_FORMAT, makeEpochFile, readEpochFile, recipientsFromJson, type EpochFile, type Manifest, type ManifestInput,
@@ -67,7 +66,7 @@ export function buildEpoch(o: BuildOptions): EpochFile {
     inputs,
   };
   const start = previous ? recipientsFromJson(previous.recipients) : new Map();
-  const balances = applyInputs(start, manifest, (input) => readStoredInput(resolve(outDir, input.file)));
+  const balances = applyInputs(start, manifest, (input) => readFileSync(resolve(outDir, input.file)));
   const file = makeEpochFile(o.network, o.prefix, manifest, balances);
   mkdirSync(outDir, { recursive: true });
   writeFileSync(o.outPath, `${JSON.stringify(file, null, 1)}\n`);
