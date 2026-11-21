@@ -257,3 +257,36 @@ test('a legacy BTC leaf (method 2) of the newest epoch is found and verified, an
   }
   expect(errors).toEqual([]);
 });
+
+test('mainnet: the newest epoch is served, a legacy BTC leaf is verified against the chain root, and the wallet route answers', async ({ page }) => {
+  test.setTimeout(120_000);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  const idx = await page.request.get('/epochs/mainnet/index.json');
+  test.skip(idx.status() === 404, 'no mainnet epochs are served');
+  const newest = Math.max(...((await idx.json()) as { epochs: number[] }).epochs);
+  const res = await page.request.get(`/epochs/mainnet/epoch-${newest}.json`);
+  expect(res.status()).toBe(200);
+  const file = (await res.json()) as { leaves: { address: string; method: number }[] };
+  const legacy = file.leaves.find((l) => l.method === 2);
+  test.skip(!legacy, `mainnet epoch ${newest} has no legacy BTC leaf`);
+  expect(legacy!.address).toMatch(/^bitcoincash:q/);
+  await page.goto('/');
+  await page.locator('#network').selectOption('mainnet');
+  await page.getByLabel(/Your address|Alamat anda/).fill(legacy!.address);
+  await page.getByRole('button', { name: /Check address|Semak alamat/ }).click();
+  await expect(page.locator('#proof-ok')).toBeVisible({ timeout: 45_000 });
+  await expect(page.locator('#warn-root')).toHaveCount(0);
+  await expect(page.locator('#wallet-connect')).toBeVisible({ timeout: 30_000 });
+  const o = await page.evaluate(() => ({ s: document.documentElement.scrollWidth, c: document.documentElement.clientWidth }));
+  expect(o.s).toBeLessThanOrEqual(o.c);
+  if (process.env.SCREENSHOT_DIR) {
+    await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-p8d1-mainnet-${test.info().project.name}.png`, fullPage: true });
+  }
+  // A wallet address no key controls: the mainnet route reads the chain and finds nothing to spend.
+  const wallet = [syntheticAddress('live mainnet', 'bitcoincash').address];
+  const prep = await page.request.post(walletCfg.preparePath, { data: { network: 'mainnet', address: file.leaves[0]!.address, change: wallet[0], wallet } });
+  const code = ((await prep.json()) as { code: string }).code;
+  expect(['walletEmpty', 'prepared']).toContain(code);
+  expect(errors).toEqual([]);
+});
