@@ -327,7 +327,7 @@ still the project's test token (category `3556624f…816a`): no value, not FLDCH
   `40411323dac9e6974f320c74890e0f39a4ab7dd1923abe96ea5d28c0d3f560d3`; `npx tsx bin/tuai.ts epoch verify
   deployments/mainnet/epoch-2.json` recomputes both with no problems. The pool held 996000 whole test tokens, more than
   the 82893 whole tokens the epoch 2 leaves add up to, so no top-up is needed.
-- **Root authority.** Proposed with operator keys 1 and 2:
+- **Root authority.** Operators 1 and 2 signed the proposal, transaction
   `4016ddabe26701b86d83ba7c5ccf1f83b2eaf72215edb5bf742ac623487a138c` (2026-11-21 15:19:31 UTC, 1026 bytes, 1029 sat
   fee, block 978332). The activation delay is 6 blocks, so the activation can be sent from block 978338.
 
