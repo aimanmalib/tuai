@@ -33,12 +33,32 @@ describe('chain check verdicts', () => {
   });
 });
 
+/** Fake Electrum: a tip that `blockDuringGet` moves by one block inside chosen `transaction.get` calls (1-based). */
+function fakeChain(start: number, blocks: Record<string, number | undefined>, blockDuringGet: number[] = []) {
+  let tip = start;
+  let gets = 0;
+  const asked: string[] = [];
+  const request = async (method: string, ...params: unknown[]): Promise<unknown> => {
+    if (method === 'blockchain.headers.get_tip') return { height: tip, hex: '00' };
+    expect(method).toBe('blockchain.transaction.get');
+    expect(params[1]).toBe(true);
+    gets++;
+    if (blockDuringGet.includes(gets)) tip++;
+    const txid = String(params[0]);
+    asked.push(txid);
+    const block = blocks[txid];
+    return block === undefined ? { txid } : { txid, confirmations: tip - block + 1 };
+  };
+  return { request, asked };
+}
+
 describe('checking many transactions', () => {
   it('asks once per txid, keeps at most the limit in flight, and reports confirmed, mempool and error', async () => {
     let inFlight = 0;
     let most = 0;
     const asked: string[] = [];
     const request = async (method: string, ...params: unknown[]): Promise<unknown> => {
+      if (method === 'blockchain.headers.get_tip') return { height: 1000 };
       expect(method).toBe('blockchain.transaction.get');
       expect(params[1]).toBe(true);
       const txid = String(params[0]);
@@ -52,12 +72,36 @@ describe('checking many transactions', () => {
       return txid === A ? { txid, confirmations: 10 } : { txid };
     };
     const seen = new Map<string, ChainCheck>();
-    await checkTransactions(request, 1000, [A, B, C, D, A], 2, (txid, check) => seen.set(txid, check));
+    await checkTransactions(request, [A, B, C, D, A], 2, 5, (txid, check) => seen.set(txid, check));
     expect(asked.sort()).toEqual([A, B, C, D].sort());
     expect(most).toBe(2);
     expect(seen.get(A)).toEqual({ kind: 'confirmed', height: 991 });
     expect(seen.get(B)).toEqual({ kind: 'mempool' });
     expect(seen.get(C)).toEqual({ kind: 'unknown' });
     expect(seen.get(D)).toEqual({ kind: 'error', reason: 'connection closed' });
+  });
+
+  it('is not one block short when a block arrives while the server answers', async () => {
+    // The first answer counts confirmations from tip 1001 although the tip read before it was 1000.
+    const { request, asked } = fakeChain(1000, { [A]: 991 }, [1]);
+    const seen = new Map<string, ChainCheck>();
+    await checkTransactions(request, [A], 1, 5, (txid, check) => seen.set(txid, check));
+    expect(seen.get(A)).toEqual({ kind: 'confirmed', height: 991 });
+    expect(asked).toEqual([A, A]);
+  });
+
+  it('reports a tip that keeps moving instead of a guessed block', async () => {
+    const { request } = fakeChain(1000, { [A]: 991 }, [1, 2, 3]);
+    const seen = new Map<string, ChainCheck>();
+    await checkTransactions(request, [A], 1, 3, (txid, check) => seen.set(txid, check));
+    expect(seen.get(A)).toEqual({ kind: 'error', reason: 'the chain tip kept moving, 3 reads' });
+  });
+
+  it('reports every transaction as not checked when the tip cannot be read', async () => {
+    const request = async (method: string): Promise<unknown> => (method === 'blockchain.headers.get_tip' ? null : { txid: A });
+    const seen = new Map<string, ChainCheck>();
+    await checkTransactions(request, [A, B], 2, 5, (txid, check) => seen.set(txid, check));
+    expect(seen.get(A)).toEqual({ kind: 'error', reason: 'no chain tip in the answer' });
+    expect(seen.get(B)).toEqual({ kind: 'error', reason: 'no chain tip in the answer' });
   });
 });

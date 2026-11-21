@@ -161,6 +161,7 @@ export async function checkOnChain(
   timeoutMs: number,
   txids: readonly string[],
   concurrency: number,
+  attempts: number,
   onResult: (txid: string, check: ChainCheck) => void,
 ): Promise<void> {
   if (txids.length === 0) return;
@@ -168,8 +169,7 @@ export async function checkOnChain(
   try {
     await socket.connect();
     await socket.request('server.version', 'tuai-web', '1.5');
-    const tip = await socket.request<{ height: number }>('blockchain.headers.get_tip');
-    await checkTransactions((method, ...params) => socket.request<unknown>(method, ...params), tip.height, txids, concurrency, onResult);
+    await checkTransactions((method, ...params) => socket.request<unknown>(method, ...params), txids, concurrency, attempts, onResult);
   } catch (e) {
     for (const txid of new Set(txids)) onResult(txid, { kind: 'error', reason: (e as Error).message });
   } finally {

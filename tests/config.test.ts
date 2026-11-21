@@ -39,6 +39,14 @@ describe('config/tuai.json', () => {
     }
   });
 
+  it('keeps the chain check re-reads inside 1..10', () => {
+    for (const n of [0, 11, 2.5]) {
+      const c = clone();
+      c.web.chainCheckAttempts = n;
+      expect(validateConfig(c).join()).toMatch(/web\.chainCheckAttempts/);
+    }
+  });
+
   it('keeps the wallet balance refresh inside 3..60 seconds', () => {
     for (const seconds of [2, 61, 4.5, 0]) {
       const c = clone();

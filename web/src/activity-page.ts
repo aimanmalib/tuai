@@ -18,6 +18,8 @@ export interface ActivityLimits {
   timeoutMs: number;
   /** Transactions asked about at the same time. */
   concurrency: number;
+  /** Times one transaction is read again when a block arrives while it is asked about. */
+  attempts: number;
 }
 
 /** Loads and renders the record, then reads the chain; each call replaces what the previous one drew. */
@@ -45,7 +47,7 @@ export async function showActivity(
   const seen = renderActivity(target, index, net.name, server, decimals);
   if (index.runs.length === 0) return;
   const check = (txids: string[]) =>
-    checkOnChain(net.wssUrl, limits.timeoutMs, txids, limits.concurrency, (txid, verdict) => showChainCheck(target, txid, verdict, server));
+    checkOnChain(net.wssUrl, limits.timeoutMs, txids, limits.concurrency, limits.attempts, (txid, verdict) => showChainCheck(target, txid, verdict, server));
   const recorded = check(pendingChecks(target));
   try {
     const histories = await readHistories(net.wssUrl, limits.timeoutMs, index.runs.map((r) => r.pool));

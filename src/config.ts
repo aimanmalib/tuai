@@ -96,6 +96,8 @@ export interface WebConfig {
   electrumTimeoutSeconds: number;
   /** Transactions the activity page asks Electrum about at the same time when it checks each one on chain. */
   chainCheckConcurrency: number;
+  /** Times the activity page reads one transaction again when a block arrives while it asks (1 to 10). */
+  chainCheckAttempts: number;
   /** Seconds between reads of the live numbers strip on the Home view (5 to 60). */
   statsRefreshSeconds: number;
   /** Seconds between reads of a connected wallet's balance chip (3 to 60). */
@@ -246,6 +248,7 @@ function validateWeb(c: TuaiConfig): string[] {
   }
   if (!isPositiveInt(w.electrumTimeoutSeconds)) out.push('web.electrumTimeoutSeconds must be > 0');
   if (!isPositiveInt(w.chainCheckConcurrency) || w.chainCheckConcurrency > 16) out.push('web.chainCheckConcurrency must be 1..16');
+  if (!isPositiveInt(w.chainCheckAttempts) || w.chainCheckAttempts > 10) out.push('web.chainCheckAttempts must be 1..10');
   if (!isPositiveInt(w.statsRefreshSeconds) || w.statsRefreshSeconds < 5 || w.statsRefreshSeconds > 60) out.push('web.statsRefreshSeconds must be 5..60');
   const wb = w.walletBalanceRefreshSeconds;
   if (!isPositiveInt(wb) || wb < 3 || wb > 60) out.push('web.walletBalanceRefreshSeconds must be 3..60');

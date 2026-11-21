@@ -314,7 +314,7 @@ function route(): void {
     renderNetworkSwitch(key);
     const net = networkConfig(key);
     const target = { key, name: t(`network.${key}`), wssUrl: net.electrum.wssUrl, explorers: explorersOf(net) };
-    const limits = { timeoutMs: web.electrumTimeoutSeconds * 1000, concurrency: web.chainCheckConcurrency };
+    const limits = { timeoutMs: web.electrumTimeoutSeconds * 1000, concurrency: web.chainCheckConcurrency, attempts: web.chainCheckAttempts };
     void showActivity(byId('activity'), byId('activity-status'), web.epochsPath, target, limits, config.rewards.decimals);
   }
 }

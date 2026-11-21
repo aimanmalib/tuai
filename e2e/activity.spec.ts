@@ -162,10 +162,15 @@ test('fits a 320 px screen with the activity list scrolled to the end', async ({
   expect(errors).toEqual([]);
 });
 
-// Mainnet runs, read from the repository like the chipnet ones above.
+// Mainnet runs, read from the repository like the chipnet ones above, with the wallet claims recorded beside them.
 const mainnetRuns = readdirSync('deployments')
   .filter((r) => existsSync(`deployments/${r}/transactions.json`))
-  .map((r) => JSON.parse(readFileSync(`deployments/${r}/transactions.json`, 'utf8')) as { network: string; transactions: Tx[] })
+  .map((r) => {
+    const record = JSON.parse(readFileSync(`deployments/${r}/transactions.json`, 'utf8')) as { network: string; transactions: Tx[] };
+    const wallet = `deployments/${r}/wallet-claims.json`;
+    const claims = existsSync(wallet) ? (JSON.parse(readFileSync(wallet, 'utf8')) as { claims: Tx[] }).claims : [];
+    return { network: record.network, transactions: [...record.transactions, ...claims] };
+  })
   .filter((r) => r.network === 'mainnet');
 
 test('switches the record between networks from the activity page', async ({ page }) => {

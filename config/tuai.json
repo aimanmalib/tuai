@@ -148,6 +148,7 @@
     "defaultNetwork": "chipnet",
     "electrumTimeoutSeconds": 20,
     "chainCheckConcurrency": 4,
+    "chainCheckAttempts": 5,
     "statsRefreshSeconds": 15,
     "walletBalanceRefreshSeconds": 10,
     "epochsPath": "/epochs",

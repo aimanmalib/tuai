@@ -33,20 +33,38 @@ export function readFailure(e: unknown): ChainCheck {
   return NOT_FOUND.test(message) ? { kind: 'unknown' } : { kind: 'error', reason: message.slice(0, 160) };
 }
 
-/** Asks about every txid, at most `concurrency` at a time, reporting each verdict as it arrives. */
+/**
+ * Asks about every txid, at most `concurrency` at a time, reporting each verdict as it arrives. A verbose answer gives
+ * confirmations, not a block, so the tip is read before and after each answer and the pair is read again when a block
+ * arrived in between; otherwise the block shown would be one too low.
+ */
 export async function checkTransactions(
   request: ElectrumRequest,
-  tip: number,
   txids: readonly string[],
   concurrency: number,
+  attempts: number,
   onResult: (txid: string, check: ChainCheck) => void,
 ): Promise<void> {
+  const tip = async (): Promise<number> => {
+    const answer = (await request('blockchain.headers.get_tip')) as { height?: unknown } | null;
+    if (typeof answer?.height !== 'number') throw new Error('no chain tip in the answer');
+    return answer.height;
+  };
+  const one = async (txid: string): Promise<ChainCheck> => {
+    for (let i = 0; i < attempts; i++) {
+      const before = await tip();
+      const answer = await request('blockchain.transaction.get', txid, true);
+      const after = await tip();
+      if (before === after) return readVerdict(txid, after, answer);
+    }
+    return { kind: 'error', reason: `the chain tip kept moving, ${attempts} reads` };
+  };
   const queue = [...new Set(txids)];
   const worker = async (): Promise<void> => {
     for (let txid = queue.shift(); txid !== undefined; txid = queue.shift()) {
       let check: ChainCheck;
       try {
-        check = readVerdict(txid, tip, await request('blockchain.transaction.get', txid, true));
+        check = await one(txid);
       } catch (e) {
         check = readFailure(e);
       }
