@@ -325,7 +325,9 @@
       "block": "blok {height}",
       "unmined": "belum dalam blok semasa direkodkan",
       "note": "Kontrak yang sama seperti di chipnet, membayar token ujian yang dibuat untuk demo ini, bukan token ganjaran sebenar.",
-      "activity": "Lihat setiap transaksi mainnet"
+      "activity": "Lihat setiap transaksi mainnet",
+      "folders": "peserta Folding@home sebenar dalam pokok epoch {epoch}, {legacy} daripadanya dibayar ke alamat BTC lama, dibaca daripada fail agihan yang diterbitkan penaja",
+      "foldersFailed": "Bilangan peserta epoch mainnet terbaharu tidak tersedia ({reason})."
     },
     "video": {
       "heading": "Video demo",

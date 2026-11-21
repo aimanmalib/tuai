@@ -3,6 +3,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { syntheticAddress } from './wallet-stub.ts';
+import { servedFolders } from './served-folders.ts';
 
 const walletCfg = (JSON.parse(readFileSync('config/tuai.json', 'utf8')) as {
   relay: { wallet: { preparePath: string; maxAddresses: number } };
@@ -162,6 +163,14 @@ test('the mainnet activity page lists the served mainnet record and checks the c
   const badge = page.locator(`.chain-check[data-txid="${claim!.txid}"]`).first();
   await expect(badge).toHaveAttribute('data-chain', 'confirmed', { timeout: 60_000 });
   await expect(badge).toHaveText(new RegExp(`^Confirmed on chain, block ${claim!.height} \\(checked by this page via \\S+\\)$`));
+  // A claim a third-party wallet signed on the page is listed and checked the same way.
+  const walletClaims = txs.filter((t) => t.step === 'claim-wallet' && t.txid !== null);
+  expect(walletClaims.length, 'a wallet claim in the served mainnet record').toBeGreaterThan(0);
+  for (const w of walletClaims) {
+    const wb = page.locator(`.chain-check[data-txid="${w.txid}"]`).first();
+    await expect(wb).toHaveAttribute('data-chain', 'confirmed', { timeout: 60_000 });
+    if (w.height !== null) await expect(wb).toContainText(`block ${w.height}`);
+  }
   const o = await page.evaluate(() => ({ s: document.documentElement.scrollWidth, c: document.documentElement.clientWidth }));
   expect(o.s).toBeLessThanOrEqual(o.c);
   if (process.env.SCREENSHOT_DIR) {
@@ -222,11 +231,17 @@ test('the home page mainnet card counts the claims in the served mainnet record 
   await expect(page.locator('#mainnet-count .mainnet-number')).toHaveText(String(claims.length), { timeout: 30_000 });
   const shown = (await page.locator('#mainnet-latest code').getAttribute('title')) ?? '';
   expect(claims.filter((t) => t.height === newest.height).map((t) => t.txid)).toContain(shown);
+  const want = await servedFolders(page, '/epochs');
+  expect(want.legacy).toBeGreaterThan(0);
+  await expect(page.locator('#mainnet-folders')).toContainText(
+    `${want.folders} real Folding@home folders in the epoch ${want.epoch} tree, ${want.legacy} of them paid at a legacy BTC address`,
+    { timeout: 30_000 },
+  );
   const o = await page.evaluate(() => ({ s: document.documentElement.scrollWidth, c: document.documentElement.clientWidth }));
   expect(o.s).toBeLessThanOrEqual(o.c);
   if (process.env.SCREENSHOT_DIR) {
     await page.locator('#mainnet').scrollIntoViewIfNeeded();
-    await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-p5d2-mainnet-${test.info().project.name}.png` });
+    await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-p8d2-mainnet-${test.info().project.name}.png` });
   }
 });
 

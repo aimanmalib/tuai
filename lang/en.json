@@ -325,7 +325,9 @@
       "block": "block {height}",
       "unmined": "not in a block when recorded",
       "note": "The same contracts as on chipnet, paying a test token made for this demo, not a real reward token.",
-      "activity": "See every mainnet transaction"
+      "activity": "See every mainnet transaction",
+      "folders": "real Folding@home folders in the epoch {epoch} tree, {legacy} of them paid at a legacy BTC address, read from the sponsor's published distribution files",
+      "foldersFailed": "The folder count of the newest mainnet epoch is not available ({reason})."
     },
     "video": {
       "heading": "Demo video",

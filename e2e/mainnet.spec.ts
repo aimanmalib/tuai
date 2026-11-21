@@ -3,6 +3,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { config, fakeElectrum } from './fake-electrum.ts';
+import { servedFolders } from './served-folders.ts';
 
 const full = config as unknown as {
   relay: { statusPath: string };
@@ -77,6 +78,11 @@ test('reads the committed mainnet record and opens the mainnet activity view', a
   await expect(page.locator('#mainnet-count')).toHaveText(/^[1-9]\d* claims accepted on mainnet, \d+ refused$/);
   await expect(page.locator('#mainnet-latest code')).toHaveAttribute('title', /^[0-9a-f]{64}$/);
   await expect(page.locator('#mainnet-latest a')).toHaveCount(full.networks.mainnet.explorers.length);
+  const want = await servedFolders(page, full.web.epochsPath);
+  await expect(page.locator('#mainnet-folders')).toHaveText(
+    `${want.folders} real Folding@home folders in the epoch ${want.epoch} tree, ${want.legacy} of them paid at a legacy BTC address, read from the sponsor's published distribution files`,
+    { timeout: 30_000 },
+  );
   await page.locator('#mainnet-activity').click();
   await expect(page).toHaveURL(/#\/activity\/mainnet$/);
   await expect(page.locator('#view-activity')).toBeVisible();
@@ -103,6 +109,7 @@ test('Bahasa Melayu at 320 px, after scrolling: translated card and no sideways 
   await expect(page.locator('#mainnet-heading')).toHaveText('Juga di mainnet (token ujian)');
   await expect(page.locator('#mainnet-count')).toHaveText('3 tuntutan diterima di mainnet, 1 ditolak');
   await expect(page.locator('#mainnet-activity')).toHaveText('Lihat setiap transaksi mainnet');
+  await expect(page.locator('#mainnet-folders')).toHaveText(/^\d+ peserta Folding@home sebenar dalam pokok epoch \d+, \d+ daripadanya dibayar ke alamat BTC lama/, { timeout: 30_000 });
   if (process.env.SCREENSHOT_DIR) {
     await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-p5d-mainnet-ms-320-${test.info().project.name}.png` });
   }

@@ -6,6 +6,7 @@ import { getJson } from './fetch-json.ts';
 import { mainnetSummary, shortTxid, type MainnetSummary } from './mainnet.ts';
 import type { ActivityIndex } from './activity.ts';
 import type { Explorer } from '../../src/explorers.ts';
+import { distroInputFiles, realFolders, type EpochFolders, type EpochForFolders } from './folders.ts';
 
 export interface MainnetCard {
   /** Draws the last answer again, for a language switch. */
@@ -16,6 +17,34 @@ export interface MainnetCard {
 export const MAINNET_ACTIVITY_HASH = '#/activity/mainnet';
 
 type Answer = { ok: true; summary: MainnetSummary } | { ok: false; reason: string };
+type FoldersAnswer = { ok: true; folders: EpochFolders } | { ok: false; reason: string };
+
+/** Reads the newest mainnet epoch and the distribution responses its manifest names, then counts the real folders. */
+async function readFolders(base: string): Promise<EpochFolders> {
+  const { epochs } = await getJson<{ epochs: number[] }>(`${base}/index.json`);
+  if (epochs.length === 0) throw new Error('no epoch is served');
+  const epoch = await getJson<EpochForFolders>(`${base}/epoch-${Math.max(...epochs)}.json`);
+  const responses = await Promise.all(distroInputFiles(epoch).map((f) => getJson<unknown>(`${base}/${f}`)));
+  return realFolders(epoch, responses);
+}
+
+function drawFolders(p: HTMLElement, answer: FoldersAnswer | undefined, locale: string): void {
+  if (answer === undefined) {
+    p.textContent = '';
+    return;
+  }
+  if (!answer.ok) {
+    p.textContent = t('mainnet.foldersFailed', { reason: answer.reason });
+    return;
+  }
+  const n = new Intl.NumberFormat(locale);
+  const f = answer.folders;
+  p.replaceChildren(
+    el('strong', { class: 'mainnet-number' }, n.format(f.folders)),
+    ' ',
+    t('mainnet.folders', { epoch: n.format(f.epoch), legacy: n.format(f.legacy) }),
+  );
+}
 
 function draw(root: HTMLElement, answer: Answer | undefined, locale: string): void {
   const count = root.querySelector<HTMLElement>('#mainnet-count')!;
@@ -50,6 +79,8 @@ function draw(root: HTMLElement, answer: Answer | undefined, locale: string): vo
 /** Shows the card and reads the mainnet record; `explorers` are the configured mainnet explorers. */
 export function startMainnetCard(root: HTMLElement, epochsPath: string, explorers: readonly Explorer[], locale: () => string): MainnetCard {
   let answer: Answer | undefined;
+  let folders: FoldersAnswer | undefined;
+  const foldersLine = root.querySelector<HTMLElement>('#mainnet-folders')!;
   root.querySelector<HTMLAnchorElement>('#mainnet-activity')!.href = MAINNET_ACTIVITY_HASH;
   root.hidden = false;
   draw(root, answer, locale());
@@ -57,5 +88,15 @@ export function startMainnetCard(root: HTMLElement, epochsPath: string, explorer
     (index) => void (answer = { ok: true, summary: mainnetSummary(index, explorers) }),
     (e: unknown) => void (answer = { ok: false, reason: e instanceof Error ? e.message : String(e) }),
   ).finally(() => draw(root, answer, locale()));
-  return { redraw: () => draw(root, answer, locale()) };
+  drawFolders(foldersLine, folders, locale());
+  readFolders(`${epochsPath}/mainnet`).then(
+    (f) => void (folders = { ok: true, folders: f }),
+    (e: unknown) => void (folders = { ok: false, reason: e instanceof Error ? e.message : String(e) }),
+  ).finally(() => drawFolders(foldersLine, folders, locale()));
+  return {
+    redraw: () => {
+      draw(root, answer, locale());
+      drawFolders(foldersLine, folders, locale());
+    },
+  };
 }
