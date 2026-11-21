@@ -6,7 +6,7 @@ import { binToHex, decodeTransaction, encodeTransaction, hexToBin } from '@bitau
 import { randomUtxo } from 'cashscript';
 import { validateWallet } from '../src/relay/config.ts';
 import { createPrepare, parsePrepareBody, type PrepareDeps } from '../src/relay/prepare.ts';
-import { checkPrepared, type CheckContext, type PreparedJson, type WalletAddress } from '../web/src/wallet-check.ts';
+import { checkPrepared, wireSignRequest, type CheckContext, type PreparedJson, type WalletAddress, type WalletSignRequest } from '../web/src/wallet-check.ts';
 import { fakeWallet } from './helpers/fake-wallet.ts';
 import { alice, bob, config, epochFile, mallory, relayer, setup, tokensAt, type Setup } from './helpers/relay-fixture.ts';
 
@@ -80,6 +80,27 @@ describe('wallet claims', () => {
     expect(relayAfter).toBe(relayBefore);
     const again = await prepare(body(alice.address));
     expect(again.body.code).toBe('nothingToClaim');
+  });
+
+  it('the sign request survives the trip as JSON text and a wallet reading extended JSON back signs a valid claim', async () => {
+    // WizardConnect sends each message with plain JSON.stringify; bigint and bytes must already be text by then.
+    const { s, prepare } = await world();
+    const r = await prepare(body(alice.address));
+    const checked = checkPrepared(r.body as unknown as PreparedJson, context(s, alice.lockingBytecode, 100n));
+    if ('refused' in checked) throw new Error(checked.refused);
+    const text = JSON.stringify({ action: 'sign_transaction_request', transaction: wireSignRequest(checked.request), inputPaths: checked.inputPaths });
+    expect(text).toMatch(/"<bigint: \d+n>"/);
+    expect(text).toMatch(/"<Uint8Array: 0x[0-9a-f]*>"/);
+    const read = JSON.parse(text, (_k, v: unknown) => {
+      if (typeof v !== 'string') return v;
+      const big = /^<bigint: (\d+)n>$/.exec(v);
+      if (big?.[1] !== undefined) return BigInt(big[1]);
+      const bytes = /^<Uint8Array: 0x([0-9a-f]*)>$/.exec(v);
+      return bytes?.[1] !== undefined ? hexToBin(bytes[1]) : v;
+    }) as { transaction: WalletSignRequest };
+    expect(read.transaction).toEqual(checked.request);
+    await s.f.provider.sendRawTransaction(wallet.sign(read.transaction, checked.inputPaths));
+    expect(await tokensAt(s.f, alice.address)).toBe(100n);
   });
 
   it('a signature from the wrong key is refused by the network', async () => {

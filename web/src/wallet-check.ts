@@ -2,7 +2,7 @@
 // the wallet sees it. The relay is not trusted: every input must be a pool contract or one of the wallet's own
 // addresses, every output must be one a claim may create, the leaf must get exactly what it may claim, and the
 // wallet may lose at most the configured fee and dust. Pure: no DOM, no network.
-import { binToHex, decodeTransaction, hexToBin, isHex, type Input, type Output, type TransactionCommon } from '@bitauth/libauth';
+import { binToHex, decodeTransaction, hexToBin, isHex, stringify, type Input, type Output, type TransactionCommon } from '@bitauth/libauth';
 import type { Output as PlannedOutput } from 'cashscript';
 import { checkClaimOutputs } from '../../src/relay/guard.ts';
 
@@ -127,3 +127,10 @@ export function checkPrepared(p: PreparedJson, c: CheckContext): CheckedClaim | 
   if (spendSats > c.maxSpendSats) return { refused: `the wallet would pay ${spendSats} satoshis, more than ${c.maxSpendSats}` };
   return { request: { transaction: tx, sourceOutputs: sources, broadcast: true, userPrompt: c.userPrompt }, inputPaths, spendSats };
 }
+
+/**
+ * The sign request as it travels: WizardConnect sends messages with plain `JSON.stringify`, which cannot carry
+ * bigint or bytes. BCH WalletConnect requests use libauth's extended JSON for those (`<bigint: 1n>`,
+ * `<Uint8Array: 0x..>`), and wallets read that form back.
+ */
+export const wireSignRequest = (r: WalletSignRequest): unknown => JSON.parse(stringify(r)) as unknown;

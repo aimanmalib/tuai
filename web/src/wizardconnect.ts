@@ -4,7 +4,7 @@
 import { hash160, lockingBytecodeToCashAddress, type CashAddressNetworkPrefix } from '@bitauth/libauth';
 import { initiateDappRelay } from '@wizardconnect/core';
 import { DappConnectionManager } from '@wizardconnect/dapp';
-import type { WalletAddress, WalletSignRequest } from './wallet-check.ts';
+import { wireSignRequest, type WalletAddress, type WalletSignRequest } from './wallet-check.ts';
 
 export interface WalletSession {
   /** Receive and change addresses 0..count-1, in that order. */
@@ -60,7 +60,7 @@ export function connectWallet(o: { dappName: string; relayUrls: string[]; onUri:
           return out;
         },
         async sign(request, inputPaths, signal) {
-          const r = await mgr.signTransaction({ transaction: request, inputPaths }, { signal });
+          const r = await mgr.signTransaction({ transaction: wireSignRequest(request) as typeof request, inputPaths }, { signal });
           if (r.error) throw new Error(r.error);
           return r.signedTransaction;
         },
