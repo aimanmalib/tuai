@@ -3,6 +3,7 @@
  * its config section, the .env value it keeps the wallet's phrase in, the log filter that keeps the phrase and the
  * WizardConnect pairing link out of every line it prints, and the record of claims the wallet signed.
  */
+import { binToHex, cashAddressToLockingBytecode } from '@bitauth/libauth';
 
 /** `thirdPartyWallet` in config/tuai.json. */
 export interface ThirdPartyWalletConfig {
@@ -132,9 +133,18 @@ export function formatWalletClaims(r: WalletClaimsRecord): string {
   return `${JSON.stringify(r, null, 2)}\n`;
 }
 
-/** Index of `address` among an epoch's leaves; throws when it is not a leaf. */
+const scriptOf = (address: string): string | undefined => {
+  const r = cashAddressToLockingBytecode(address);
+  return typeof r === 'string' ? undefined : binToHex(r.bytecode);
+};
+
+/**
+ * Index of `address` among an epoch's leaves; throws when it is not a leaf. Compared by locking script, so the plain
+ * address the wallet shows finds its leaf when the epoch lists the token-aware form of the same key.
+ */
 export function leafIndexOf(leaves: readonly { address?: string }[], address: string): number {
-  const i = leaves.findIndex((l) => l.address === address);
+  const want = scriptOf(address);
+  const i = want === undefined ? -1 : leaves.findIndex((l) => l.address !== undefined && scriptOf(l.address) === want);
   if (i < 0) throw new Error(`${address} is not a leaf of the newest epoch`);
   return i;
 }

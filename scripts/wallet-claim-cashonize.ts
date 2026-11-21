@@ -7,6 +7,7 @@
  *   npx tsx scripts/wallet-claim-cashonize.ts --cashonize <dir> --dry [--leaf A]  pair with the page and stop before any Sign
  *   npx tsx scripts/wallet-claim-cashonize.ts --cashonize <dir> [--leaf A]        claim leaf A (default: the wallet's own address)
  *   npx tsx scripts/wallet-claim-cashonize.ts --refresh                           fill in block heights of recorded claims
+ *   npx tsx scripts/wallet-claim-cashonize.ts --record <txid> [--leaf A]          record a claim the wallet already signed
  * Options: --site <url> (default project.siteUrl). Settings: `thirdPartyWallet` in config/tuai.json.
  *
  * <dir> is a Cashonize build: clone https://github.com/cashonize/cashonize-wallet, check out the tag of
@@ -34,7 +35,7 @@ const config = loadConfig();
 const w = config.thirdPartyWallet;
 const { values } = parseArgs({
   options: {
-    cashonize: { type: 'string' }, site: { type: 'string' }, leaf: { type: 'string' },
+    cashonize: { type: 'string' }, site: { type: 'string' }, leaf: { type: 'string' }, record: { type: 'string' },
     'address-only': { type: 'boolean', default: false }, dry: { type: 'boolean', default: false }, refresh: { type: 'boolean', default: false },
   },
 });
@@ -60,6 +61,13 @@ if (values.refresh) {
     log(`${c.txid} height ${String(r.claims.find((x) => x.txid === c.txid)?.height)}`);
   }
   writeFileSync(RECORD, formatWalletClaims(r));
+  process.exit(0);
+}
+
+if (values.record) {
+  // The wallet's own address as read from its screen by an earlier run, unless --leaf names another leaf.
+  const leaf = values.leaf ?? readFileSync(join(OUT, 'address.txt'), 'utf8').trim();
+  await recordClaim(values.record, leaf);
   process.exit(0);
 }
 
@@ -176,13 +184,8 @@ try {
       const txid = (await site.locator('#relay-txid').innerText()).trim();
       await site.waitForTimeout(1_500);
       await site.screenshot({ path: join(OUT, 'wallet-cashonize-claimed.png'), fullPage: true });
-      const epoch = newestEpoch();
-      const leafIndex = leafIndexOf((JSON.parse(readFileSync(epoch, 'utf8')) as { leaves: { address?: string }[] }).leaves, leaf);
-      const record = addWalletClaim(readRecord(), { txid, wallet: `${w.name} v${w.version}`, commit: w.commit, leafIndex,
-        address: leaf, height: await heightOf(txid).catch(() => null), at: new Date().toISOString().replace(/\.\d{3}Z$/, '.000Z') });
-      mkdirSync(resolve(RECORD, '..'), { recursive: true });
-      writeFileSync(RECORD, formatWalletClaims(record));
-      log(`claimed: ${txid} (leaf ${leafIndex}); recorded in ${w.recordPath}`);
+      log(`claimed: ${txid}`);
+      await recordClaim(txid, leaf);
     }
   }
 } finally {
@@ -190,6 +193,17 @@ try {
   server.close();
 }
 process.exit(0);
+
+/** Adds a claim to the record: the leaf index comes from the newest epoch file, the height from Electrum. */
+async function recordClaim(txid: string, leaf: string): Promise<void> {
+  const epoch = newestEpoch();
+  const leafIndex = leafIndexOf((JSON.parse(readFileSync(epoch, 'utf8')) as { leaves: { address?: string }[] }).leaves, leaf);
+  const record = addWalletClaim(readRecord(), { txid, wallet: `${w.name} v${w.version}`, commit: w.commit, leafIndex,
+    address: leaf, height: await heightOf(txid).catch(() => null), at: new Date().toISOString().replace(/\.\d{3}Z$/, '.000Z') });
+  mkdirSync(resolve(RECORD, '..'), { recursive: true });
+  writeFileSync(RECORD, formatWalletClaims(record));
+  log(`${txid} (leaf ${leafIndex}) recorded in ${w.recordPath}`);
+}
 
 function newestEpoch(): string {
   const dir = resolve(RECORD, '..');

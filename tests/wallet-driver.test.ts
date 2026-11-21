@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { decodeCashAddress, encodeCashAddress } from '@bitauth/libauth';
 import { loadConfig } from '../src/config.ts';
 import {
   addWalletClaim, firstChipnetAddress, leafIndexOf, parseWalletClaims, readEnvValue, redact, validateThirdPartyWallet, withEnvValue,
@@ -8,7 +9,7 @@ import {
 // The public BIP39 test phrase; never a real wallet's.
 const NAME = 'TUAI_W3_MNEMONIC';
 const PHRASE = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
-const ADDR = 'bchtest:qr7fzmep8g7h7ymfxy74lgc0v950j3r2959lhtxxsl';
+const ADDR = encodeCashAddress({ prefix: 'bchtest', type: 'p2pkh', payload: new Uint8Array(20).fill(0x11) }).address;
 const claim = (o: Partial<WalletClaim> = {}): WalletClaim => ({
   txid: 'ab'.repeat(32), wallet: 'Cashonize v0.15.2', commit: 'c0'.repeat(20), leafIndex: 7, address: ADDR, height: null,
   at: '2026-11-20T15:00:00.000Z', ...o,
@@ -67,6 +68,16 @@ describe('wallet claims record', () => {
   it('finds the leaf index of the claimed address', () => {
     expect(leafIndexOf([{ address: 'bchtest:x' }, { address: ADDR }], ADDR)).toBe(1);
     expect(() => leafIndexOf([{ address: 'bchtest:x' }], ADDR)).toThrow(/not a leaf/);
+  });
+
+  it('finds the leaf when the epoch lists the token-aware form of the address the wallet shows', () => {
+    const d = decodeCashAddress(ADDR);
+    if (typeof d === 'string') throw new Error(d);
+    const tokenForm = encodeCashAddress({ prefix: d.prefix, type: 'p2pkhWithTokens', payload: d.payload }).address;
+    expect(tokenForm.startsWith('bchtest:z')).toBe(true);
+    expect(leafIndexOf([{ address: 'bchtest:x' }, {}, { address: tokenForm }], ADDR)).toBe(2);
+    const other = encodeCashAddress({ prefix: d.prefix, type: 'p2pkhWithTokens', payload: d.payload.map((b, i) => (i === 0 ? b ^ 1 : b)) }).address;
+    expect(() => leafIndexOf([{ address: other }], ADDR)).toThrow(/not a leaf/);
   });
 });
 
