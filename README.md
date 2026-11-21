@@ -10,6 +10,8 @@ Built in Malaysia by <a href="https://aimanmalib.com">Aiman Malib</a> · <a href
 
 Entry for **BCH BLAZE 2026**, bounty "Trust-minimized, pull-based reward claims for FoldingCash".
 
+Prize and EMBER2026 vote address of this entry: `bitcoincash:zzt32y8sj747d3404k942z38wpfq9e4nagteq6h7yk`.
+
 New project, first commit after the 14 November start: the first commit of this repository is <https://github.com/aimanmalib/tuai/commit/d99169c7796262077826e106bf1e017ea30b005a> (17 November 2026, 11:36 UTC).
 
 ![The claim page: push next to pull with the cost of each, the Try a demo address button and the live numbers read from chipnet](docs/img/home.png)

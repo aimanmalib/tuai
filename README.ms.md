@@ -14,6 +14,7 @@ Inggeris dan `docs/`; jika kedua-duanya berbeza, versi Inggeris yang terpakai.
 Entri **BCH BLAZE 2026**, ganjaran "Trust-minimized, pull-based reward claims for FoldingCash". Projek baharu: komit
 pertama repositori ini dibuat pada 17 November 2026, selepas acara bermula pada 14 November
 ([komit pertama](https://github.com/aimanmalib/tuai/commit/d99169c7796262077826e106bf1e017ea30b005a)).
+Alamat hadiah dan undian EMBER2026 entri ini: `bitcoincash:zzt32y8sj747d3404k942z38wpfq9e4nagteq6h7yk`.
 
 ![Halaman tuntutan: tolak di sebelah tarik dengan kos masing-masing, butang Try a demo address dan angka hidup dari chipnet](docs/img/home.png)
 
