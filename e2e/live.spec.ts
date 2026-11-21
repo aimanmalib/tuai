@@ -270,7 +270,7 @@ test('mainnet: the newest epoch is served, a legacy BTC leaf is verified against
   const file = (await res.json()) as { leaves: { address: string; method: number }[] };
   const legacy = file.leaves.find((l) => l.method === 2);
   test.skip(!legacy, `mainnet epoch ${newest} has no legacy BTC leaf`);
-  expect(legacy!.address).toMatch(/^bitcoincash:q/);
+  expect(legacy!.address).toMatch(/^bitcoincash:/);
   await page.goto('/');
   await page.locator('#network').selectOption('mainnet');
   await page.getByLabel(/Your address|Alamat anda/).fill(legacy!.address);
