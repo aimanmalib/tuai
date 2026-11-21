@@ -1,3 +1,4 @@
+import { decodeCashAddress } from '@bitauth/libauth';
 import { describe, expect, it } from 'vitest';
 import { loadConfig, validateConfig, type TuaiConfig } from '../src/config.ts';
 import { flatKeys, loadMessages, t } from '../src/i18n.ts';
@@ -7,6 +8,14 @@ const clone = (): TuaiConfig => structuredClone(loadConfig());
 describe('config/tuai.json', () => {
   it('loads and validates', () => {
     expect(validateConfig(loadConfig())).toEqual([]);
+  });
+
+  it('gives the banner prizeAddress as a valid mainnet token-aware cashaddr', () => {
+    // The prize and vote address of this entry: a checksum or type typo must fail here, not on the live banner.
+    const decoded = decodeCashAddress(loadConfig().banner.prizeAddress);
+    if (typeof decoded === 'string') throw new Error(`banner.prizeAddress: ${decoded}`);
+    expect(decoded.prefix).toBe('bitcoincash');
+    expect(decoded.type).toBe('p2pkhWithTokens');
   });
 
   it('defines every network with a delay', () => {

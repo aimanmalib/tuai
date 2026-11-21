@@ -6,7 +6,7 @@ import { config, fakeElectrum } from './fake-electrum.ts';
 
 const full = config as unknown as {
   relay: { statusPath: string };
-  banner: { deckUrl: string; repoUrl: string; firstCommit: string };
+  banner: { deckUrl: string; repoUrl: string; firstCommit: string; prizeAddress: string };
 };
 const { banner } = full;
 
@@ -42,6 +42,7 @@ test('links the slides served by this site, the source and the first commit', as
   expect((await pdf.body()).subarray(0, 5).toString()).toBe('%PDF-');
 
   await expect(page.locator('#banner-repo')).toHaveAttribute('href', banner.repoUrl);
+  await expect(page.locator('#banner-prize')).toHaveText(banner.prizeAddress);
   const note = page.locator('#banner-note');
   await expect(note).toBeVisible();
   await expect(note).toHaveText('New project, first commit after the 14 November start');
@@ -49,7 +50,7 @@ test('links the slides served by this site, the source and the first commit', as
   await expect(note).toHaveAttribute('title', new RegExp(banner.firstCommit.slice(0, 7)));
   await noSidewaysScroll(page);
   if (process.env.SCREENSHOT_DIR) {
-    await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-p5e-banner-${test.info().project.name}.png` });
+    await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/tuai-a1-banner-${test.info().project.name}.png` });
   }
   const axe = await new AxeBuilder({ page }).include('.banner').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
   expect(axe.violations.map((v) => `${v.id}: ${v.nodes.length}`)).toEqual([]);
@@ -62,6 +63,7 @@ test('Bahasa Melayu at 320 px, after scrolling: translated links and the banner 
   await page.goto('/');
   await page.locator('#lang').click();
   await expect(page.locator('#banner-deck')).toHaveText('Slaid');
+  await expect(page.locator('#banner-prize')).toHaveText(banner.prizeAddress);
   await expect(page.locator('#banner-note')).toHaveText('Projek baharu, komit pertama selepas permulaan 14 November');
   await page.evaluate(() => window.scrollTo(0, 900));
   await page.evaluate(() => window.scrollTo(0, 0));

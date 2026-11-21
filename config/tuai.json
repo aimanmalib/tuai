@@ -98,7 +98,7 @@
   "banner": {
     "event": "BCH BLAZE 2026",
     "bounty": "Trust-minimized, pull-based reward claims for FoldingCash",
-    "prizeAddress": "bitcoincash:zplrydnf2z4pj4z9rv7uhmwsuxyrm8hj7uken87e7q",
+    "prizeAddress": "bitcoincash:zzt32y8sj747d3404k942z38wpfq9e4nagteq6h7yk",
     "deckUrl": "/deck/tuai-blaze-2026.pdf",
     "repoUrl": "https://github.com/aimanmalib/tuai",
     "firstCommit": "d99169c7796262077826e106bf1e017ea30b005a",
