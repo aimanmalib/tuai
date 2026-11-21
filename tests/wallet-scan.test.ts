@@ -59,7 +59,7 @@ describe('wallet address scan', () => {
     expect(W.maxAddresses).toBeGreaterThanOrEqual(2);
     // The old fixed count of addresses is gone: these are all the wallet settings.
     expect(Object.keys(W).sort()).toEqual(
-      ['enabled', 'gapLimit', 'maxAddresses', 'maxAddressesPerScan', 'maxBodyBytes', 'maxPreparesPerHour', 'maxSpendSats', 'preparePath', 'reconnectGraceSeconds', 'livenessSeconds', 'relayUrls'].sort(),
+      ['enabled', 'networks', 'deployments', 'gapLimit', 'maxAddresses', 'maxAddressesPerScan', 'maxBodyBytes', 'maxPreparesPerHour', 'maxSpendSats', 'preparePath', 'reconnectGraceSeconds', 'livenessSeconds', 'relayUrls'].sort(),
     );
   });
 
