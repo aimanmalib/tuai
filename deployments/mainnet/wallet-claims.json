@@ -1,0 +1,16 @@
+{
+  "network": "mainnet",
+  "claims": [
+    {
+      "txid": "943d2b0514ae56e0b134fa4a520eaefe6e075e64b552a9c3e3e8a8e3a554af91",
+      "wallet": "Cashonize v0.15.2",
+      "commit": "4542351748dc412763a4e50c04451735fc8cf038",
+      "leafIndex": 251,
+      "address": "bitcoincash:qz8z4h46lz7kpfr6hqlvzn8usv5fkur29yxh9sw8sd",
+      "height": 978377,
+      "bytes": 1952,
+      "feeSats": 1952,
+      "at": "2026-11-21T22:19:41.000Z"
+    }
+  ]
+}

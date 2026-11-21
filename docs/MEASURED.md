@@ -448,6 +448,51 @@ The live claim page after the wallet signed: the connected wallet holds 1,000 te
 claim in epoch 3, and the claim transaction `96bfbbc12ad9f9df4c027292531965702b378f6d1509e0d6b9df233d150c5eff` is
 shown (Chromium, captured 2026-11-21 04:31 UTC; the two parts of the page are joined).
 
+## Claim from a third-party wallet (mainnet)
+
+The same Cashonize v0.15.2 build (commit `4542351748dc412763a4e50c04451735fc8cf038`) and phrase, set to mainnet,
+paired with the live claim page over WizardConnect and claimed its own leaf of the mainnet epoch 2 (built from the
+sponsor's real distributions, "Real distribution epoch (mainnet)"). The reward is the project's test token, with no
+value, not FLDCH. The page prepared the claim on the mainnet route, checked it itself and asked the wallet to sign; the
+wallet paid the fee from its own coins. Record: `deployments/mainnet/wallet-claims.json`.
+
+- Wallet funding: 8,000 sat from the project's mainnet payer, txid
+  `afad4c3193e8617ade6263f7a9ae3d85bb1c1dcc2801287ed37d6419e0e5ca00` (219 bytes, fee 219 sat, block 978376), sent
+  2026-11-21 21:52:42 UTC to `bitcoincash:qz8z4h46lz7kpfr6hqlvzn8usv5fkur29yxh9sw8sd` as Cashonize showed it, and
+  added to the mainnet spending ledger as kind `fund-wallet`.
+- Claim: txid `943d2b0514ae56e0b134fa4a520eaefe6e075e64b552a9c3e3e8a8e3a554af91`, 1952 bytes, fee 1952 sat, block
+  978377 (read back from a mainnet Electrum server), signed about 2026-11-21 21:58 UTC. Leaf 251 of mainnet epoch 2
+  (`bitcoincash:zz8z4h46lz7kpfr6hqlvzn8usv5fkur29ypakwqp07`, the token-aware form of the same key) received
+  100,000,000,000 token units (1,000 test tokens); the live page then showed 1,000 of 1,000 claimed for that leaf.
+- What Cashonize showed before signing: "Claim 1,000 test reward tokens to bitcoincash:zz8z4h46...", origin "Tuai
+  reward claims", balance change "- 2952 sat" and "+ 100,000,000,000" of the test token category, then Sign or Cancel.
+- Failures on the way, in order: (1) 2026-11-21 21:53 UTC the driver left the page's network selector on chipnet,
+  so the page showed no wallet button for a mainnet address; no pairing happened. The driver now chooses the
+  network. (2) 21:58 UTC the wallet signed and sent the claim, then the page read the chain again and the redraw
+  dropped the transaction id, because on mainnet no relayer card carries it; the driver timed out waiting for it. The
+  claim was found in the wallet's address history and recorded with `--record`; the page now keeps the transaction
+  in its own box after the redraw, with a browser test that fails without the fix (commit `d86d4d5`).
+
+![Cashonize sign dialog for the mainnet claim](img/wallet-cashonize-mainnet-sign.png)
+
+Cashonize's sign dialog for the mainnet claim above, opened by the live page over WizardConnect (Chromium, captured
+2026-11-21 21:58 UTC).
+
+## Wallet disconnect (live)
+
+`scripts/wallet-claim-cashonize.ts --disconnect-check` on chipnet, 2026-11-21 22:23 UTC, against the live page with
+`relay.wallet.livenessSeconds` 30 and `relay.wallet.reconnectGraceSeconds` 20. Cashonize paired for a demo leaf and
+nothing was signed.
+
+- Idle for 60 s (twice the liveness window): the page still showed the wallet connected, with no lost or ended
+  notice.
+- Then the Cashonize page was closed, as a person closing the wallet would. The page said "The wallet ended the
+  connection. Connect again to continue." after 30.3 s, inside the limit of 65 s (liveness + grace + 15 s).
+
+![Claim page after the wallet was closed](img/wallet-disconnect-ended.png)
+
+The live claim page after Cashonize was closed (Chromium, captured 2026-11-21 22:24 UTC).
+
 ## Screenshots
 
 Captured from the live site `https://tuai.sasateguh.com` with Playwright on 2026-11-19 and 2026-11-20 (`docs/img/`). Each caption
