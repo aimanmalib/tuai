@@ -12,6 +12,7 @@ import { checkPrepared, type CheckContext, type PreparedJson } from './wallet-ch
 import { watchBalance, type BalanceWatch } from './wallet-balance-view.ts';
 import { scanWallet, walletForRelay, type ScanResult } from './wallet-scan.ts';
 import { wizardHat } from './wizard-hat.ts';
+import { watchLiveness, type LivenessWatch } from './wallet-liveness.ts';
 import type { WalletSession } from './wizardconnect.ts';
 
 export interface WalletViewOptions {
@@ -24,6 +25,8 @@ export interface WalletViewOptions {
   /** Address discovery limits from config (relay.wallet): gap limit, cap per key path, addresses sent to the relay. */
   scan: { gapLimit: number; maxAddressesPerScan: number; maxAddresses: number };
   relayUrls: string[];
+  /** When a quiet or reconnecting wallet counts as gone (relay.wallet.reconnectGraceSeconds, livenessSeconds). */
+  liveness: { graceMs: number; livenessMs: number };
   timeoutMs: number;
   explorers: readonly Explorer[];
   /** Where the balance chip goes while a wallet is connected (outside the card, so a redraw keeps it). */
@@ -32,11 +35,13 @@ export interface WalletViewOptions {
 }
 
 /** The one open wallet session, kept after a claim so the balance chip can follow it until Disconnect. */
-let open: { session: WalletSession; balance: BalanceWatch | undefined } | undefined;
+let open: { session: WalletSession; balance: BalanceWatch | undefined; live: LivenessWatch } | undefined;
 
 function closeOpen(): void {
   const o = open;
   open = undefined;
+  // The watcher stops first, so closing from this side is not reported as the wallet ending the session.
+  o?.live.stop();
   o?.balance?.stop();
   o?.session.close();
 }
@@ -156,9 +161,15 @@ export function renderWalletClaim(target: HTMLElement, o: WalletViewOptions): vo
     const cancel = el('button', { type: 'button', class: 'small', id: 'wallet-cancel' }, t('walletClaim.cancel'));
     cancel.addEventListener('click', () => abort?.abort());
     say('', t('walletClaim.loading'));
+    const ended = () => say('', el('p', { id: 'wallet-ended' }, t('walletClaim.ended')));
+    // Aborted by Cancel and by the end of the session, so a sign request still open in the wallet is withdrawn.
+    const signAbort = new AbortController();
+    signal.addEventListener('abort', () => signAbort.abort());
     void (async () => {
       let session: WalletSession | undefined;
+      let live: LivenessWatch | undefined;
       let keep = false;
+      let running = true;
       try {
         const { connectWallet } = await import('./wizardconnect.ts');
         session = await connectWallet({
@@ -167,12 +178,25 @@ export function renderWalletClaim(target: HTMLElement, o: WalletViewOptions): vo
           signal,
           onUri: (uri, qrUri) => say('', ...pairing(uri, qrUri, cancel)),
         });
+        const watch = watchLiveness(session.events, o.liveness);
+        live = watch;
+        const lost = el('p', { id: 'wallet-lost' }, t('walletClaim.lost'));
+        watch.onState((state) => (state === 'lost' ? out.prepend(lost) : lost.remove()));
+        const own = session;
+        watch.onClose(() => {
+          signAbort.abort();
+          // While the claim runs, the step waiting on the wallet rejects and the catch below says it ended.
+          if (running) return;
+          if (open?.session === own) closeOpen();
+          ended();
+          start.disabled = false;
+        });
         const name = session.name || t('walletClaim.theWallet');
         say('', t('walletClaim.searching', { wallet: name }), cancel);
-        const found = await searchWallet(session, o);
+        const found = await watch.guard(searchWallet(session, o));
         const change = found.change;
         if (!change || !found.receive) throw new Error(t('walletClaim.noKeys'));
-        const mine: NonNullable<typeof open> = { session, balance: undefined };
+        const mine: NonNullable<typeof open> = { session, balance: undefined, live: watch };
         open = mine;
         mine.balance = watchBalance(o.balance.slot, {
           ...o.balance,
@@ -180,7 +204,6 @@ export function renderWalletClaim(target: HTMLElement, o: WalletViewOptions): vo
           rewardCategory: o.check.rewardCategory,
           onDisconnect: () => open === mine && closeOpen(),
         });
-        session.onClose(() => open === mine && closeOpen());
         if (found.funded.length === 0) {
           // Nothing to spend: say where the page looked and how to claim without a wallet. The relay is not asked.
           const { receive, change: changeCount } = found.scanned;
@@ -189,7 +212,7 @@ export function renderWalletClaim(target: HTMLElement, o: WalletViewOptions): vo
         }
         say('', t('walletClaim.preparing', { wallet: name }), cancel);
         const wallet = walletForRelay(found.funded, change, o.scan.maxAddresses);
-        const p = await prepare(o.preparePath, { address: o.address, change: change.address, wallet: wallet.map((w) => w.address) }, o.timeoutMs);
+        const p = await watch.guard(prepare(o.preparePath, { address: o.address, change: change.address, wallet: wallet.map((w) => w.address) }, o.timeoutMs));
         if (p.code !== 'prepared') {
           const text = t(`walletClaim.code.${CODES.has(p.code) ? p.code : 'unknown'}`, { sats: String(p.needSats ?? '') });
           say('error', text, ...(p.code === 'walletEmpty' || p.code === 'walletShort' ? [withoutWallet()] : []));
@@ -202,7 +225,7 @@ export function renderWalletClaim(target: HTMLElement, o: WalletViewOptions): vo
           return;
         }
         say('', t('walletClaim.approve', { sats: checked.spendSats.toString(), amount: o.amountText }), cancel);
-        const signed = await session.sign(checked.request, checked.inputPaths, signal);
+        const signed = await watch.guard(session.sign(checked.request, checked.inputPaths, signAbort.signal));
         const txid = binToHex(hashTransactionUiOrder(hexToBin(signed)));
         const answer: RelayAnswer = { code: 'claimed', txid };
         showAnswer(out, answer, o.explorers);
@@ -210,12 +233,17 @@ export function renderWalletClaim(target: HTMLElement, o: WalletViewOptions): vo
         mine.balance.refresh();
         o.onSent(answer);
       } catch (e) {
-        say('error', signal.aborted ? t('walletClaim.cancelled') : t('walletClaim.failed', { message: (e as Error).message.slice(0, 200) }));
+        if (live?.ended) ended();
+        else say('error', signal.aborted ? t('walletClaim.cancelled') : t('walletClaim.failed', { message: (e as Error).message.slice(0, 200) }));
       } finally {
+        running = false;
         // After a sent claim the session stays open for the balance chip; otherwise it ends here.
         if (!keep) {
           if (open?.session === session) closeOpen();
-          else session?.close();
+          else {
+            live?.stop();
+            session?.close();
+          }
         }
         start.disabled = false;
       }

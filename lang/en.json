@@ -264,7 +264,9 @@
       "balance": "{bch} BCH",
       "balanceToken": "{amount} test reward tokens",
       "balanceChecked": "Checked {time}",
-      "balanceFailed": "Could not read the balance again: {reason}"
+      "balanceFailed": "Could not read the balance again: {reason}",
+      "lost": "Connection to the wallet lost, waiting for it to come back.",
+      "ended": "The wallet ended the connection. Connect again to continue."
     },
     "hero": {
       "line": "Folders claim their own FLDCH. The operator publishes one root instead of paying hundreds of outputs.",

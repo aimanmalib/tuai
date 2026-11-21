@@ -49,6 +49,10 @@ export interface WalletClaimConfig {
   gapLimit: number;
   /** Most addresses the page derives and looks up on each key path (receive and change) in one search. */
   maxAddressesPerScan: number;
+  /** After the session reports it is reconnecting, how long the page waits for the wallet before it calls the session ended. */
+  reconnectGraceSeconds: number;
+  /** A wallet that has answered a ping and then stays silent this long is treated as gone (the library pings every 10 s). */
+  livenessSeconds: number;
   /** Nostr relays for the WizardConnect session; empty means the library's defaults. */
   relayUrls: string[];
 }
@@ -92,7 +96,7 @@ export function validateWallet(w: WalletClaimConfig | undefined): string[] {
   const out: string[] = [];
   if (typeof w.enabled !== 'boolean') out.push('relay.wallet.enabled must be true or false');
   if (!/^\/api\/relay\/[a-z]+$/.test(w.preparePath ?? '')) out.push('relay.wallet.preparePath must be under /api/relay/');
-  for (const k of ['maxBodyBytes', 'maxAddresses', 'maxSpendSats', 'maxPreparesPerHour', 'gapLimit', 'maxAddressesPerScan'] as const) {
+  for (const k of ['maxBodyBytes', 'maxAddresses', 'maxSpendSats', 'maxPreparesPerHour', 'gapLimit', 'maxAddressesPerScan', 'reconnectGraceSeconds', 'livenessSeconds'] as const) {
     if (!isPositiveInt(w[k])) out.push(`relay.wallet.${k} must be > 0`);
   }
   if (isPositiveInt(w.maxAddresses) && w.maxAddresses < 2) out.push('relay.wallet.maxAddresses must be >= 2 (a funded address and the change address)');
@@ -100,6 +104,9 @@ export function validateWallet(w: WalletClaimConfig | undefined): string[] {
   if (isPositiveInt(w.maxAddressesPerScan) && (w.maxAddressesPerScan > 500 || (isPositiveInt(w.gapLimit) && w.maxAddressesPerScan < w.gapLimit))) {
     out.push('relay.wallet.maxAddressesPerScan must be >= gapLimit and <= 500');
   }
+  if (isPositiveInt(w.reconnectGraceSeconds) && w.reconnectGraceSeconds > 300) out.push('relay.wallet.reconnectGraceSeconds must be 1..300');
+  // The library pings every 10 s, so a shorter window would call a healthy wallet gone between two pings.
+  if (isPositiveInt(w.livenessSeconds) && (w.livenessSeconds < 20 || w.livenessSeconds > 300)) out.push('relay.wallet.livenessSeconds must be 20..300');
   if (!Array.isArray(w.relayUrls) || w.relayUrls.some((u) => typeof u !== 'string' || !u.startsWith('wss://'))) {
     out.push('relay.wallet.relayUrls must list wss:// URLs');
   }

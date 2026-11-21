@@ -38,7 +38,11 @@ export function stubModule(mode: 'pair' | 'connect', pairing: string, table: Rec
   return `
 const T = ${JSON.stringify(table)};
 export function connectWallet(o) {
-  window.__wallet = { closed: 0, end: undefined, derived: 0 };
+  const L = {};
+  // The session manager's events: the test emits them through window.__wallet.emit.
+  const events = { on(e, f) { (L[e] = L[e] || []).push(f); }, off(e, f) { L[e] = (L[e] || []).filter((x) => x !== f); } };
+  const emit = (e, ...a) => (L[e] || []).slice().forEach((f) => f(...a));
+  window.__wallet = { closed: 0, derived: 0, emit, end: () => emit('disconnect') };
   o.onUri(${JSON.stringify(pairing)}, ${JSON.stringify(pairing)});
   return new Promise((resolve, reject) => {
     o.signal.addEventListener('abort', () => reject(new Error('cancelled')));
@@ -46,7 +50,7 @@ export function connectWallet(o) {
     setTimeout(() => resolve({
       name: 'Fake wallet',
       close() { window.__wallet.closed++; },
-      onClose(listener) { window.__wallet.end = listener; },
+      events,
       address(path, index) {
         const w = (T[path] || [])[index];
         if (!w) return undefined;

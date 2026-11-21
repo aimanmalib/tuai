@@ -5,6 +5,7 @@ import { hash160, lockingBytecodeToCashAddress, type CashAddressNetworkPrefix } 
 import { initiateDappRelay } from '@wizardconnect/core';
 import { DappConnectionManager } from '@wizardconnect/dapp';
 import { wireSignRequest, type WalletAddress, type WalletSignRequest } from './wallet-check.ts';
+import type { WalletEvents } from './wallet-liveness.ts';
 import type { KeyPath } from './wallet-scan.ts';
 
 export interface WalletSession {
@@ -14,8 +15,8 @@ export interface WalletSession {
   sign(request: WalletSignRequest, inputPaths: [number, string, number][], signal: AbortSignal): Promise<string>;
   name: string;
   close(): void;
-  /** Called once when the wallet ends the session. */
-  onClose(listener: () => void): void;
+  /** The session manager's events (disconnect, reconnecting, walletready, messagereceived), read by wallet-liveness.ts. */
+  events: WalletEvents;
 }
 
 /** WizardConnect child numbers of the key paths the page uses. */
@@ -47,7 +48,10 @@ export function connectWallet(o: { dappName: string; relayUrls: string[]; onUri:
       resolve({
         name: mgr.walletName ?? '',
         close,
-        onClose: (listener) => mgr.on('disconnect', () => listener()),
+        events: {
+          on: (event, listener) => (mgr as unknown as WalletEvents).on(event, listener),
+          off: (event, listener) => (mgr as unknown as WalletEvents).off(event, listener),
+        },
         address(path, index, prefix) {
           // Derived in the browser from the extended public key the wallet shared, so any index is available.
           const key = mgr.getPubkey(CHILD[path], BigInt(index));

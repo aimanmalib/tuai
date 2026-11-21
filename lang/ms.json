@@ -264,7 +264,9 @@
       "balance": "{bch} BCH",
       "balanceToken": "{amount} token ganjaran ujian",
       "balanceChecked": "Disemak {time}",
-      "balanceFailed": "Baki tidak dapat dibaca semula: {reason}"
+      "balanceFailed": "Baki tidak dapat dibaca semula: {reason}",
+      "lost": "Sambungan kepada dompet terputus, menunggu ia kembali.",
+      "ended": "Dompet menamatkan sambungan. Sambung semula untuk meneruskan."
     },
     "hero": {
       "line": "Pelipat menuntut FLDCH mereka sendiri. Operator menerbitkan satu akar dan tidak perlu membayar ratusan output.",

@@ -196,6 +196,8 @@
       "maxPreparesPerHour": 120,
       "gapLimit": 20,
       "maxAddressesPerScan": 60,
+      "reconnectGraceSeconds": 20,
+      "livenessSeconds": 30,
       "relayUrls": []
     }
   },

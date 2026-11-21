@@ -89,3 +89,24 @@ itself does.
 - Tested in `tests/wallet-scan.test.ts` (coins on the 25th receive address, on the change path, across a gap, behind
   a full gap, the scan cap, a wallet without change keys, token-only coins, batching) and `e2e/wallet-scan.spec.ts`
   (WebKit iPhone 13 and Chromium, a stub wallet and a fake Electrum server).
+
+## Addendum: noticing a lost wallet
+
+The WizardConnect session reports `disconnect` only when the wallet sends a Disconnect message. A wallet that closes
+its app, loses its network or is put away goes silent; the library then pings for up to 75 s and reports
+`reconnecting`, which the page did not listen to, so a claim could wait for a wallet that was gone.
+
+`web/src/wallet-liveness.ts` reads the session manager's own events (no change to the library, no new package) and
+ends the session once, when: (a) the session reports `disconnect`; (b) it reports `reconnecting` and the wallet sends
+nothing within `relay.wallet.reconnectGraceSeconds`; or (c) a wallet that has answered a ping before stays silent for
+`relay.wallet.livenessSeconds` (at least 20, as the library pings every 10 s). A wallet that never answers pings is
+not held to (c), so a wallet without pong support is not dropped by mistake. While the page waits through (b) the
+claim card says the connection was lost; when the wallet speaks again the line goes away. Once the session ends, the
+step waiting on the wallet (address search, prepare, or the sign request, which is also withdrawn from the wallet)
+stops with "The wallet ended the connection. Connect again to continue.", the balance chip goes, and the Connect
+button works again. Closing from the page (Disconnect, Cancel) stops the watcher first, so it is not reported as the
+wallet ending the session.
+
+Tests: `tests/wallet-disconnect.test.ts` (fake session manager and fake timers; the first four cases fail on the
+previous behaviour, where only `disconnect` was heard) and `e2e/wallet-disconnect.spec.ts`, where the page clock jumps
+over the grace period from config instead of a shortened test setting.
