@@ -20,7 +20,7 @@ New project, first commit after the 14 November start: the first commit of this 
 
 - Claim page (chipnet): <https://tuai.sasateguh.com>
 - Every chipnet transaction, with explorer links: <https://tuai.sasateguh.com/#/activity>
-- The mainnet test-token run, checked on chain by the page: <https://tuai.sasateguh.com/#/activity/mainnet>
+- Mainnet: an epoch built from the sponsor's real distributions and a claim signed by Cashonize: <https://tuai.sasateguh.com/#/activity/mainnet>
 - Demo video (68 s, silent): [`docs/video/tuai-demo.mp4`](docs/video/tuai-demo.mp4), also played on the claim page: <https://tuai.sasateguh.com/#demo-video>
 - Proof endpoint: <https://tuai.sasateguh.com/epochs/chipnet/index.json>
 - Slides: <https://tuai.sasateguh.com/deck/tuai-blaze-2026.pdf>, also [`docs/deck.pdf`](docs/deck.pdf) (8 pages)
@@ -58,11 +58,18 @@ A five-minute path through the working system, on chipnet and then mainnet:
    ([`docs/MEASURED.md`](docs/MEASURED.md#chipnet-claims-from-the-page)).
 5. Press **Try to claim again** on the same leaf. The second claim is refused by the contract and by the node, and
    the page shows both messages.
-6. Open <https://tuai.sasateguh.com/#/activity/mainnet>. The same contracts ran once on mainnet with the project's
-   own test token: deploy, a two-of-three proposal, activation after the delay, and four claims by project demo
-   keys, the first `120d69a5ce74746713ee0db362383eddfca2d7c4a290786cabbdfd30828ede32` in block 978066 and three more in
-   block 978157
-   ([`docs/MEASURED.md`](docs/MEASURED.md#mainnet-claim-with-a-test-token)). Mainnet links go to two explorers.
+6. Open <https://tuai.sasateguh.com/#/activity/mainnet>. The same contracts run on mainnet with the project's own
+   test token (no value, not FLDCH). Epoch 2 there is built from the sponsor's real distributions: 370 leaves, 68 of
+   them legacy BTC recipients paid at the same key on BCH. Two operators proposed it in
+   `4016ddabe26701b86d83ba7c5ccf1f83b2eaf72215edb5bf742ac623487a138c` (block 978332) and it was activated after the
+   delay in `7aa982ba5c293ce3ded35c5c7d4a45359492a96586ae378d953421198f720064` (block 978374)
+   ([`docs/MEASURED.md`](docs/MEASURED.md#real-distribution-epoch-mainnet)). Cashonize, paired with the live page
+   over WizardConnect, then claimed its own leaf: `943d2b0514ae56e0b134fa4a520eaefe6e075e64b552a9c3e3e8a8e3a554af91`
+   (block 978377, 1952 bytes); the wallet paid its own fee
+   ([`docs/MEASURED.md`](docs/MEASURED.md#claim-from-a-third-party-wallet-mainnet)). Before that, epoch 1 ran with
+   four claims by project demo keys, the first `120d69a5ce74746713ee0db362383eddfca2d7c4a290786cabbdfd30828ede32` in
+   block 978066 ([`docs/MEASURED.md`](docs/MEASURED.md#mainnet-claim-with-a-test-token)). Mainnet links go to two
+   explorers.
 7. In a clone: `npm ci && npm test` (offline), then
    `npx tsx bin/tuai.ts epoch verify deployments/chipnet/epoch-2.json` to rebuild the published root from its inputs.
 

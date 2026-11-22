@@ -41,7 +41,15 @@ daun penerima itu, jadi sesiapa yang menghantar tuntutan tidak boleh mengalihkan
 3. Tekan **Claim now**. Relayer chipnet membayar yuran; kontrak tetap membayar token hanya ke alamat daun itu.
 4. Tekan **Try to claim again**: tuntutan kedua ditolak oleh kontrak dan nod, dan halaman menunjukkan kedua-dua mesej.
 5. Buka https://tuai.sasateguh.com/#/activity untuk setiap transaksi chipnet, dan
-   https://tuai.sasateguh.com/#/activity/mainnet untuk larian mainnet dengan token ujian projek.
+   https://tuai.sasateguh.com/#/activity/mainnet untuk mainnet. Di mainnet ganjarannya token ujian projek (tiada nilai,
+   bukan FLDCH). Epoch 2 dibina dari agihan sebenar penaja: 370 daun, 68 daripadanya penerima BTC legasi yang dibayar
+   pada kunci yang sama di BCH. Dua operator mencadangkannya dalam
+   `4016ddabe26701b86d83ba7c5ccf1f83b2eaf72215edb5bf742ac623487a138c` (blok 978332) dan ia diaktifkan selepas tempoh
+   tunggu dalam `7aa982ba5c293ce3ded35c5c7d4a45359492a96586ae378d953421198f720064` (blok 978374)
+   ([`docs/MEASURED.md`](docs/MEASURED.md#real-distribution-epoch-mainnet)). Cashonize, dipasangkan dengan halaman hidup
+   melalui WizardConnect, kemudian menuntut daunnya sendiri:
+   `943d2b0514ae56e0b134fa4a520eaefe6e075e64b552a9c3e3e8a8e3a554af91` (blok 978377, 1952 bait); dompet membayar yurannya
+   sendiri ([`docs/MEASURED.md`](docs/MEASURED.md#claim-from-a-third-party-wallet-mainnet)).
 
 ![Claim now di halaman tuntutan, bersama transaksi tuntutan](docs/img/claim-now.png)
 
