@@ -5,7 +5,7 @@
 <p align="center"><a href="https://github.com/aimanmalib/tuai/actions/workflows/test.yml"><img src="https://github.com/aimanmalib/tuai/actions/workflows/test.yml/badge.svg" alt="Ujian Tuai"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/lesen-MIT-173f39" alt="Lesen: MIT"></a> <a href="https://tuai.sasateguh.com"><img src="https://img.shields.io/badge/halaman%20tuntutan-chipnet-173f39" alt="Halaman tuntutan di chipnet"></a> <a href="https://tuai.sasateguh.com/#/activity/mainnet"><img src="https://img.shields.io/badge/mainnet-larian%20token%20ujian-173f39" alt="Larian mainnet dengan token ujian"></a></p>
 
 <p align="center"><b>Tuntutan ganjaran secara tarik untuk FoldingCash: operator menerbitkan satu akar, dan setiap folder menuntut FLDCH sendiri.</b> · <i>Pull-based reward claims for FoldingCash: the operator publishes one root, and each folder claims their own FLDCH.</i><br>
-<a href="https://tuai.sasateguh.com"><b>halaman tuntutan</b></a> · <a href="#cuba-dalam-lima-minit">Cuba</a> · <a href="#jalankan-sendiri">Jalankan</a> · <a href="#ujian">Ujian</a> · <a href="#had">Had</a> · <a href="README.md">English</a><br>
+<a href="https://youtu.be/pfKu-JKrlPU"><b>&#9654;&#xFE0E; video demo, 68 s</b></a> · <a href="https://tuai.sasateguh.com"><b>halaman tuntutan</b></a> · <a href="#cuba-dalam-lima-minit">Cuba</a> · <a href="#jalankan-sendiri">Jalankan</a> · <a href="#ujian">Ujian</a> · <a href="#had">Had</a> · <a href="README.md">English</a><br>
 Dibina di Malaysia oleh <a href="https://aimanmalib.com">Aiman Malib</a> · <a href="https://sasateguh.com">Sasa Teguh</a></p>
 
 Ini ringkasan Bahasa Melayu bagi [README.md](README.md). Spesifikasi, angka ukuran dan setiap txid ada dalam versi
