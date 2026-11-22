@@ -410,6 +410,12 @@ answered ranges from that copy, which Safari on iPhone does not play from. The s
 and the video was remuxed with a title tag to get a new file name, since the old name stays cached at the CDN. The very
 first range request for the new name still got 200 once (the test retried and passed); every request after it got 206.
 
+2026-11-22 08:00 UTC, deploy tag `f57bf81-202611220800` (the updated slides): `e2e/live.spec.ts` on WebKit iPhone 13 and
+Chromium against the public site, 24 passed, 2 flaky that passed on their retry (Chromium: the first byte-range request for
+the video got 200 instead of 206, the known first-request case above; WebKit: the first post to the wallet prepare
+route got an HTML page instead of JSON, right after the relay container restarted). The slides served at
+`/deck/tuai-blaze-2026.pdf` have the same sha256 as `docs/deck.pdf` at that commit (`3a0e1dae274e...`).
+
 ## Claim from a third-party wallet (chipnet)
 
 A claim signed by a wallet this project did not write: Cashonize v0.15.2 (commit
