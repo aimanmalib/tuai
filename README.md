@@ -1,11 +1,11 @@
-<p align="center"><img src="brand/logo.svg" width="96" height="96" alt="Tuai logo: a rice stalk"></p>
+<p align="center"><img src="brand/logo.svg" width="112" height="112" alt="Tuai logo: a rice stalk"></p>
 
 <h1 align="center">Tuai</h1>
 
 <p align="center"><a href="https://github.com/aimanmalib/tuai/actions/workflows/test.yml"><img src="https://github.com/aimanmalib/tuai/actions/workflows/test.yml/badge.svg" alt="Tuai tests"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-173f39" alt="Licence: MIT"></a> <a href="https://tuai.sasateguh.com"><img src="https://img.shields.io/badge/claim%20page-chipnet-173f39" alt="Claim page on chipnet"></a> <a href="https://tuai.sasateguh.com/#/activity/mainnet"><img src="https://img.shields.io/badge/mainnet-test%20token%20run-173f39" alt="Mainnet run with a test token"></a></p>
 
 <p align="center"><b>Pull-based reward claims for FoldingCash: the operator publishes one root, and each folder claims their own FLDCH.</b> · <i>Tuntutan ganjaran secara tarik untuk FoldingCash: operator menerbitkan satu akar, dan setiap folder menuntut FLDCH sendiri.</i><br>
-<a href="https://youtu.be/pfKu-JKrlPU"><b>&#9654;&#xFE0E; demo video, 68 s</b></a> · <a href="https://tuai.sasateguh.com"><b>claim page</b></a> · <a href="#reviewer-guide"><b>Reviewing? Start here</b></a> · <a href="#run-it">Run it</a> · <a href="#tests">Tests</a> · <a href="#known-limits">Limits</a> · <a href="README.ms.md">Bahasa Melayu</a><br>
+<a href="https://youtu.be/pfKu-JKrlPU"><b>&#9654;&#xFE0E; demo video, 68 s</b></a> · <a href="https://tuai.sasateguh.com"><b>live demo</b></a> · <a href="https://tuai.sasateguh.com/deck/tuai-blaze-2026.pdf">slides</a> · <a href="#reviewer-guide"><b>Judging? Start here</b></a> · <a href="#run-it">Run it</a> · <a href="#tests">Tests</a> · <a href="#known-limits">Limits</a> · <a href="README.ms.md">Bahasa Melayu</a><br>
 Built in Malaysia by <a href="https://aimanmalib.com">Aiman Malib</a> · <a href="https://sasateguh.com">Sasa Teguh</a></p>
 
 Entry for **BCH BLAZE 2026**, bounty "Trust-minimized, pull-based reward claims for FoldingCash".
